@@ -10,8 +10,7 @@ paths:
 `/mcp` the MCP server (SDD-023), every other path returns the frontend's `index.html`.
 
 - Same-origin only. No CORS anywhere.
-- Security headers including the CSP come from `SecurityHeadersMiddleware`. Changing an inline
-  script in `index.html` changes the CSP, which names its hash.
+- Security headers including the CSP come from `SecurityHeadersMiddleware`.
 - Rate limiting covers `/api/auth/**` and the client log upload, nothing else. `UseRateLimiter`
   stays after `UseForwardedHeaders` and before `UseAuthentication`.
 - Health responses carry no description or exception detail; `/health/live` checks no dependency.
