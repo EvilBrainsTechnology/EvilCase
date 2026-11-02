@@ -226,36 +226,6 @@ public class FileSignerVerifierTests : TenantFixture
     }
 
     [Test]
-    public async Task ConcurrentReadsOfOneFileShareOneVerification()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
-        var signed = this.Sign(Pdf, detached: false);
-        var gate = new TaskCompletionSource();
-        var reading = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        this.blobs.ReadFileBlob(signature.Versions.Single().StoragePath).Returns(_ => new GatedStream(signed, gate.Task, reading));
-        var revocation = new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked);
-        var verifier = this.Verifier(revocation);
-
-        var first = verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
-
-        // The second read starts once the first is past the database, which one context serves one query at a time; it
-        // joins the flight or, where the first already finished, reads the cached verdict.
-        await reading.Task;
-        var second = verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
-        gate.SetResult();
-        await Task.WhenAll(first, second);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That((await first)?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
-            Assert.That((await second)?.Signers.Single().State, Is.EqualTo(FileSignatureState.Valid));
-            Assert.That(revocation.Checks, Is.EqualTo(1), "two reads in flight share one verification");
-            this.blobs.Received(1).ReadFileBlob(signature.Versions.Single().StoragePath);
-        }
-    }
-
-    [Test]
     public async Task AFileOfAnotherTenantIsNotFound()
     {
         await using var other = await TestTenant.Create();

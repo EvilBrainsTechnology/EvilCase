@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
@@ -22,8 +21,6 @@ internal sealed class FileSignerVerifier(
     private static readonly TimeSpan ValidLifetime = TimeSpan.FromHours(1);
 
     private static readonly TimeSpan InvalidLifetime = TimeSpan.FromHours(24);
-
-    private static readonly ConcurrentDictionary<(Guid, Guid?), Lazy<Task<FileSignersResponse?>>> InFlight = new();
 
     public async Task<FileSignersResponse?> VerifyFileSigners(Guid fileId, int? version, CancellationToken token)
     {
@@ -59,14 +56,23 @@ internal sealed class FileSignerVerifier(
         if (cache.TryGetValue(CacheKey(key), out FileSignersResponse? cached))
             return cached;
 
-        // Concurrent reads of one pair share one verification; it outlives a caller that gives up.
-        var flight = InFlight.GetOrAdd(
-            key,
-            static (pair, verification) => new Lazy<Task<FileSignersResponse?>>(
-                async () => await verification.Verifier.VerifyFile(pair, verification.FileAssetId, verification.StoragePath, verification.SignedVersion, verification.SignedFile, verification.PairingProblem)),
-            (Verifier: this, FileAssetId: file.Id, fileVersion.StoragePath, SignedVersion: signedVersion, SignedFile: signedFile, PairingProblem: pairingProblem));
+        var response = await this.ReadAndVerify(fileVersion.StoragePath, signedVersion, signedFile, pairingProblem, token);
+        if (response is null)
+            return null;
 
-        return await flight.Value.WaitAsync(token);
+        var verdicts = response.Problem?.ToString()
+            ?? string.Join(", ", response.Signers.Select(static signer => signer.Problem is { } problem ? $"{signer.State} {problem}" : $"{signer.State}"));
+
+        logger.LogInformation("Signers of file {FileAssetId} verified against file {SignedFileAssetId} as {SignerVerdicts}", file.Id, signedFile?.FileId, verdicts);
+
+        // An unverifiable signer is asked for again on the next read.
+        if (!response.Signers.Any(static signer => signer.State == FileSignatureState.Unverifiable))
+        {
+            var lifetime = response.Signers.Any(static signer => signer.State == FileSignatureState.Valid) ? ValidLifetime : InvalidLifetime;
+            cache.Set(CacheKey(key), response, lifetime);
+        }
+
+        return response;
     }
 
     private static (string, (Guid, Guid?)) CacheKey((Guid, Guid?) key)
@@ -74,49 +80,15 @@ internal sealed class FileSignerVerifier(
         return (nameof(FileSignerVerifier), key);
     }
 
-    private async Task<FileSignersResponse?> VerifyFile(
-        (Guid, Guid?) key,
-        Guid fileAssetId,
-        string storagePath,
-        FileVersion? signedVersion,
-        FileListItem? signedFile,
-        DetachedSignatureProblem? pairingProblem)
-    {
-        try
-        {
-            var response = await this.ReadAndVerify(storagePath, signedVersion, signedFile, pairingProblem);
-            if (response is null)
-                return null;
-
-            var verdicts = response.Problem?.ToString()
-                ?? string.Join(", ", response.Signers.Select(static signer => signer.Problem is { } problem ? $"{signer.State} {problem}" : $"{signer.State}"));
-
-            logger.LogInformation("Signers of file {FileAssetId} verified against file {SignedFileAssetId} as {SignerVerdicts}", fileAssetId, signedFile?.FileId, verdicts);
-
-            // An unverifiable signer is asked for again on the next read.
-            if (!response.Signers.Any(static signer => signer.State == FileSignatureState.Unverifiable))
-            {
-                var lifetime = response.Signers.Any(static signer => signer.State == FileSignatureState.Valid) ? ValidLifetime : InvalidLifetime;
-                cache.Set(CacheKey(key), response, lifetime);
-            }
-
-            return response;
-        }
-        finally
-        {
-            // A finished verification leaves, so the next read of an unverifiable file asks again.
-            InFlight.TryRemove(key, out _);
-        }
-    }
-
-    private async Task<FileSignersResponse?> ReadAndVerify(string storagePath, FileVersion? signedVersion, FileListItem? signedFile, DetachedSignatureProblem? pairingProblem)
+    private async Task<FileSignersResponse?> ReadAndVerify(
+        string storagePath, FileVersion? signedVersion, FileListItem? signedFile, DetachedSignatureProblem? pairingProblem, CancellationToken token)
     {
         await using var content = blobStore.ReadFileBlob(storagePath);
         if (content is null)
             return null;
 
         await using var buffer = new MemoryStream();
-        await content.CopyToAsync(buffer, CancellationToken.None);
+        await content.CopyToAsync(buffer, token);
 
         var cms = buffer.GetBuffer().AsMemory(0, (int)buffer.Length);
         var now = timeProvider.GetUtcNow().UtcDateTime;
@@ -141,7 +113,7 @@ internal sealed class FileSignerVerifier(
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileMissing) with { SignedFileProblem = DetachedSignatureProblem.Missing };
 
         await using var signedBuffer = new MemoryStream();
-        await signedContent.CopyToAsync(signedBuffer, CancellationToken.None);
+        await signedContent.CopyToAsync(signedBuffer, token);
 
         return SignedFileSignature.Verify(cms.Span, signedBuffer.ToArray(), trust, revocation, now) with { SignedFile = signedFile };
     }
