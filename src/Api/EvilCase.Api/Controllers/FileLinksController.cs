@@ -84,7 +84,7 @@ public class FileLinksController : ControllerBase
         return link.Kind switch
         {
             FileLinkKind.CaseUpload => this.Answer(await writer.UploadCaseFile(link.TargetId, upload, token), CaseProblems.NotFound),
-            FileLinkKind.ActUpload => this.Answer(await writer.UploadActFile(link.TargetId, upload, token), ActProblems.ActNotFound),
+            FileLinkKind.ActUpload => this.Answer(await writer.UploadActFile(link.TargetId, upload, token), ActProblems.NotFound),
             FileLinkKind.VersionUpload => this.Answer(await writer.UploadFileVersion(link.TargetId, upload, token)),
             FileLinkKind.Download => throw new UnreachableException(),
             _ => throw new UnreachableException(),

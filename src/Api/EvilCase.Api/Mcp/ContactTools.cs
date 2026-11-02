@@ -68,7 +68,7 @@ internal static class ContactTools
         {
             ContactDeleteOutcome.Deleted => "The contact was deleted.",
             ContactDeleteOutcome.NotFound => throw McpProblem.Of(ContactProblems.NotFound),
-            ContactDeleteOutcome.Referenced => throw McpProblem.Of("Contact in use", "The contact is named by a case or an act."),
+            ContactDeleteOutcome.Referenced => throw McpProblem.Of(ContactProblems.InUse, ContactProblems.InUseDetail),
             _ => throw new UnreachableException(),
         };
     }

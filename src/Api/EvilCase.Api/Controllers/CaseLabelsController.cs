@@ -28,7 +28,7 @@ public class CaseLabelsController : ControllerBase
             LabelAssignmentOutcome.Assigned => this.NoContent(),
             LabelAssignmentOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             LabelAssignmentOutcome.LabelNotFound => this.Problem(
-                detail: "A label named in the request does not exist.",
+                detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),

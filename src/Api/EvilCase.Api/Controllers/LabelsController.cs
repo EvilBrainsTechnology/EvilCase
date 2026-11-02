@@ -73,6 +73,6 @@ public class LabelsController : ControllerBase
 
     private ActionResult NameTakenProblem()
     {
-        return this.Problem(detail: "Another label already carries the name.", statusCode: StatusCodes.Status409Conflict, title: LabelProblems.NameTaken);
+        return this.Problem(detail: LabelProblems.NameTakenDetail, statusCode: StatusCodes.Status409Conflict, title: LabelProblems.NameTaken);
     }
 }

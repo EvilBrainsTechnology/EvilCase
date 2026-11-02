@@ -39,13 +39,13 @@ public class CasesController : ControllerBase
         {
             CaseCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = result.Case!.CaseId }, result.Case),
             CaseCreateOutcome.InvalidParent => this.Problem(
-                detail: "The parent case does not exist.", statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent),
+                detail: CaseProblems.ParentNotFoundDetail, statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent),
             CaseCreateOutcome.ContactNotFound => this.Problem(
-                detail: "The contact named in the request does not exist.",
+                detail: ContactProblems.UnknownContactDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
             CaseCreateOutcome.LabelNotFound => this.Problem(
-                detail: "A label named in the request does not exist.",
+                detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
@@ -78,18 +78,18 @@ public class CasesController : ControllerBase
             CaseUpdateOutcome.Updated => this.NoContent(),
             CaseUpdateOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
             CaseUpdateOutcome.CaseNumberTaken => this.Problem(
-                detail: "Another case already carries the number.", statusCode: StatusCodes.Status409Conflict, title: "Case number taken"),
+                detail: CaseProblems.NumberTakenDetail, statusCode: StatusCodes.Status409Conflict, title: CaseProblems.NumberTaken),
             CaseUpdateOutcome.InvalidCaseNumber => this.InvalidCaseNumberProblem(),
             CaseUpdateOutcome.InvalidParent => this.Problem(
-                detail: "The parent case must exist and must be neither the case itself nor one of its subordinates.",
+                detail: CaseProblems.InvalidParentDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: CaseProblems.InvalidParent),
             CaseUpdateOutcome.ContactNotFound => this.Problem(
-                detail: "The contact named in the request does not exist.",
+                detail: ContactProblems.UnknownContactDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
             CaseUpdateOutcome.LabelNotFound => this.Problem(
-                detail: "A label named in the request does not exist.",
+                detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),
             _ => throw new UnreachableException(),
@@ -113,7 +113,7 @@ public class CasesController : ControllerBase
 
     private ActionResult InvalidCaseNumberProblem()
     {
-        this.ModelState.AddModelError(nameof(CaseEditRequest.CaseNumber), "The case number must read EC/yyyyMMdd-nnn.");
+        this.ModelState.AddModelError(nameof(CaseEditRequest.CaseNumber), CaseProblems.InvalidNumberDetail);
 
         return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
     }

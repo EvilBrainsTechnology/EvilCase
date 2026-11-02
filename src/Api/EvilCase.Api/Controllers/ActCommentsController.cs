@@ -22,7 +22,7 @@ public class ActCommentsController : ControllerBase
         var items = await comments.ListActComments(actId, token);
 
         return items is null
-            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound)
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound)
             : this.Ok(new CommentListResponse { Items = items });
     }
 
@@ -38,7 +38,7 @@ public class ActCommentsController : ControllerBase
         return outcome switch
         {
             CommentWriteOutcome.Written => this.NoContent(),
-            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            CommentWriteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
             CommentWriteOutcome.NotAuthor => throw new UnreachableException(),
             _ => throw new UnreachableException(),
         };

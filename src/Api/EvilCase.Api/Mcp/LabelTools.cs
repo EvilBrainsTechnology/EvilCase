@@ -28,7 +28,7 @@ internal static class LabelTools
         return result.Outcome switch
         {
             LabelCreateOutcome.Created => result.Label!,
-            LabelCreateOutcome.NameTaken => throw McpProblem.Of(LabelProblems.NameTaken, "Another label already carries the name."),
+            LabelCreateOutcome.NameTaken => throw McpProblem.Of(LabelProblems.NameTaken, LabelProblems.NameTakenDetail),
             _ => throw new UnreachableException(),
         };
     }
@@ -46,7 +46,7 @@ internal static class LabelTools
         {
             LabelUpdateOutcome.Updated => "The label was updated.",
             LabelUpdateOutcome.NotFound => throw McpProblem.Of(LabelProblems.NotFound),
-            LabelUpdateOutcome.NameTaken => throw McpProblem.Of(LabelProblems.NameTaken, "Another label already carries the name."),
+            LabelUpdateOutcome.NameTaken => throw McpProblem.Of(LabelProblems.NameTaken, LabelProblems.NameTakenDetail),
             _ => throw new UnreachableException(),
         };
     }

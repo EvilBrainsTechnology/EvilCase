@@ -26,7 +26,7 @@ internal static class CommentTools
     [Description("Lists the comments of an act, oldest first; isAuthor says which ones the token's user wrote.")]
     public static async Task<CommentListResponse> ListActComments(ICommentReader comments, [Description("The act.")] Guid actId, CancellationToken token)
     {
-        var items = await comments.ListActComments(actId, token) ?? throw McpProblem.Of(ActProblems.ActNotFound);
+        var items = await comments.ListActComments(actId, token) ?? throw McpProblem.Of(ActProblems.NotFound);
 
         return new CommentListResponse { Items = items };
     }
@@ -61,7 +61,7 @@ internal static class CommentTools
         return outcome switch
         {
             CommentWriteOutcome.Written => Written,
-            CommentWriteOutcome.NotFound => throw McpProblem.Of(ActProblems.ActNotFound),
+            CommentWriteOutcome.NotFound => throw McpProblem.Of(ActProblems.NotFound),
             CommentWriteOutcome.NotAuthor => throw new UnreachableException(),
             _ => throw new UnreachableException(),
         };
@@ -116,8 +116,8 @@ internal static class CommentTools
         return outcome switch
         {
             CommentWriteOutcome.Written => Written,
-            CommentWriteOutcome.NotFound => throw McpProblem.Of("Comment not found"),
-            CommentWriteOutcome.NotAuthor => throw McpProblem.Of("Not the author", "Only the author edits or deletes a comment."),
+            CommentWriteOutcome.NotFound => throw McpProblem.Of(CommentProblems.NotFound),
+            CommentWriteOutcome.NotAuthor => throw McpProblem.Of(CommentProblems.NotAuthor, CommentProblems.NotAuthorDetail),
             _ => throw new UnreachableException(),
         };
     }

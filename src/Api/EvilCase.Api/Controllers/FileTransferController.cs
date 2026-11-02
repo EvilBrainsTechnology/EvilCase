@@ -67,7 +67,7 @@ public class FileTransferController : ControllerBase
         {
             UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
             UploadFileOutcome.Unchanged => this.Ok(result.File),
-            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound),
+            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -148,7 +148,7 @@ public class FileTransferController : ControllerBase
         var archive = await archives.ReadActFileArchive(actId, includeVersions, token);
 
         if (archive is null)
-            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.ActNotFound);
+            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound);
 
         await this.SendFileArchive(archives, logger, archive, token);
 

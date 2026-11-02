@@ -53,9 +53,9 @@ internal static class CaseTools
         return result.Outcome switch
         {
             CaseCreateOutcome.Created => result.Case!,
-            CaseCreateOutcome.InvalidParent => throw McpProblem.Of(CaseProblems.InvalidParent, "The parent case does not exist."),
-            CaseCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, "The contact named in the request does not exist."),
-            CaseCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
+            CaseCreateOutcome.InvalidParent => throw McpProblem.Of(CaseProblems.InvalidParent, CaseProblems.ParentNotFoundDetail),
+            CaseCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
+            CaseCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }
@@ -76,12 +76,12 @@ internal static class CaseTools
         {
             CaseUpdateOutcome.Updated => "The case was updated.",
             CaseUpdateOutcome.NotFound => throw McpProblem.Of(CaseProblems.NotFound),
-            CaseUpdateOutcome.CaseNumberTaken => throw McpProblem.Of("Case number taken", "Another case already carries the number."),
-            CaseUpdateOutcome.InvalidCaseNumber => throw McpProblem.Of("One or more validation errors occurred.", "CaseNumber: The case number must read EC/yyyyMMdd-nnn."),
+            CaseUpdateOutcome.CaseNumberTaken => throw McpProblem.Of(CaseProblems.NumberTaken, CaseProblems.NumberTakenDetail),
+            CaseUpdateOutcome.InvalidCaseNumber => throw McpProblem.Of(McpProblem.ValidationTitle, $"{nameof(CaseEditRequest.CaseNumber)}: {CaseProblems.InvalidNumberDetail}"),
             CaseUpdateOutcome.InvalidParent => throw McpProblem.Of(
-                CaseProblems.InvalidParent, "The parent case must exist and must be neither the case itself nor one of its subordinates."),
-            CaseUpdateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, "The contact named in the request does not exist."),
-            CaseUpdateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
+                CaseProblems.InvalidParent, CaseProblems.InvalidParentDetail),
+            CaseUpdateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
+            CaseUpdateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }
@@ -111,7 +111,7 @@ internal static class CaseTools
         {
             LabelAssignmentOutcome.Assigned => "The labels of the case were set.",
             LabelAssignmentOutcome.OwnerNotFound => throw McpProblem.Of(CaseProblems.NotFound),
-            LabelAssignmentOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
+            LabelAssignmentOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }
