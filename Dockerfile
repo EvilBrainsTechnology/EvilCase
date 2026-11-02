@@ -18,6 +18,7 @@ RUN find /projects -type f \
 FROM node:22-alpine AS libs
 WORKDIR /libs
 COPY src/App/EvilCase.App/package.json src/App/EvilCase.App/package-lock.json src/App/EvilCase.App/build-libs.mjs ./
+COPY src/App/EvilCase.App/lib-src/ ./lib-src/
 RUN npm ci --ignore-scripts --no-audit --no-fund \
     && node build-libs.mjs
 
