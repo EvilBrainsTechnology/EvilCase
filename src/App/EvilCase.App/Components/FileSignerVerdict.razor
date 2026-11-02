@@ -22,7 +22,7 @@
                 <dd>@FileSignerDisplay.ValidCertificate(this.Signer)</dd>
                 @this.SignedAt
                 <dt>Odvolání</dt>
-                <dd>neodvolán, ověřeno @(this.Signer.RevocationChecked is { } checkedAt ? MomentDisplay.Text(checkedAt) : "—")</dd>
+                <dd>neodvolán, ověřeno @MomentDisplay.Text(this.Signer.RevocationChecked)</dd>
             </dl>
             @if (this.Signer.Timestamped is null)
             {

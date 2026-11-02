@@ -370,18 +370,18 @@
                         <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @stagedName">
                             <dl class="ec-preview-email-headers">
                                 <dt>Od</dt>
-                                <dd>@Or(message.From)</dd>
+                                <dd>@TextDisplay.OrDash(message.From)</dd>
                                 <dt>Komu</dt>
-                                <dd>@Or(string.Join(", ", message.To))</dd>
+                                <dd>@TextDisplay.OrDash(string.Join(", ", message.To))</dd>
                                 @if (message.Cc.Count > 0)
                                 {
                                     <dt>Kopie</dt>
                                     <dd>@string.Join(", ", message.Cc)</dd>
                                 }
                                 <dt>Předmět</dt>
-                                <dd>@Or(message.Subject)</dd>
+                                <dd>@TextDisplay.OrDash(message.Subject)</dd>
                                 <dt>Datum</dt>
-                                <dd>@Moment(message.Date)</dd>
+                                <dd>@MomentDisplay.Text(message.Date?.UtcDateTime)</dd>
                             </dl>
                             @if (message.Truncated)
                             {
@@ -1630,11 +1630,6 @@
         </text>;
     }
 
-    private static string Moment(DateTimeOffset? moment)
-    {
-        return moment is { } value ? MomentDisplay.Text(value.UtcDateTime) : "—";
-    }
-
     private static string LanguageName(CodeLanguage language)
     {
         return language switch
@@ -1663,11 +1658,6 @@
             name = (char)('A' + (number - 1) % 26) + name;
 
         return name;
-    }
-
-    private static string Or(string text)
-    {
-        return text.Length == 0 ? "—" : text;
     }
 
     private async Task ReleaseUrl()

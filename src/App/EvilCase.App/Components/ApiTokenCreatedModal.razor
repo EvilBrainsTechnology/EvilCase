@@ -12,7 +12,7 @@
             </div>
 
             <EcField Label="@this.Created.Token.Name" ControlId="api-token-secret"
-                     Hint="@($"{ApiTokenDisplay.ScopeText(this.Created.Token.Scope)} · platí do {ApiTokenDisplay.DayText(this.Created.Token.Expires)}")">
+                     Hint="@($"{ApiTokenDisplay.ScopeText(this.Created.Token.Scope)} · platí do {DateDisplay.Day(this.Created.Token.Expires)}")">
                 <div class="ec-token-secret">
                     <input id="api-token-secret" class="ec-input ec-input-mono" readonly value="@this.Created.Secret" />
                     <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@(this.copied ? AppIcons.Check : AppIcons.Copy)"

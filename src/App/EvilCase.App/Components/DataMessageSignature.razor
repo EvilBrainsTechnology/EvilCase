@@ -43,12 +43,12 @@
                 <dt>Certifikát</dt>
                 <dd>
                     PostSignum, platný k času razítka
-                    <span class="ec-signature-note">@valid.CertificateIssuer, @Day(valid.CertificateValidFrom) – @Day(valid.CertificateValidTo)</span>
+                    <span class="ec-signature-note">@valid.CertificateIssuer, @DateDisplay.Day(valid.CertificateValidFrom) – @DateDisplay.Day(valid.CertificateValidTo)</span>
                 </dd>
                 <dt>Časové razítko</dt>
-                <dd>@Moment(valid.Timestamped)</dd>
+                <dd>@MomentDisplay.Text(valid.Timestamped)</dd>
                 <dt>Odvolání</dt>
-                <dd>neodvolán, ověřeno @Moment(valid.RevocationChecked)</dd>
+                <dd>neodvolán, ověřeno @MomentDisplay.Text(valid.RevocationChecked)</dd>
             </dl>
         }
         else if (this.signature is { State: FileSignatureState.Invalid, Problem: { } problem })
@@ -128,15 +128,5 @@
                 _ => throw new UnreachableException(),
             };
         }
-    }
-
-    private static string Day(DateTime? moment)
-    {
-        return moment is { } value ? DateDisplay.Text(DateOnly.FromDateTime(value.ToLocalTime())) : "—";
-    }
-
-    private static string Moment(DateTime? moment)
-    {
-        return moment is { } value ? MomentDisplay.Text(value) : "—";
     }
 }

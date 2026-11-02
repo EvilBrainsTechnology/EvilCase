@@ -33,7 +33,7 @@
                     }
                 </fieldset>
 
-                <EcField Label="Platnost" Hint="@($"Platí do {ApiTokenDisplay.DayText(DateTime.UtcNow.AddDays(this.model.ExpiresInDays))}")">
+                <EcField Label="Platnost" Hint="@($"Platí do {DateDisplay.Day(DateTime.UtcNow.AddDays(this.model.ExpiresInDays))}")">
                     <div class="ec-segmented ec-segmented-inline" role="group" aria-label="Platnost tokenu">
                         @foreach (var days in ApiTokenLimits.LifetimeDays)
                         {

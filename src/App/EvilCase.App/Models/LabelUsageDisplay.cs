@@ -32,10 +32,10 @@ public static class LabelUsageDisplay
         List<string> parts = [];
 
         if (caseCount > 0)
-            parts.Add($"{caseCount.ToString(CultureInfo.InvariantCulture)} {Plural(caseCount, "spis", "spisy", "spisů")}");
+            parts.Add(Plural.Text(caseCount, "spis", "spisy", "spisů"));
 
         if (actCount > 0)
-            parts.Add($"{actCount.ToString(CultureInfo.InvariantCulture)} {Plural(actCount, "úkon", "úkony", "úkonů")}");
+            parts.Add(Plural.Text(actCount, "úkon", "úkony", "úkonů"));
 
         return parts;
     }
@@ -49,15 +49,5 @@ public static class LabelUsageDisplay
             return caseCount == 1 ? "spis tím nezaniká" : "spisy tím nezanikají";
 
         return actCount == 1 ? "úkon tím nezaniká" : "úkony tím nezanikají";
-    }
-
-    private static string Plural(int count, string one, string few, string many)
-    {
-        return count switch
-        {
-            1 => one,
-            >= 2 and <= 4 => few,
-            _ => many,
-        };
     }
 }

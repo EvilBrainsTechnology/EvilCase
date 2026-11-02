@@ -8,7 +8,7 @@
         <Trigger>
             <span class="ec-preview-versions-trigger">
                 <span class="ec-visually-hidden">@this.ShownName: </span>
-                <span class="ec-text-compare-version-title">Verze @this.Selected.Number<span class="ec-text-compare-version-day"> · @Day(this.Selected.Created)</span></span>
+                <span class="ec-text-compare-version-title">Verze @this.Selected.Number<span class="ec-text-compare-version-day"> · @DateDisplay.Day(this.Selected.Created)</span></span>
                 @if (this.Selected.Number == this.CurrentNumber)
                 {
                     <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" />
@@ -81,10 +81,5 @@
     {
         await this.popover!.CloseToTrigger();
         await this.OnPick.InvokeAsync(number);
-    }
-
-    private static string Day(DateTime created)
-    {
-        return DateDisplay.Text(DateOnly.FromDateTime(created.ToLocalTime()));
     }
 }

@@ -121,7 +121,7 @@
                     </a>
                     <p class="ec-case-meta">
                         <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(this.Detail.CaseStatus)}")" aria-hidden="true"></span>
-                        @CaseStatusDisplay.Text(this.Detail.CaseStatus) <span class="ec-sep" aria-hidden="true">·</span> @ActCountDisplay.Text(this.Detail.CaseActCount)
+                        @CaseStatusDisplay.Text(this.Detail.CaseStatus) <span class="ec-sep" aria-hidden="true">·</span> @Plural.Text(this.Detail.CaseActCount, "úkon", "úkony", "úkonů")
                     </p>
                     <div class="ec-case-contact">
                         <span class="ec-case-contact-label">Protistrana spisu</span>
@@ -196,7 +196,7 @@
                         </ol>
                     </ChildContent>
                     <Footer>
-                        <a class="ec-timeline-all" href="@($"/cases/{this.Detail.CaseId}")">@ActCountDisplay.AllText(this.Detail.CaseActCount)<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" /></a>
+                        <a class="ec-timeline-all" href="@($"/cases/{this.Detail.CaseId}")">@AllActsText(this.Detail.CaseActCount)<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" /></a>
                     </Footer>
                 </EcCard>
             </aside>
@@ -289,6 +289,14 @@
     private void EditAct()
     {
         this.Navigation.NavigateTo($"/acts/{this.ActId}/edit");
+    }
+
+    // The link from an act to its whole case.
+    private static string AllActsText(int count)
+    {
+        var text = NumberDisplay.Text(count);
+
+        return Plural.Form(count, "Všechny úkony spisu", $"Všechny {text} úkony spisu", $"Všech {text} úkonů spisu");
     }
 
     private void OpenNewAct()
