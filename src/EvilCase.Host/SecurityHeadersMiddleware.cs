@@ -1,3 +1,5 @@
+using EvilBrains.EvilCase.Api.Contract.Files;
+
 namespace EvilBrains.EvilCase.Host;
 
 internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
@@ -53,7 +55,8 @@ internal sealed class SecurityHeadersMiddleware(RequestDelegate next)
     // Routing ignores a trailing slash, so the match does too.
     private static bool IsFileContent(PathString path)
     {
-        return path.StartsWithSegments("/api/files", StringComparison.OrdinalIgnoreCase)
-            && path.Value!.TrimEnd('/').EndsWith("/content", StringComparison.OrdinalIgnoreCase);
+        return path.StartsWithSegments(FileLinkRoute.Path, StringComparison.OrdinalIgnoreCase)
+            || (path.StartsWithSegments("/api/files", StringComparison.OrdinalIgnoreCase)
+                && path.Value!.TrimEnd('/').EndsWith("/content", StringComparison.OrdinalIgnoreCase));
     }
 }
