@@ -246,8 +246,8 @@
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
-            this.error = exception.ResponseBody?.Contains(ContactProblems.UnknownContact, StringComparison.Ordinal) == true
-                ? "Vybraný kontakt už neexistuje. Vyberte jiný."
+            this.error = ReferenceConflict.NamesUnknownContactOrLabel(exception)
+                ? "Vybraný kontakt nebo štítek už neexistuje."
                 : "Číslo jednací už nese jiný úkon. Zvolte jiné.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)

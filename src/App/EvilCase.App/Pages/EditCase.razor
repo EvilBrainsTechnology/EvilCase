@@ -232,7 +232,9 @@
         {
             this.error = exception.ResponseBody?.Contains(CaseProblems.InvalidParent, StringComparison.Ordinal) == true
                 ? "Nadřízeným spisem nemůže být tento spis ani spis, který je mu podřízený."
-                : "Spisovou značku už nese jiný spis. Zvolte jinou.";
+                : ReferenceConflict.NamesUnknownContactOrLabel(exception)
+                    ? "Vybraný kontakt nebo štítek už neexistuje."
+                    : "Spisovou značku už nese jiný spis. Zvolte jinou.";
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.BadRequest)
         {
