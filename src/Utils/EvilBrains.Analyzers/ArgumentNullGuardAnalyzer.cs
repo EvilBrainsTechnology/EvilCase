@@ -44,10 +44,14 @@ public sealed class ArgumentNullGuardAnalyzer : DiagnosticAnalyzer
         context.ReportDiagnostic(Diagnostic.Create(GuardsNonNullable, invocation.Syntax.GetLocation(), parameter.Name));
     }
 
-    private static bool IsThrowIfNull(IMethodSymbol method) =>
-        string.Equals(method.Name, "ThrowIfNull", StringComparison.Ordinal)
+    private static bool IsThrowIfNull(IMethodSymbol method)
+    {
+        return string.Equals(method.Name, "ThrowIfNull", StringComparison.Ordinal)
             && string.Equals(method.ContainingType?.ToDisplayString(), "System.ArgumentNullException", StringComparison.Ordinal);
+    }
 
-    private static IOperation Unwrap(IOperation operation) =>
-        operation is IConversionOperation conversion ? Unwrap(conversion.Operand) : operation;
+    private static IOperation Unwrap(IOperation operation)
+    {
+        return operation is IConversionOperation conversion ? Unwrap(conversion.Operand) : operation;
+    }
 }

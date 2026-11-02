@@ -9,7 +9,7 @@ namespace EvilBrains.Logging.AspNetCore;
 /// <summary>
 /// The entry is untrusted: the template is the allow-list of properties, and the event time is the server clock.
 /// </summary>
-internal sealed class ClientLogWriter : IClientLogWriter
+internal sealed class ClientLogWriter(Serilog.ILogger logger, string sourceContext) : IClientLogWriter
 {
     private const int MaxAlignmentWidth = 64;
 
@@ -17,14 +17,7 @@ internal sealed class ClientLogWriter : IClientLogWriter
 
     private static readonly MessageTemplate FallbackTemplate = Parser.Parse("{ClientMessage:l}");
 
-    private readonly Serilog.ILogger logger;
-
-    public ClientLogWriter(Serilog.ILogger logger, string sourceContext)
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(sourceContext);
-
-        this.logger = logger.ForContext(Constants.SourceContextPropertyName, sourceContext);
-    }
+    private readonly Serilog.ILogger logger = logger.ForContext(Constants.SourceContextPropertyName, sourceContext);
 
     public void Write(ClientLogEntry entry)
     {
@@ -126,6 +119,8 @@ internal sealed class ClientLogWriter : IClientLogWriter
             ClientLogLevel.Warning => LogEventLevel.Warning,
             ClientLogLevel.Error => LogEventLevel.Error,
             ClientLogLevel.Fatal => LogEventLevel.Fatal,
+
+            // The level is browser input, so a value outside the enum is not unreachable.
             _ => LogEventLevel.Information,
         };
     }
