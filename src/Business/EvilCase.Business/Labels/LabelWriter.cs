@@ -1,6 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Business.Entities;
-using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -21,16 +20,7 @@ internal sealed class LabelWriter(IDbSession dbSession, ILogger<LabelWriter> log
         var label = new Label { Name = name, Color = request.Color };
 
         context.Labels.Add(label);
-
-        try
-        {
-            await context.SaveChangesAsync(token);
-        }
-        catch (DbUpdateException exception) when (exception.IsUniqueViolation())
-        {
-            // The name was taken between the check above and this save.
-            return new LabelCreateResult { Outcome = LabelCreateOutcome.NameTaken };
-        }
+        await context.SaveChangesAsync(token);
 
         logger.LogInformation("Label {LabelId} was created", label.Id);
 
@@ -52,23 +42,13 @@ internal sealed class LabelWriter(IDbSession dbSession, ILogger<LabelWriter> log
         if (await context.Labels.WithNameHeldByAnother(name, labelId).AnyAsync(token))
             return LabelUpdateOutcome.NameTaken;
 
-        int rows;
-
-        try
-        {
-            rows = await context.Labels
-                .WithId(labelId)
-                .ExecuteUpdateAsync(
-                    setters => setters
-                        .SetProperty(static label => label.Name, name)
-                        .SetProperty(static label => label.Color, request.Color),
-                    token);
-        }
-        catch (DbUpdateException exception) when (exception.IsUniqueViolation())
-        {
-            // The name was taken between the check above and this update.
-            return LabelUpdateOutcome.NameTaken;
-        }
+        var rows = await context.Labels
+            .WithId(labelId)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(static label => label.Name, name)
+                    .SetProperty(static label => label.Color, request.Color),
+                token);
 
         if (rows == 0)
             return LabelUpdateOutcome.NotFound;
