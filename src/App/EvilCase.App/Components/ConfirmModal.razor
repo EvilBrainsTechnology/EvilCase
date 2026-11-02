@@ -1,0 +1,96 @@
+@using System.Net
+@using EvilBrains.ApiClient
+@inject ILogger<ConfirmModal> Logger
+
+<EcModal Title="@this.Title" Open="this.Open" OpenChanged="this.OpenChanged">
+    <ChildContent>
+        @this.ChildContent
+        @if (this.error is not null)
+        {
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.error</div>
+        }
+    </ChildContent>
+    <Footer>
+        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">@this.CancelText</EcButton>
+        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+                  Disabled="@this.busy" OnClick="this.Confirm">@this.ConfirmText</EcButton>
+    </Footer>
+</EcModal>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Title { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string ConfirmText { get; set; }
+
+    [Parameter]
+    public string CancelText { get; set; } = "Zrušit";
+
+    [Parameter, EditorRequired]
+    public required Func<CancellationToken, Task> Action { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string NotFoundText { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FailureText { get; set; }
+
+    /// <summary>
+    /// The text of a failure the page tells apart, or null to leave it to the common texts.
+    /// </summary>
+    [Parameter]
+    public Func<ApiException, string?>? ErrorText { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnDone { get; set; }
+
+    private string? error;
+
+    private bool busy;
+
+    private async Task Cancel()
+    {
+        await this.OpenChanged.InvokeAsync(false);
+    }
+
+    private async Task Confirm()
+    {
+        this.busy = true;
+        this.error = null;
+
+        try
+        {
+            await this.Action(CancellationToken.None);
+
+            await this.OnDone.InvokeAsync();
+        }
+        catch (ApiException exception) when (this.ErrorText?.Invoke(exception) is { } text)
+        {
+            this.error = text;
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.error = this.NotFoundText;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "The confirmed action {Action} failed", this.ConfirmText);
+
+            this.error = this.FailureText;
+        }
+        finally
+        {
+            this.busy = false;
+        }
+    }
+}

@@ -146,9 +146,16 @@
     }
 </div>
 
-@if (this.deleting && this.Detail is not null)
+@if (this.deleting && this.Detail is { } deletedCase)
 {
-    <CaseDeleteModal Case="this.Detail" Open OpenChanged="this.CloseDelete" OnDeleted="this.CaseDeleted" />
+    <ConfirmModal Title="Smazat spis" ConfirmText="Smazat spis" Action="token => this.CasesClient.DeleteCase(deletedCase.CaseId, token)"
+                  NotFoundText="Spis už neexistuje." FailureText="Spis se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  Open OpenChanged="this.CloseDelete" OnDone="this.CaseDeleted">
+        <p class="ec-confirm-text">
+            Opravdu smazat spis <strong>@deletedCase.CaseNumber</strong> – @deletedCase.Title? Se spisem zaniknou
+            jeho podřízené spisy, úkony, komentáře a soubory. Akci nelze vrátit zpět.
+        </p>
+    </ConfirmModal>
 }
 
 @code {

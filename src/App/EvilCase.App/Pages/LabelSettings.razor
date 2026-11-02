@@ -88,9 +88,16 @@
     <LabelFormModal Label="this.editing" Open OpenChanged="this.CloseForm" OnSaved="this.LabelSaved" />
 }
 
-@if (this.deleting is not null)
+@if (this.deleting is { } deleted)
 {
-    <LabelDeleteModal Label="this.deleting" Open OpenChanged="this.CloseDelete" OnDeleted="this.LabelDeleted" />
+    <ConfirmModal Title="Smazat štítek" ConfirmText="Smazat štítek" Action="token => this.LabelsClient.DeleteLabel(deleted.LabelId, token)"
+                  NotFoundText="Štítek už neexistuje." FailureText="Štítek se nepodařilo smazat. Zkuste to za chvíli znovu."
+                  Open OpenChanged="this.CloseDelete" OnDone="this.LabelDeleted">
+        <p class="ec-confirm-text">
+            Opravdu smazat štítek <strong>@deleted.Name</strong>?
+            @LabelUsageDisplay.DeleteSentence(deleted.CaseCount, deleted.ActCount)
+        </p>
+    </ConfirmModal>
 }
 
 @code {
