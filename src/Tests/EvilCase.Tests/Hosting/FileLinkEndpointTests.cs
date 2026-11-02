@@ -159,7 +159,7 @@ public class FileLinkEndpointTests
     }
 
     [Test]
-    public async Task ADownloadSendsTheContentUncached()
+    public async Task ADownloadSendsTheContentUncachedAndSandboxed()
     {
         this.link = this.Link(FileLinkKind.Download);
 
@@ -170,6 +170,10 @@ public class FileLinkEndpointTests
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), "the download runs in the link's tenant");
             Assert.That(await response.Content.ReadAsStringAsync(), Is.EqualTo("obsah"));
             Assert.That(response.Headers.CacheControl?.NoStore, Is.True, "a linked download is never cached");
+            Assert.That(
+                response.Headers.GetValues("Content-Security-Policy").Single(),
+                Is.EqualTo("sandbox; frame-ancestors 'none'"),
+                "a linked file runs no script on the app's origin");
         }
     }
 
