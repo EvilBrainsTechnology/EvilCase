@@ -38,7 +38,7 @@ public static class ApiTokenDisplay
     /// <summary>
     /// The day of a moment in the browser's time zone.
     /// </summary>
-    public static string DayText(in DateTime moment)
+    public static string DayText(DateTime moment)
     {
         return DateDisplay.Text(DateOnly.FromDateTime(moment.ToLocalTime()));
     }

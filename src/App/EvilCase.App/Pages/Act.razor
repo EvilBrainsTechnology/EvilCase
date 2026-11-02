@@ -144,7 +144,7 @@
                             @if (this.Previous is { } previous)
                             {
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronLeft"
-                                          Href="@ActRoutes.Detail(previous.ActId)" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
+                                          Href="@($"/acts/{previous.ActId}")" AriaLabel="@($"Předchozí úkon: {previous.Title}")" />
                             }
                             else
                             {
@@ -155,7 +155,7 @@
                             @if (this.Next is { } next)
                             {
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ChevronRight"
-                                          Href="@ActRoutes.Detail(next.ActId)" AriaLabel="@($"Další úkon: {next.Title}")" />
+                                          Href="@($"/acts/{next.ActId}")" AriaLabel="@($"Další úkon: {next.Title}")" />
                             }
                             else
                             {
@@ -174,7 +174,7 @@
 
                                 <li class="ec-timeline-entry">
                                     <a class="@(item.IsCurrent ? "ec-timeline-item ec-timeline-item-current" : "ec-timeline-item")"
-                                       href="@ActRoutes.Detail(item.ActId)" aria-current="@(item.IsCurrent ? "page" : null)">
+                                       href="/acts/@item.ActId" aria-current="@(item.IsCurrent ? "page" : null)">
                                         <span class="ec-timeline-rail" aria-hidden="true">
                                             <span class="@dot"></span>
                                             <span class="ec-timeline-line"></span>
@@ -237,7 +237,7 @@
 
     protected override string LinkCopiedText => "Odkaz na úkon zkopírován.";
 
-    protected override string LinkPath => ActRoutes.Detail(this.ActId);
+    protected override string LinkPath => $"/acts/{this.ActId}";
 
     private IReadOnlyList<EcCrumb> Crumbs => this.Detail is null
         ? [new EcCrumb("Spisy", "/cases")]
@@ -281,12 +281,12 @@
 
     private void EditAct()
     {
-        this.Navigation.NavigateTo(ActRoutes.Edit(this.ActId));
+        this.Navigation.NavigateTo($"/acts/{this.ActId}/edit");
     }
 
     private void OpenNewAct()
     {
-        this.Navigation.NavigateTo(ActRoutes.New(this.Detail?.CaseId));
+        this.Navigation.NavigateTo($"/acts/new?case={this.Detail!.CaseId}");
     }
 
     private ActTimelineItem? Neighbour(int step)

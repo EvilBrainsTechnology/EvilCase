@@ -6,7 +6,7 @@ public static class MomentDisplay
 
     private const string TimeFormat = "H:mm";
 
-    public static string Text(in DateTime moment)
+    public static string Text(DateTime moment)
     {
         return moment.ToLocalTime().ToString(Format, CultureInfo.InvariantCulture);
     }
@@ -14,7 +14,7 @@ public static class MomentDisplay
     /// <summary>
     /// Today's and yesterday's moment as a word and the time; any other in full.
     /// </summary>
-    public static string Relative(in DateTime moment, in DateTime now)
+    public static string Relative(DateTime moment, DateTime now)
     {
         var local = moment.ToLocalTime();
         var time = local.ToString(TimeFormat, CultureInfo.InvariantCulture);

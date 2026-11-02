@@ -119,11 +119,11 @@
                          EmptyText="Zatím tu není žádný úkon.">
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus"
-                                  Href="@(ActRoutes.New(this.CaseId))">Nový úkon</EcButton>
+                                  Href="@($"/acts/new?case={this.CaseId}")">Nový úkon</EcButton>
                     </Actions>
                     <EmptyAction>
                         <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus"
-                                  Href="@(ActRoutes.New(this.CaseId))">Založit úkon</EcButton>
+                                  Href="@($"/acts/new?case={this.CaseId}")">Založit úkon</EcButton>
                     </EmptyAction>
                 </ActList>
             </div>
@@ -237,7 +237,7 @@
 
     private void OpenNewAct()
     {
-        this.Navigation.NavigateTo(ActRoutes.New(this.CaseId));
+        this.Navigation.NavigateTo($"/acts/new?case={this.CaseId}");
     }
 
     private void OpenNewChildCase()

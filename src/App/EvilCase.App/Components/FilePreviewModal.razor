@@ -1,5 +1,4 @@
 @using System.Diagnostics
-@using System.Globalization
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
@@ -324,7 +323,7 @@
                         <div class="ec-preview-sheet-view">
                             @if (sheet.RowCount > sheet.Rows.Count)
                             {
-                                <p class="ec-preview-note">Zobrazuje se jen prvních @Count(sheet.Rows.Count) řádků z @Count(sheet.RowCount).</p>
+                                <p class="ec-preview-note">Zobrazuje se jen prvních @NumberDisplay.Text(sheet.Rows.Count) řádků z @NumberDisplay.Text(sheet.RowCount).</p>
                             }
                             <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
                                 <table class="ec-preview-sheet-table">
@@ -462,8 +461,6 @@
     private const int MaxSheetRows = 1000;
 
     private const string NotUtf8Note = "Soubor není v kódování UTF-8, proto ho nejde upravit.";
-
-    private static readonly NumberFormatInfo CzechNumbers = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberGroupSeparator = "\u00A0" });
 
     [Parameter, EditorRequired]
     public required IReadOnlyList<FileListItem> Files { get; set; }
@@ -1656,11 +1653,6 @@
     {
         return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email
             or FilePreviewKind.SignedDocument;
-    }
-
-    private static string Count(int count)
-    {
-        return string.Create(CzechNumbers, $"{count:N0}");
     }
 
     private static string ColumnName(int index)

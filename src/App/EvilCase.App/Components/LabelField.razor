@@ -264,18 +264,11 @@
     {
         if (this.module is not null)
         {
-            try
-            {
-                // The listener belongs to the inline field; a form or filter field leaves it alone.
-                if (this.Inline)
-                    await this.module.InvokeVoidAsync("stop");
+            // The listener belongs to the inline field; a form or filter field leaves it alone.
+            if (this.Inline)
+                await this.module.InvokeVoidAsync("stop");
 
-                await this.module.DisposeAsync();
-            }
-            catch (JSDisconnectedException)
-            {
-                // The circuit is gone; the listener went with the page.
-            }
+            await this.module.DisposeAsync();
         }
 
         this.self?.Dispose();
