@@ -1,6 +1,7 @@
 @page "/contacts"
 @inherits ListPage
 @using EvilBrains.EvilCase.Api.Contract.Contacts
+@inject NavigationManager Navigation
 
 <PageTitle>Kontakty – EvilCase</PageTitle>
 
@@ -17,7 +18,7 @@
         </Actions>
     </EcPageHeader>
 
-    <ContactList @key="this.ListKey" @ref="this.list"
+    <ContactList @key="this.ListKey"
                  Columns="Columns" Filter="Filter"
                  ShowSearch="true" ShowKindFilter="true" ShowPaging="true"
                  TotalChanged="this.OnTotalChanged"
@@ -48,8 +49,6 @@
     [SupplyParameterFromQuery(Name = "q")]
     public string? Query { get; set; }
 
-    private ContactList? list;
-
     // A record, so a render that hands over the same values reloads nothing.
     private ContactListRequest Filter => new()
     {
@@ -74,11 +73,9 @@
             this.formOpen = false;
     }
 
-    private async Task ContactCreated(ContactListItem contact)
+    private void ContactCreated(ContactListItem contact)
     {
-        this.formOpen = false;
-
-        await this.list!.Reload();
+        this.Navigation.NavigateTo($"/contacts/{contact.ContactId}");
     }
 
     private void OnTotalChanged(int count)

@@ -42,14 +42,6 @@ public abstract class ListComponent<TSortRequest> : ComponentBase, IDisposable
     }
 
     /// <summary>
-    /// Reads the list again from its first page; the host calls it after it wrote a record.
-    /// </summary>
-    public async Task Reload()
-    {
-        await this.ReloadFirstPage();
-    }
-
-    /// <summary>
     /// Reads the page the toolbar asks for and answers with the count the filter leaves.
     /// </summary>
     protected abstract Task<int> LoadPage(CancellationToken token);

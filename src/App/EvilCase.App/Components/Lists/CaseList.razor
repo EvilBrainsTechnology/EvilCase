@@ -64,7 +64,7 @@
          SortKey="@this.sort.ToString()"
          SortDescending="@(this.Direction == ListSortDirection.Descending)"
          SortChanged="this.OnSortChanged"
-         Loading="this.Loading" Failure="@this.Failure" Retry="this.Reload"
+         Loading="this.Loading" Failure="@this.Failure" Retry="this.ReloadFirstPage"
          Skip="this.Skip" Take="this.Filter.Take" Total="this.Total"
          ShowPaging="this.ShowPaging" Previous="this.ToPreviousPage" Next="this.ToNextPage">
     <Toolbar>
