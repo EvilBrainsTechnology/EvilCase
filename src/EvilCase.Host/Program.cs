@@ -153,6 +153,9 @@ if (app.Configuration.GetValue("EvilBrains:EvilCase:Hosting:BehindReverseProxy",
 // Above the request logging, which logs the exception and rethrows.
 app.UseExceptionHandler();
 
+// A response that ends with a bare status, such as the 401 challenge or the 429 rejection, gets Problem Details.
+app.UseStatusCodePages();
+
 if (!app.Environment.IsDevelopment())
     app.UseHsts();
 
