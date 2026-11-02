@@ -21,7 +21,7 @@ public class FilePreviewModalDataMessageRenderTests
     [Test]
     public void BackReturnsToTheMessageWithoutLoadingItAgain()
     {
-        using var ctx = NewContext(out _, out _, out _);
+        using var ctx = NewContext(out _, out _);
 
         var loads = 0;
         var file = File("Zpráva.zfo");
@@ -58,7 +58,7 @@ public class FilePreviewModalDataMessageRenderTests
     [TestCase("Záznam.mp3", "audio/mpeg", "audio")]
     public void APictureOrRecordingAttachmentPlaysFromABlobOfItsTypeThatBackRevokes(string name, string mediaType, string element)
     {
-        using var ctx = NewContext(out var blobs, out _, out _);
+        using var ctx = NewContext(out var files, out _);
 
         var file = File("Zpráva.zfo");
         var component = Render(ctx, [file], file.FileId, _ => SyntheticZfo.Message((name, [1, 2])));
@@ -70,20 +70,20 @@ public class FilePreviewModalDataMessageRenderTests
         {
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(blobs.Created, Is.EqualTo([(mediaType, "blob:test/0")]));
+                Assert.That(files.Created, Is.EqualTo([(mediaType, "blob:test/0")]));
                 Assert.That(component.Find($".ec-modal-body {element}").GetAttribute("src"), Is.EqualTo("blob:test/0"));
             }
         });
 
         component.Find("button[aria-label='Zpět na zprávu']").Click();
 
-        component.WaitForAssertion(() => Assert.That(blobs.Revoked, Is.EqualTo(["blob:test/0"])));
+        component.WaitForAssertion(() => Assert.That(files.Revoked, Is.EqualTo(["blob:test/0"])));
     }
 
     [Test]
     public void AZfoThatIsNoIsdsMessageOffersTheDownload()
     {
-        using var ctx = NewContext(out _, out _, out _);
+        using var ctx = NewContext(out _, out _);
 
         var downloaded = new List<string>();
         var file = File("Formulář.zfo");
@@ -102,7 +102,7 @@ public class FilePreviewModalDataMessageRenderTests
     [Test]
     public void AZfoOverTheLimitIsNeverLoaded()
     {
-        using var ctx = NewContext(out _, out _, out _);
+        using var ctx = NewContext(out _, out _);
 
         var loads = 0;
         var file = File("Velká.zfo", DataMessageZfo.MaxBytes + 1);
@@ -127,7 +127,7 @@ public class FilePreviewModalDataMessageRenderTests
     [Test]
     public void SteppingToAnotherFileLeavesTheAttachment()
     {
-        using var ctx = NewContext(out _, out _, out _);
+        using var ctx = NewContext(out _, out _);
 
         var message = File("Zpráva.zfo");
         var text = File("Poznámky.txt");
@@ -153,7 +153,7 @@ public class FilePreviewModalDataMessageRenderTests
     [Test]
     public async Task AnOlderMessageIsVerifiedByItsNumber()
     {
-        await using var ctx = NewContext(out _, out _, out _);
+        await using var ctx = NewContext(out _, out _);
 
         var signatures = ctx.Services.GetRequiredService<IFileSignaturesClient>();
         signatures.ReadFileSignature(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignatureResponse { State = FileSignatureState.Valid });
@@ -176,20 +176,18 @@ public class FilePreviewModalDataMessageRenderTests
         return SyntheticZfo.Message(("Rozhodnutí.pdf", PdfBytes), ("Poučení.txt", TextBytes));
     }
 
-    private static BunitContext NewContext(out StubBlobUrls blobs, out StubFilePreviews previews, out StubFileDownloader downloader)
+    private static BunitContext NewContext(out StubBrowserFiles files, out StubFilePreviews previews)
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
-        blobs = new StubBlobUrls();
+        files = new StubBrowserFiles();
         previews = new StubFilePreviews();
-        downloader = new StubFileDownloader();
-        ctx.Services.AddSingleton<IBlobUrls>(blobs);
+        ctx.Services.AddSingleton<IBrowserFiles>(files);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
         ctx.Services.AddSingleton(new StubTextEditors());
         ctx.Services.AddSingleton<ITextEditors>(static services => services.GetRequiredService<StubTextEditors>());
-        ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());

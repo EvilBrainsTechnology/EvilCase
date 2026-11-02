@@ -188,9 +188,8 @@ public class FilePreviewModalEditorChangesRenderTests
         editors = new StubTextEditors();
         markdown = new StubMarkdownEditors();
         compares = new StubTextCompares();
-        ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-        ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
+        ctx.Services.AddSingleton<IBrowserFiles>(new StubBrowserFiles());
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
         ctx.Services.AddSingleton<ITextEditors>(editors);

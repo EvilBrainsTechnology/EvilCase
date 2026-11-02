@@ -7,9 +7,8 @@
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IAuthSession Session
-@inject IBlobUrls BlobUrls
+@inject IBrowserFiles BrowserFiles
 @inject IFilePreviews Previews
-@inject IFileDownloader Downloader
 @inject ILogger<FilePreviewModal> Logger
 @inject IBrowserHistory History
 @inject NavigationManager Navigation
@@ -951,7 +950,7 @@
 
             // Only SVG is a picture read as bytes: it is shown as an image blob, never as the stored type.
             case FilePreviewKind.Image:
-                await this.ShowUrl(await this.BlobUrls.CreateBlobUrl("image/svg+xml", content, token), token);
+                await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl("image/svg+xml", content, token), token);
 
                 break;
 
@@ -1059,7 +1058,7 @@
                 if (documentPreview is FilePreviewKind.SignedDocument or FilePreviewKind.DataMessage)
                     this.unsupported = true;
                 else if (InlineFileTypes.MediaType(documentName) is { } mediaType)
-                    await this.ShowUrl(await this.BlobUrls.CreateBlobUrl(mediaType, documentContent, token), token);
+                    await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, documentContent, token), token);
                 else if (documentPreview != FilePreviewKind.None)
                     await this.Load(documentName, documentPreview, documentContent, token);
 
@@ -1096,7 +1095,7 @@
     private async Task ShowUrl(string created, CancellationToken token)
     {
         if (token.IsCancellationRequested)
-            await this.BlobUrls.RevokeBlobUrl(created);
+            await this.BrowserFiles.RevokeBlobUrl(created);
         else
             (this.url, this.urlIsBlob) = (created, true);
     }
@@ -1131,7 +1130,7 @@
 
             // What the browser shows natively is a blob of the type the extension gives.
             if (InlineFileTypes.MediaType(attachment.Name) is { } mediaType)
-                await this.ShowUrl(await this.BlobUrls.CreateBlobUrl(mediaType, content, token), token);
+                await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, content, token), token);
             else
                 await this.Load(attachment.Name, preview, content, token);
 
@@ -1191,7 +1190,7 @@
     {
         await using var content = new MemoryStream(attachment.Content, writable: false);
 
-        await this.Downloader.DownloadContent(attachment.Name, content, CancellationToken.None);
+        await this.BrowserFiles.DownloadContent(attachment.Name, content, CancellationToken.None);
     }
 
     private async Task DownloadShown(FileListItem file)
@@ -1208,7 +1207,7 @@
     private async Task DownloadStored(FileListItem file)
     {
         if (this.OlderVersion is { } number)
-            await this.Downloader.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
+            await this.BrowserFiles.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
         else
             await this.OnDownload.InvokeAsync(file);
     }
@@ -1279,7 +1278,7 @@
         if (number == file.Version)
             await this.OnDownload.InvokeAsync(file);
         else
-            await this.Downloader.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
+            await this.BrowserFiles.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
     }
 
     private static bool Listed(IReadOnlyList<FileVersionItem> versions, int number)
@@ -1611,7 +1610,7 @@
     {
         await using var content = new MemoryStream(this.signedContent!, writable: false);
 
-        await this.Downloader.DownloadContent(this.signedContentName!, content, CancellationToken.None);
+        await this.BrowserFiles.DownloadContent(this.signedContentName!, content, CancellationToken.None);
     }
 
     private void Unreadable()
@@ -1669,7 +1668,7 @@
         this.url = null;
 
         if (this.urlIsBlob)
-            await this.BlobUrls.RevokeBlobUrl(released);
+            await this.BrowserFiles.RevokeBlobUrl(released);
 
         this.urlIsBlob = false;
     }

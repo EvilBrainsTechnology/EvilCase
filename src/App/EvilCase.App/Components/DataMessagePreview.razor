@@ -1,4 +1,4 @@
-@inject IFileDownloader Downloader
+@inject IBrowserFiles BrowserFiles
 
 @if (this.message is { } message)
 {
@@ -130,6 +130,6 @@
     {
         await using var content = new MemoryStream(attachment.Content, writable: false);
 
-        await this.Downloader.DownloadContent(attachment.Name, content, CancellationToken.None);
+        await this.BrowserFiles.DownloadContent(attachment.Name, content, CancellationToken.None);
     }
 }

@@ -2,16 +2,16 @@ using EvilBrains.EvilCase.App.Files;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
-public class BlobUrlsTests
+public class BrowserFilesTests
 {
     [Test]
     public async Task AUrlTheBrowserMadeAfterACancelStillReachesTheCaller()
     {
         var runtime = new PendingJSRuntime();
-        await using var blobs = new BlobUrls(runtime);
+        await using var files = new BrowserFiles(runtime, new StubAuthSession());
         using var cancel = new CancellationTokenSource();
 
-        var creating = blobs.CreateBlobUrl("application/pdf", new MemoryStream([1]), cancel.Token);
+        var creating = files.CreateBlobUrl("application/pdf", new MemoryStream([1]), cancel.Token);
         await cancel.CancelAsync();
         runtime.Complete("blob:made");
 

@@ -1,6 +1,6 @@
 @page "/settings/export"
 @layout SettingsLayout
-@inject IFileDownloader Downloader
+@inject IBrowserFiles BrowserFiles
 
 <PageTitle>Export – Nastavení – EvilCase</PageTitle>
 
@@ -38,6 +38,6 @@
 
     private async Task Export()
     {
-        await this.Downloader.DownloadArchive(ExportUrl, CancellationToken.None);
+        await this.BrowserFiles.DownloadArchive(ExportUrl, CancellationToken.None);
     }
 }

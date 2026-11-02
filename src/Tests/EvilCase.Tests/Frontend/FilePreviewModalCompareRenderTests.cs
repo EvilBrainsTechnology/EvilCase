@@ -206,7 +206,7 @@ public class FilePreviewModalCompareRenderTests
     [Test]
     public async Task StahnoutDownloadsTheNewerVersion()
     {
-        await using var ctx = NewContext(out _, out var downloader);
+        await using var ctx = NewContext(out _, out var files);
 
         var downloads = new List<FileListItem>();
         var file = File("a.txt", 3);
@@ -221,7 +221,7 @@ public class FilePreviewModalCompareRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(downloads, Is.EqualTo([file]), "the current version downloads as the preview's does");
-            Assert.That(downloader.Downloaded, Is.EqualTo([(file.FileId, (int?)2, "a.txt")]));
+            Assert.That(files.Downloaded, Is.EqualTo([(file.FileId, (int?)2, "a.txt")]));
             Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 2"));
         }
     }
@@ -297,16 +297,15 @@ public class FilePreviewModalCompareRenderTests
         return [.. texts.Select(static text => Encoding.UTF8.GetBytes(text))];
     }
 
-    private static BunitContext NewContext(out StubTextCompares compares, out StubFileDownloader downloader)
+    private static BunitContext NewContext(out StubTextCompares compares, out StubBrowserFiles files)
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
         compares = new StubTextCompares();
-        downloader = new StubFileDownloader();
-        ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
+        files = new StubBrowserFiles();
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-        ctx.Services.AddSingleton<IFileDownloader>(downloader);
+        ctx.Services.AddSingleton<IBrowserFiles>(files);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
         ctx.Services.AddSingleton<ITextEditors>(new StubTextEditors());

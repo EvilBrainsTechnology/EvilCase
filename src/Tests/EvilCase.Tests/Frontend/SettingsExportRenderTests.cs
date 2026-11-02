@@ -14,7 +14,7 @@ public class SettingsExportRenderTests
     {
         using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IFileDownloader>(new StubFileDownloader());
+        ctx.Services.AddSingleton<IBrowserFiles>(new StubBrowserFiles());
         ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/settings/export");
 
         var component = ctx.Render<SettingsLayout>(static parameters => parameters.Add(

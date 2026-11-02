@@ -192,7 +192,7 @@ public class FilePreviewModalRenderTests
     [Test]
     public void SwitchingFilesRevokesTheBlobOfTheOneLeft()
     {
-        using var ctx = NewContext(out var blobs);
+        using var ctx = NewContext(out var browserFiles);
 
         var files = new FileListItem[] { File("a.svg"), File("b.svg") };
         var component = Render(ctx, files, files[0].FileId);
@@ -201,7 +201,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(blobs.Revoked, Is.EqualTo(["blob:test/0"]), "the left file's URL is revoked");
+            Assert.That(browserFiles.Revoked, Is.EqualTo(["blob:test/0"]), "the left file's URL is revoked");
             Assert.That(component.Find("img.ec-preview-image").GetAttribute("src"), Is.EqualTo("blob:test/1"));
         }
     }
@@ -209,27 +209,27 @@ public class FilePreviewModalRenderTests
     [Test]
     public void LeavingAFileShownByItsContentAddressRevokesNothing()
     {
-        using var ctx = NewContext(out var blobs);
+        using var ctx = NewContext(out var browserFiles);
 
         var files = new FileListItem[] { File("a.pdf"), File("b.png") };
         var component = Render(ctx, files, files[0].FileId);
 
         component.Render(parameters => parameters.Add(static modal => modal.FileId, files[1].FileId));
 
-        Assert.That(blobs.Revoked, Is.Empty, "a content address is no blob URL");
+        Assert.That(browserFiles.Revoked, Is.Empty, "a content address is no blob URL");
     }
 
     [Test]
     public async Task ClosingTheModalRevokesTheBlob()
     {
-        await using var ctx = NewContext(out var blobs);
+        await using var ctx = NewContext(out var files);
 
         var file = File("a.svg");
         var component = Render(ctx, [file], file.FileId);
 
         await component.Instance.DisposeAsync();
 
-        Assert.That(blobs.Revoked, Is.EqualTo(["blob:test/0"]));
+        Assert.That(files.Revoked, Is.EqualTo(["blob:test/0"]));
     }
 
     [Test]
@@ -268,7 +268,7 @@ public class FilePreviewModalRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ctx.Services.GetRequiredService<StubFileDownloader>().Downloaded.Single(), Is.EqualTo((file.FileId, (int?)2, "a.txt")));
+            Assert.That(ctx.Services.GetRequiredService<StubBrowserFiles>().Downloaded.Single(), Is.EqualTo((file.FileId, (int?)2, "a.txt")));
             Assert.That(downloaded, Is.Empty);
         }
     }
@@ -321,31 +321,29 @@ public class FilePreviewModalRenderTests
         return component.Find($".ec-preview-toolbar button[aria-label='{label}']");
     }
 
-    private static BunitContext NewContext(out StubBlobUrls blobs)
+    private static BunitContext NewContext(out StubBrowserFiles files)
     {
-        return NewContext(out blobs, out _);
+        return NewContext(out files, out _);
     }
 
-    private static BunitContext NewContext(out StubBlobUrls blobs, out StubFilePreviews previews)
+    private static BunitContext NewContext(out StubBrowserFiles files, out StubFilePreviews previews)
     {
-        return NewContext(out blobs, out previews, out _);
+        return NewContext(out files, out previews, out _);
     }
 
-    private static BunitContext NewContext(out StubBlobUrls blobs, out StubFilePreviews previews, out StubTextEditors editors)
+    private static BunitContext NewContext(out StubBrowserFiles files, out StubFilePreviews previews, out StubTextEditors editors)
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
-        blobs = new StubBlobUrls();
+        files = new StubBrowserFiles();
         previews = new StubFilePreviews();
-        ctx.Services.AddSingleton<IBlobUrls>(blobs);
+        ctx.Services.AddSingleton(files);
+        ctx.Services.AddSingleton<IBrowserFiles>(files);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
         editors = new StubTextEditors();
         ctx.Services.AddSingleton<ITextEditors>(editors);
-        var downloader = new StubFileDownloader();
-        ctx.Services.AddSingleton(downloader);
-        ctx.Services.AddSingleton<IFileDownloader>(downloader);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
 

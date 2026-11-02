@@ -42,9 +42,7 @@ internal static class Program
             new Uri(builder.HostEnvironment.BaseAddress),
             static client => client.AddRequestContextHeaders().AddRequestLogging().AddHttpMessageHandler<AuthTokenHandler>());
 
-        builder.Services.AddSingleton<IFileDownloader, FileDownloader>();
-        builder.Services.AddSingleton<IFilePicker, FilePicker>();
-        builder.Services.AddSingleton<IBlobUrls, BlobUrls>();
+        builder.Services.AddSingleton<IBrowserFiles, BrowserFiles>();
         builder.Services.AddSingleton<IFilePreviews, FilePreviews>();
         builder.Services.AddSingleton<ITextEditors, TextEditors>();
         builder.Services.AddSingleton<ITextCompares, TextCompares>();

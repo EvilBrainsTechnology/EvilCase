@@ -212,12 +212,9 @@ public class FilesCardRenderTests
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
-        var downloader = new StubFileDownloader();
-        ctx.Services.AddSingleton(downloader);
-        ctx.Services.AddSingleton<IFileDownloader>(downloader);
-        ctx.Services.AddSingleton(new StubFilePicker());
-        ctx.Services.AddSingleton<IFilePicker>(static sp => sp.GetRequiredService<StubFilePicker>());
-        ctx.Services.AddSingleton<IBlobUrls>(new StubBlobUrls());
+        var files = new StubBrowserFiles();
+        ctx.Services.AddSingleton(files);
+        ctx.Services.AddSingleton<IBrowserFiles>(files);
         ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
         ctx.Services.AddSingleton<ITextEditors>(new StubTextEditors());
         ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
