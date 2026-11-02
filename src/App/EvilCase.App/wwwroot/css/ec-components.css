@@ -15,6 +15,10 @@ html {
     background: var(--ec-bg);
 }
 
+:root {
+    color-scheme: light;
+}
+
 .ec {
     background: var(--ec-bg);
     font-family: var(--ec-font);
@@ -255,7 +259,9 @@ html {
     text-wrap: balance;
 }
 
-.ec-page-actions {
+.ec-page-actions,
+.ec-form-actions,
+.ec-card-header-actions {
     display: flex;
     align-items: center;
     gap: var(--ec-space-3);
@@ -405,13 +411,6 @@ html {
     color: var(--ec-text-muted);
 }
 
-.ec-form-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--ec-space-3);
-    margin-left: auto;
-}
-
 .ec-field {
     display: flex;
     flex-direction: column;
@@ -499,7 +498,8 @@ html {
 
 .ec-input:focus-visible,
 .ec-select:focus-visible,
-.ec-textarea:focus-visible {
+.ec-textarea:focus-visible,
+.ec-preview-toolbar-page-input:focus-visible {
     outline: none;
     border-color: var(--ec-accent);
     box-shadow: var(--ec-focus-ring);
@@ -562,7 +562,10 @@ html {
     min-width: 0;
 }
 
-.ec-combobox-backdrop {
+.ec-combobox-backdrop,
+.ec-topsearch-backdrop,
+.ec-menu-backdrop,
+.ec-popover-backdrop {
     position: fixed;
     inset: 0;
     z-index: 10;
@@ -620,16 +623,7 @@ html {
     color: var(--ec-text-muted);
 }
 
-.ec-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ec-space-2);
-}
-
 .ec-chip {
-    --ec-chip-color: var(--ec-label-blue);
-    --ec-chip-soft: var(--ec-label-blue-soft);
-    --ec-chip-strong: var(--ec-label-blue-strong);
     display: inline-flex;
     align-items: center;
     gap: var(--ec-space-2);
@@ -922,13 +916,6 @@ html.ec-scroll-locked {
     color: var(--ec-text-muted);
 }
 
-.ec-card-header-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--ec-space-3);
-    margin-left: auto;
-}
-
 /* Loading holds a height so the card does not jump once the rows arrive. */
 .ec-card-state {
     display: flex;
@@ -995,7 +982,9 @@ html.ec-scroll-locked {
     vertical-align: middle;
 }
 
-.ec-file-main {
+.ec-file-main,
+.ec-preview-title,
+.ec-versions-heading {
     display: flex;
     flex-direction: column;
     flex: 1 1 auto;
@@ -1045,7 +1034,9 @@ html.ec-scroll-locked {
     opacity: 0.6;
 }
 
-.ec-file-meta {
+.ec-file-meta,
+.ec-preview-meta,
+.ec-versions-meta {
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
     font-variant-numeric: tabular-nums;
@@ -1070,7 +1061,8 @@ html.ec-scroll-locked {
     margin-inline: 0;
 }
 
-.ec-file-actions {
+.ec-file-actions,
+.ec-versions-actions {
     position: relative;
     z-index: 1;
     display: flex;
@@ -1332,14 +1324,6 @@ html.ec-scroll-locked {
     overflow: hidden;
 }
 
-.ec-preview-title {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    gap: calc(var(--ec-space-1) / 2);
-    min-width: 0;
-}
-
 .ec-preview-name-row {
     display: flex;
     align-items: center;
@@ -1359,12 +1343,6 @@ html.ec-scroll-locked {
     font-weight: var(--ec-weight-semibold);
     white-space: nowrap;
     text-overflow: ellipsis;
-}
-
-.ec-preview-meta {
-    font-size: var(--ec-text-xs);
-    color: var(--ec-text-muted);
-    font-variant-numeric: tabular-nums;
 }
 
 /* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
@@ -1392,7 +1370,8 @@ html.ec-scroll-locked {
     color: var(--ec-text);
 }
 
-.ec-preview-divider {
+.ec-preview-divider,
+.ec-preview-toolbar-separator {
     align-self: center;
     height: var(--ec-space-7);
     border-left: 1px solid var(--ec-border);
@@ -1404,10 +1383,6 @@ html.ec-scroll-locked {
 }
 
 /* Lišta náhledu nad jedinou posuvnou plochou; plochu PDF vlastní prohlížeč PDF.js, jehož styl se načte až s ním. */
-:root {
-    color-scheme: light;
-}
-
 .ec-preview-view {
     display: flex;
     flex: 1 1 auto;
@@ -1457,12 +1432,6 @@ html.ec-scroll-locked {
     font-variant-numeric: tabular-nums;
 }
 
-.ec-preview-toolbar-page-input:focus-visible {
-    outline: none;
-    border-color: var(--ec-accent);
-    box-shadow: var(--ec-focus-ring);
-}
-
 .ec-preview-toolbar-zoom-value {
     min-width: var(--ec-preview-toolbar-zoom-value);
     font-size: var(--ec-text-sm);
@@ -1476,18 +1445,15 @@ html.ec-scroll-locked {
     display: contents;
 }
 
-.ec-preview-toolbar-separator {
-    align-self: center;
-    height: var(--ec-space-7);
-    border-left: 1px solid var(--ec-border);
-}
-
 .ec-preview-toolbar-format {
     display: contents;
 }
 
 .ec-preview-toolbar-zoom .ec-button[aria-pressed="true"],
-.ec-preview-toolbar-format .ec-button[aria-pressed="true"] {
+.ec-preview-toolbar-format .ec-button[aria-pressed="true"],
+.ec-editor-changes .ec-button[aria-pressed="true"],
+.ec-markdown-toolbar .ec-button.ec-button-secondary[aria-pressed="true"],
+.ec-preview-actions .ec-button[aria-pressed="true"] {
     background: var(--ec-accent-soft);
     border-color: var(--ec-accent-ring);
     color: var(--ec-accent-text);
@@ -1718,13 +1684,6 @@ html.ec-scroll-locked {
     font-size: var(--ec-text-sm);
 }
 
-.ec-editor-changes .ec-button[aria-pressed="true"],
-.ec-markdown-toolbar .ec-button.ec-button-secondary[aria-pressed="true"] {
-    background: var(--ec-accent-soft);
-    border-color: var(--ec-accent-ring);
-    color: var(--ec-accent-text);
-}
-
 .ec-editor-changes .ec-text-compare-version,
 .ec-editor-changes-bar .ec-text-compare-version {
     flex-direction: row;
@@ -1788,18 +1747,15 @@ html.ec-scroll-locked {
 
 .ec-text-editor .cm-editor .cm-scroller {
     flex: 1 1 auto;
+    font-family: var(--ec-font-mono);
+    font-size: calc(var(--ec-text-sm) * var(--ec-preview-zoom, 1));
+    line-height: var(--ec-preview-text-leading);
+    font-variant-ligatures: none;
 }
 
 .ec-text-editor .cm-editor.cm-focused {
     outline: var(--ec-text-editor-focus-outline);
     outline-offset: var(--ec-text-editor-focus-offset);
-}
-
-.ec-text-editor .cm-editor .cm-scroller {
-    font-family: var(--ec-font-mono);
-    font-size: calc(var(--ec-text-sm) * var(--ec-preview-zoom, 1));
-    line-height: var(--ec-preview-text-leading);
-    font-variant-ligatures: none;
 }
 
 .ec-text-editor .cm-editor .cm-content {
@@ -3011,14 +2967,6 @@ html.ec-scroll-locked {
     width: min(var(--ec-modal-sheet-width), calc(100vw - 2 * var(--ec-space-5)));
 }
 
-.ec-versions-heading {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: calc(var(--ec-space-1) / 2);
-    min-width: 0;
-}
-
 .ec-versions-subtitle {
     overflow: hidden;
     font-size: var(--ec-text-sm);
@@ -3027,7 +2975,10 @@ html.ec-scroll-locked {
     text-overflow: ellipsis;
 }
 
-.ec-versions-list {
+.ec-versions-list,
+.ec-preview-versions-list,
+.ec-preview-signers-list,
+.ec-preview-signature-list {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -3092,21 +3043,6 @@ html.ec-scroll-locked {
     font-weight: var(--ec-weight-semibold);
 }
 
-.ec-versions-meta {
-    font-size: var(--ec-text-xs);
-    color: var(--ec-text-muted);
-    font-variant-numeric: tabular-nums;
-}
-
-.ec-versions-actions {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: var(--ec-space-2);
-}
-
 .ec-versions-delete .ec-button,
 .ec-versions-delete-file .ec-button {
     color: var(--ec-danger-solid);
@@ -3169,12 +3105,6 @@ html.ec-scroll-locked {
 .ec-preview-alert {
     flex: 0 0 auto;
     margin: var(--ec-space-4) var(--ec-space-6) 0;
-}
-
-.ec-preview-actions .ec-button[aria-pressed="true"] {
-    background: var(--ec-accent-soft);
-    border-color: var(--ec-accent-ring);
-    color: var(--ec-accent-text);
 }
 
 .ec-preview-actions .ec-button[aria-disabled="true"] {
@@ -3265,14 +3195,6 @@ html.ec-scroll-locked {
     padding: var(--ec-space-2) 0;
 }
 
-.ec-preview-versions-list {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
 .ec-preview-versions-list > li {
     display: flex;
     flex-direction: column;
@@ -3356,15 +3278,6 @@ html.ec-scroll-locked {
     background: var(--ec-surface);
     font-size: var(--ec-text-sm);
     overflow-y: auto;
-}
-
-.ec-preview-signers-list,
-.ec-preview-signature-list {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    padding: 0;
-    list-style: none;
 }
 
 .ec-preview-signers-list {
@@ -5955,12 +5868,6 @@ html:has(.ec-gate) {
 }
 
 /* Hledání v horní liště (docs/design/hledani.html, SDD-021). */
-.ec-topsearch-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 10;
-}
-
 .ec-topsearch {
     position: relative;
     z-index: 11;
@@ -6485,12 +6392,6 @@ html:has(.ec-gate) {
     box-shadow: var(--ec-topbar-avatar-ring), var(--ec-topbar-focus-ring);
 }
 
-.ec-menu-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 10;
-}
-
 .ec-menu {
     position: absolute;
     top: calc(100% + var(--ec-space-2));
@@ -6580,12 +6481,6 @@ html:has(.ec-gate) {
 .ec-popover-trigger:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
-}
-
-.ec-popover-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 10;
 }
 
 .ec-popover {
