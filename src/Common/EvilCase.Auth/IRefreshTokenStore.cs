@@ -16,14 +16,4 @@ internal interface IRefreshTokenStore
     public Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken token);
 
     public Task RevokeAll(Guid userId, DateTime now, CancellationToken token);
-
-    /// <summary>
-    /// One row per live session.
-    /// </summary>
-    public Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken token);
-
-    /// <summary>
-    /// Keyed by AuthSessionId; the chain's oldest row is the sign-in.
-    /// </summary>
-    public Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken token);
 }

@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Auth;
 
 /// <summary>
-/// Shown in the session list only; never a factor in accepting a token.
+/// Recorded on the refresh token only; never a factor in accepting a token.
 /// </summary>
 public sealed record ClientInfo
 {

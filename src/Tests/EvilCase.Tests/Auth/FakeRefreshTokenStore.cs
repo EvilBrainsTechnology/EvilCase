@@ -58,25 +58,6 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
     }
 
-    public async Task<IReadOnlyList<RefreshToken>> GetActive(Guid userId, DateTime now, CancellationToken token)
-    {
-        var active = this.tokens
-            .Where(token => token.UserId == userId)
-            .Where(static token => token.RevokedAt is null)
-            .Where(token => token.Expires > now)
-            .Where(token => token.SessionExpires > now);
-
-        return [.. active];
-    }
-
-    public async Task<IReadOnlyDictionary<Guid, DateTime>> GetSessionStarts(Guid userId, CancellationToken token)
-    {
-        return this.tokens
-            .Where(token => token.UserId == userId)
-            .GroupBy(static token => token.AuthSessionId)
-            .ToDictionary(static chain => chain.Key, static chain => chain.Min(static token => token.Created));
-    }
-
     private int RevokeMatching(Func<RefreshToken, bool> match, in DateTime now, bool alsoUsed)
     {
         var revoked = 0;

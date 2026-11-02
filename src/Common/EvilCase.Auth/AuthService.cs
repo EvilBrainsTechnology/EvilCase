@@ -100,28 +100,6 @@ internal sealed class AuthService(
         logger.LogInformation("Every session of user {UserId} was revoked", userId);
     }
 
-    public async Task<IReadOnlyList<UserSession>> GetSessions(Guid userId, CancellationToken token)
-    {
-        var tokens = await refreshTokenStore.GetActive(userId, timeProvider.GetUtcNow().UtcDateTime, token);
-        var starts = await refreshTokenStore.GetSessionStarts(userId, token);
-
-        return
-        [
-            .. tokens.Select(
-                token => new UserSession
-                {
-                    AuthSessionId = token.AuthSessionId,
-                    Created = starts[token.AuthSessionId],
-
-                    // The live token's Created is the last renewal; LastUsed is stamped only on spent rows.
-                    LastUsed = token.Created,
-                    Expires = token.SessionExpires,
-                    IpAddress = token.CreatedByIp,
-                    UserAgent = token.UserAgent,
-                }),
-        ];
-    }
-
     private async Task<RefreshResult> HandleReplay(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken token)
     {
         if (now - revokedAt <= ReplayGracePeriod)

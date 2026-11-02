@@ -9,6 +9,4 @@ public interface IAuthService
     public Task SignOut(string refreshToken, CancellationToken token);
 
     public Task SignOutEverywhere(Guid userId, CancellationToken token);
-
-    public Task<IReadOnlyList<UserSession>> GetSessions(Guid userId, CancellationToken token);
 }
