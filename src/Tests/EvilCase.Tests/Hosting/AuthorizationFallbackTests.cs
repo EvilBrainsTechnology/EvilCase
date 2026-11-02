@@ -37,6 +37,14 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
+    public async Task ARefusedTokenIsAnsweredWithProblemDetails()
+    {
+        using var response = await this.client.GetAsync(new Uri("/api/cases", UriKind.Relative));
+
+        Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"), "every error response is Problem Details (SDD-004)");
+    }
+
+    [Test]
     public async Task FilingACaseNeedsAToken()
     {
         using var response = await this.client.PostAsJsonAsync(
