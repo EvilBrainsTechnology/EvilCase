@@ -13,11 +13,11 @@
 
                 if (crumb.Href is null)
                 {
-                    <span class="ec-crumb" aria-current="page">@crumb.Text</span>
+                    <span class="ec-crumb" aria-current="page" title="@crumb.Text">@crumb.Text</span>
                 }
                 else
                 {
-                    <a class="ec-crumb" href="@crumb.Href">@crumb.Text</a>
+                    <a class="ec-crumb" href="@crumb.Href" title="@crumb.Text">@crumb.Text</a>
                 }
             }
         </nav>

@@ -83,6 +83,8 @@ Nad obsahem je tmavá vodorovná lišta s logem, menu, hledáním napříč enti
 položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
 1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
+Drobečky drží na každé šířce jeden řádek; dlouhá položka se zkrátí a celý název ukáže po najetí
+myší.
 
 Řádek seznamu má na desktopu ve všech seznamech stejnou výšku 48 px, ať nese jeden, nebo dva
 řádky textu. Výjimkou jsou soubory, jejichž řádek nese dlaždici typu, a výsledky hledání.
@@ -138,7 +140,7 @@ Desktop je primární, každá denně používaná obrazovka je plnohodnotná i 
 schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
 tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo
 16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce se řádek přeskládá na dva až tři
-řádky a řazení přebírá select v liště. Drobečky drží jeden řádek a dlouhé položky se zkrátí.
+řádky a řazení přebírá select v liště.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
 nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,

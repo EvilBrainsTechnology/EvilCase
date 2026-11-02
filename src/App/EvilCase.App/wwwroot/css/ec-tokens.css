@@ -223,6 +223,7 @@
     --ec-search-width: 300px;
     --ec-drawer-width: 300px;
     --ec-crumb-min: 2.5em;
+    --ec-crumb-max: 24em;
     --ec-list-search-width: 340px;
     --ec-list-row-height: 48px;
     --ec-list-min-height: 320px;
