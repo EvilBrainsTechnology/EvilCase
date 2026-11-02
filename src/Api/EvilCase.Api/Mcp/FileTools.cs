@@ -83,7 +83,7 @@ internal static class FileTools
 
         var outcome = await writer.RenameCaseFile(caseId, fileId, ValidFileName(request.FileName), token);
 
-        return Answer(outcome, "Another file of the case already carries the name.");
+        return Answer(outcome, "case");
     }
 
     [McpServerTool(Name = "rename_act_file", Destructive = false, OpenWorld = false)]
@@ -101,7 +101,7 @@ internal static class FileTools
 
         var outcome = await writer.RenameActFile(actId, fileId, ValidFileName(request.FileName), token);
 
-        return Answer(outcome, "Another file of the act already carries the name.");
+        return Answer(outcome, "act");
     }
 
     [McpServerTool(Name = "delete_case_file", Destructive = true, OpenWorld = false)]
@@ -144,13 +144,13 @@ internal static class FileTools
         return lastSegment;
     }
 
-    private static string Answer(FileRenameOutcome outcome, string nameTaken)
+    private static string Answer(FileRenameOutcome outcome, string ownerWord)
     {
         return outcome switch
         {
             FileRenameOutcome.Renamed => "The file was renamed.",
             FileRenameOutcome.NotFound => throw McpProblem.Of(FileProblems.NotFound),
-            FileRenameOutcome.NameTaken => throw McpProblem.Of(FileProblems.NameTaken, nameTaken),
+            FileRenameOutcome.NameTaken => throw McpProblem.Of(FileProblems.NameTaken, FileProblems.NameTakenDetail(ownerWord)),
             _ => throw new UnreachableException(),
         };
     }
