@@ -1,6 +1,5 @@
 using Bunit;
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -81,11 +80,9 @@ public class PdfPreviewRenderTests
 
     private static BunitContext NewContext(out StubFilePreviews previews)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+        var ctx = FrontendContext.Create();
 
-        previews = new StubFilePreviews();
-        ctx.Services.AddSingleton<IFilePreviews>(previews);
+        previews = ctx.Services.GetRequiredService<StubFilePreviews>();
 
         return ctx;
     }

@@ -1,10 +1,8 @@
 using System.Text;
 using Bunit;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
-using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
@@ -333,19 +331,11 @@ public class FilePreviewModalRenderTests
 
     private static BunitContext NewContext(out StubBrowserFiles files, out StubFilePreviews previews, out StubTextEditors editors)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
+        var ctx = FrontendContext.Create();
 
-        files = new StubBrowserFiles();
-        previews = new StubFilePreviews();
-        ctx.Services.AddSingleton(files);
-        ctx.Services.AddSingleton<IBrowserFiles>(files);
-        ctx.Services.AddSingleton<IFilePreviews>(previews);
-        editors = new StubTextEditors();
-        ctx.Services.AddSingleton<ITextEditors>(editors);
-        ctx.Services.AddSingleton(new StubAuthSession());
-        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
+        files = ctx.Services.GetRequiredService<StubBrowserFiles>();
+        previews = ctx.Services.GetRequiredService<StubFilePreviews>();
+        editors = ctx.Services.GetRequiredService<StubTextEditors>();
 
         return ctx;
     }

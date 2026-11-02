@@ -2,11 +2,9 @@ using System.Text;
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
-using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -299,26 +297,16 @@ public class FilePreviewModalCompareRenderTests
 
     private static BunitContext NewContext(out StubTextCompares compares, out StubBrowserFiles files)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
-        compares = new StubTextCompares();
-        files = new StubBrowserFiles();
-        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-        ctx.Services.AddSingleton<IBrowserFiles>(files);
-        ctx.Services.AddSingleton(new StubAuthSession());
-        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
-        ctx.Services.AddSingleton<ITextEditors>(new StubTextEditors());
-        ctx.Services.AddSingleton<ITextCompares>(compares);
-        ctx.Services.AddSingleton<IMarkdownEditors>(new StubMarkdownEditors());
-        ctx.Services.AddSingleton(new StubBrowserHistory());
-        ctx.Services.AddSingleton<IBrowserHistory>(static services => services.GetRequiredService<StubBrowserHistory>());
+        var ctx = FrontendContext.Create();
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
 
         var signers = Substitute.For<IFileSignersClient>();
         signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [] });
         signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton(signers);
+
+        compares = ctx.Services.GetRequiredService<StubTextCompares>();
+        files = ctx.Services.GetRequiredService<StubBrowserFiles>();
 
         return ctx;
     }

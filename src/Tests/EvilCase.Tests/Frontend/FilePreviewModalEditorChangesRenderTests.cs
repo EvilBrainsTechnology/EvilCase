@@ -2,11 +2,8 @@ using System.Text;
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
-using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -182,27 +179,17 @@ public class FilePreviewModalEditorChangesRenderTests
 
     private static BunitContext NewContext(out StubTextEditors editors, out StubMarkdownEditors markdown, out StubTextCompares compares)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
-        editors = new StubTextEditors();
-        markdown = new StubMarkdownEditors();
-        compares = new StubTextCompares();
-        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-        ctx.Services.AddSingleton<IBrowserFiles>(new StubBrowserFiles());
-        ctx.Services.AddSingleton(new StubAuthSession());
-        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
-        ctx.Services.AddSingleton<ITextEditors>(editors);
-        ctx.Services.AddSingleton<ITextCompares>(compares);
-        ctx.Services.AddSingleton<IMarkdownEditors>(markdown);
-        ctx.Services.AddSingleton(new StubBrowserHistory());
-        ctx.Services.AddSingleton<IBrowserHistory>(static services => services.GetRequiredService<StubBrowserHistory>());
+        var ctx = FrontendContext.Create();
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
 
         var signers = Substitute.For<IFileSignersClient>();
         signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [] });
         signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton(signers);
+
+        editors = ctx.Services.GetRequiredService<StubTextEditors>();
+        markdown = ctx.Services.GetRequiredService<StubMarkdownEditors>();
+        compares = ctx.Services.GetRequiredService<StubTextCompares>();
 
         return ctx;
     }

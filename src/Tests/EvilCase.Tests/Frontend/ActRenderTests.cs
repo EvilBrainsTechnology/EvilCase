@@ -4,9 +4,7 @@ using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
-using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +16,7 @@ public class ActRenderTests
     [Test]
     public void TheActRenders()
     {
-        using var ctx = new BunitContext();
+        using var ctx = FrontendContext.Create();
 
         var actId = Guid.CreateVersion7();
 
@@ -46,8 +44,6 @@ public class ActRenderTests
 
     private static void Serve(BunitContext ctx, Guid actId, ActDetail detail)
     {
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
         var actsClient = Substitute.For<IActsClient>();
         actsClient.GetAct(actId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
 
@@ -64,10 +60,7 @@ public class ActRenderTests
         ctx.Services.AddSingleton(Substitute.For<IActLabelsClient>());
         ctx.Services.AddSingleton(actCommentsClient);
         ctx.Services.AddSingleton(actFilesClient);
-        ctx.Services.AddSingleton<IFileTransferClient>(new StubFileTransferClient());
-        ctx.Services.AddSingleton<IBrowserFiles>(new StubBrowserFiles());
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
-        ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
     }

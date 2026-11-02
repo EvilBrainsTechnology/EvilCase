@@ -6,9 +6,7 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Comments;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
-using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Domain.Labels;
@@ -22,7 +20,7 @@ public class CaseRenderTests
     [Test]
     public void TheCaseRenders()
     {
-        using var ctx = new BunitContext();
+        using var ctx = FrontendContext.Create();
 
         var caseId = Guid.CreateVersion7();
 
@@ -39,7 +37,7 @@ public class CaseRenderTests
     [Test]
     public async Task ALabelAddedWhileTheLastOneIsSavingKeepsIt()
     {
-        await using var ctx = new BunitContext();
+        await using var ctx = FrontendContext.Create();
 
         var caseId = Guid.CreateVersion7();
 
@@ -92,7 +90,7 @@ public class CaseRenderTests
     [Test]
     public async Task LeavingTheCaseMidSaveWritesTheLatestLabelsToThatCaseOnly()
     {
-        await using var ctx = new BunitContext();
+        await using var ctx = FrontendContext.Create();
 
         var caseId = Guid.CreateVersion7();
         var nextCaseId = Guid.CreateVersion7();
@@ -156,7 +154,7 @@ public class CaseRenderTests
     [Test]
     public async Task AFailedLabelSaveTakesTheChangeBack()
     {
-        await using var ctx = new BunitContext();
+        await using var ctx = FrontendContext.Create();
 
         var caseId = Guid.CreateVersion7();
 
@@ -194,8 +192,6 @@ public class CaseRenderTests
         Guid caseId,
         CaseDetail detail)
     {
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
         var casesClient = Substitute.For<ICasesClient>();
         casesClient.GetCase(caseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(detail));
         casesClient.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new CaseListResponse { Items = [], TotalCount = 0 }));
@@ -222,10 +218,7 @@ public class CaseRenderTests
         ctx.Services.AddSingleton(caseFilesClient);
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(labelsClient);
-        ctx.Services.AddSingleton<IFileTransferClient>(new StubFileTransferClient());
-        ctx.Services.AddSingleton<IBrowserFiles>(new StubBrowserFiles());
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
-        ctx.Services.AddSingleton<IClipboardWriter>(new StubClipboardWriter());
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
 
         return (casesClient, caseLabelsClient, caseCommentsClient, labelsClient);
