@@ -3,8 +3,7 @@
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using Microsoft.JSInterop
-@inject IFileDownloader Downloader
-@inject IFilePicker Picker
+@inject IBrowserFiles BrowserFiles
 @inject ILogger<FilesCard> Logger
 
 @* The card is itself the drop zone (files.js). *@
@@ -287,7 +286,7 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-            await this.Picker.AttachDropZone(this.card, CancellationToken.None);
+            await this.BrowserFiles.AttachDropZone(this.card, CancellationToken.None);
 
         if (this.focusFileId is not { } fileId)
             return;
@@ -330,7 +329,7 @@
 
     private async Task DownloadArchive(string archiveUrl)
     {
-        await this.Downloader.DownloadArchive(archiveUrl, CancellationToken.None);
+        await this.BrowserFiles.DownloadArchive(archiveUrl, CancellationToken.None);
     }
 
     private async Task ReloadFiles()
@@ -400,7 +399,7 @@
     {
         this.versionTarget = file;
 
-        await this.Picker.PickFile(this.versionInput!.Element!.Value, CancellationToken.None);
+        await this.BrowserFiles.PickFile(this.versionInput!.Element!.Value, CancellationToken.None);
     }
 
     private async Task OnVersionSelected(InputFileChangeEventArgs args)
@@ -591,7 +590,7 @@
 
     private async Task DownloadVersion(FileListItem file, int number)
     {
-        await this.Downloader.DownloadFile(file.FileId, number == file.Version ? null : number, file.FileName, CancellationToken.None);
+        await this.BrowserFiles.DownloadFile(file.FileId, number == file.Version ? null : number, file.FileName, CancellationToken.None);
     }
 
     private void DeleteFromVersions(FileListItem file)
@@ -609,7 +608,7 @@
 
     private async Task Download(FileListItem file)
     {
-        await this.Downloader.DownloadFile(file.FileId, null, file.FileName, CancellationToken.None);
+        await this.BrowserFiles.DownloadFile(file.FileId, null, file.FileName, CancellationToken.None);
     }
 
     private void StartRename(FileListItem file)

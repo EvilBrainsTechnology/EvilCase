@@ -22,7 +22,7 @@ public class FilePreviewModalSignedRenderTests
     [Test]
     public async Task ADocumentNamedWithoutAnExtensionShowsAndDownloadsAsTheTypeItsContentShows()
     {
-        await using var ctx = NewContext(out _, out var previews, out var downloader, out _);
+        await using var ctx = NewContext(out var previews, out var files, out _);
 
         previews.DetectedExtension = "xml";
         var file = File("Potvrzení.p7s");
@@ -37,14 +37,14 @@ public class FilePreviewModalSignedRenderTests
         {
             Assert.That(previews.Detected, Is.EqualTo([XmlBytes]));
             Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("podepsaný dokument Potvrzení.xml"));
-            Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení.xml"]));
+            Assert.That(files.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení.xml"]));
         }
     }
 
     [Test]
     public async Task ADetectionThatFailsKeepsTheDocumentUnderItsName()
     {
-        await using var ctx = NewContext(out _, out var previews, out var downloader, out _);
+        await using var ctx = NewContext(out var previews, out var files, out _);
 
         previews.Fails = true;
         var file = File("Potvrzení.p7s");
@@ -56,14 +56,14 @@ public class FilePreviewModalSignedRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-preview-signers"), Has.Count.EqualTo(1));
-            Assert.That(downloader.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení"]));
+            Assert.That(files.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení"]));
         }
     }
 
     [Test]
     public async Task ASignedFileThatIsNoCmsOffersTheDownload()
     {
-        await using var ctx = NewContext(out _, out _, out _, out var signers);
+        await using var ctx = NewContext(out _, out _, out var signers);
 
         var file = File("Smlouva.pdf.p7m");
         var component = Render(ctx, [file], file.FileId, static _ => "abc"u8.ToArray());
@@ -78,7 +78,7 @@ public class FilePreviewModalSignedRenderTests
     [Test]
     public void ASignedFileOverTheLimitIsNeverLoaded()
     {
-        using var ctx = NewContext(out _, out _, out _, out _);
+        using var ctx = NewContext(out _, out _, out _);
 
         var loads = 0;
         var file = File("Velká.pdf.p7m", FileLimits.MaxReadBytes + 1);
@@ -101,24 +101,22 @@ public class FilePreviewModalSignedRenderTests
     }
 
     private static BunitContext NewContext(
-        out StubBlobUrls blobs, out StubFilePreviews previews, out StubFileDownloader downloader, out IFileSignersClient signers)
+        out StubFilePreviews previews, out StubBrowserFiles files, out IFileSignersClient signers)
     {
         var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
         ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
 
-        blobs = new StubBlobUrls();
         previews = new StubFilePreviews();
-        downloader = new StubFileDownloader();
+        files = new StubBrowserFiles();
         signers = Substitute.For<IFileSignersClient>();
         var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
         signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer] });
         signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
-        ctx.Services.AddSingleton<IBlobUrls>(blobs);
         ctx.Services.AddSingleton<IFilePreviews>(previews);
         ctx.Services.AddSingleton(new StubTextEditors());
         ctx.Services.AddSingleton<ITextEditors>(static services => services.GetRequiredService<StubTextEditors>());
-        ctx.Services.AddSingleton<IFileDownloader>(downloader);
+        ctx.Services.AddSingleton<IBrowserFiles>(files);
         ctx.Services.AddSingleton(new StubAuthSession());
         ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
@@ -152,7 +150,7 @@ public class FilePreviewModalSignedRenderTests
     [Test]
     public async Task TheTextOfASignedDocumentOffersNoEditing()
     {
-        await using var ctx = NewContext(out _, out _, out _, out _);
+        await using var ctx = NewContext(out _, out _, out _);
 
         var file = File("Poznámka.txt.p7m");
         var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("a"u8.ToArray(), detached: false));
@@ -166,7 +164,7 @@ public class FilePreviewModalSignedRenderTests
     [Test]
     public async Task TheSignersOfAnOlderVersionAreReadFromThatVersion()
     {
-        await using var ctx = NewContext(out _, out var previews, out _, out var signers);
+        await using var ctx = NewContext(out var previews, out _, out var signers);
 
         var file = File("Smlouva.pdf.p7m") with { Version = 3, VersionCount = 3 };
         var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(PdfBytes, detached: false), version: 2);
