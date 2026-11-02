@@ -40,11 +40,11 @@
                 }
 
                 <div class="ec-detail-facts">
-                    <div class="ec-detail-fact">
+                    <div class="ec-detail-fact ec-detail-fact-fixed">
                         <span class="ec-detail-fact-name">Datum spisu</span>
                         <span class="ec-detail-fact-value">@DateDisplay.Text(this.Detail.Date)</span>
                     </div>
-                    <div class="ec-detail-fact ec-detail-fact-copyable">
+                    <div class="ec-detail-fact ec-detail-fact-copyable ec-detail-fact-fixed">
                         <span class="ec-detail-fact-name">Spisová značka</span>
                         <span class="ec-detail-fact-copy">
                             <span class="ec-detail-fact-mono">@this.Detail.CaseNumber</span>
@@ -53,14 +53,14 @@
                     </div>
                     @if (string.IsNullOrWhiteSpace(this.Detail.ExternalCaseNumber))
                     {
-                        <div class="ec-detail-fact">
+                        <div class="ec-detail-fact ec-detail-fact-fixed">
                             <span class="ec-detail-fact-name">Externí spisová značka</span>
                             <span class="ec-detail-fact-value ec-cell-empty">—</span>
                         </div>
                     }
                     else
                     {
-                        <div class="ec-detail-fact ec-detail-fact-copyable">
+                        <div class="ec-detail-fact ec-detail-fact-copyable ec-detail-fact-fixed">
                             <span class="ec-detail-fact-name">Externí spisová značka</span>
                             <span class="ec-detail-fact-copy">
                                 <span class="ec-detail-fact-mono">@this.Detail.ExternalCaseNumber</span>

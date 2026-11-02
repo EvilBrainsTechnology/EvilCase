@@ -4132,6 +4132,10 @@ html.ec-scroll-locked {
     border-right: 0;
 }
 
+.ec-detail-fact-fixed {
+    flex: none;
+}
+
 .ec-detail-fact-copyable {
     padding-right: var(--ec-space-4);
 }
