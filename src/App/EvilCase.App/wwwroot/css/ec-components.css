@@ -6802,7 +6802,7 @@ html:has(.ec-gate) {
 }
 
 .ec-table-row:hover {
-    background: var(--ec-surface-sunken);
+    background: var(--ec-bg);
 }
 
 .ec-table-row:focus-visible {
