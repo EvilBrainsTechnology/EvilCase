@@ -37,6 +37,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public DbSet<LabelAssignment> LabelAssignments => this.Set<LabelAssignment>();
 
+    /// <summary>
+    /// The cases above the case, as a query root; a projection calls <see cref="DatabaseFunctions.CaseAncestors"/>.
+    /// </summary>
+    public IQueryable<CaseAncestor> CaseAncestors(Guid caseId)
+    {
+        return this.FromExpression(() => DatabaseFunctions.CaseAncestors(caseId));
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
