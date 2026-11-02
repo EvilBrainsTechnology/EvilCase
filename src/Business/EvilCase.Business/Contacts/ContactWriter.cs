@@ -1,7 +1,6 @@
 using EvilBrains.Collections;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Business.Entities;
-using EvilBrains.EvilCase.Data;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Data.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -64,30 +63,16 @@ internal sealed class ContactWriter(IDbSession dbSession, ILogger<ContactWriter>
 
     public async Task<ContactDeleteOutcome> DeleteContact(Guid contactId, CancellationToken token)
     {
-        var context = dbSession.Current;
+        var contacts = dbSession.Current.Contacts
+            .WithId(contactId);
 
-        var contact = await context.Contacts.WithId(contactId).SingleOrDefaultAsync(token);
-        if (contact is null)
+        if (await contacts.AnyAsync(static contact => contact.Acts.Count != 0 || contact.Cases.Count != 0, token))
+            return ContactDeleteOutcome.Referenced;
+
+        var rows = await contacts.ExecuteDeleteAsync(token);
+
+        if (rows == 0)
             return ContactDeleteOutcome.NotFound;
-
-        var referenced = await context.Contacts
-            .WithId(contactId)
-            .Referenced()
-            .AnyAsync(token);
-        if (referenced)
-            return ContactDeleteOutcome.Referenced;
-
-        context.Contacts.Remove(contact);
-
-        try
-        {
-            await context.SaveChangesAsync(token);
-        }
-        catch (DbUpdateException exception) when (exception.IsForeignKeyViolation())
-        {
-            // A reference written between the checks above and this save.
-            return ContactDeleteOutcome.Referenced;
-        }
 
         logger.LogInformation("Contact {ContactId} was deleted", contactId);
 

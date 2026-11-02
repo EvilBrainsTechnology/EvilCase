@@ -1,133 +1,67 @@
 using EvilBrains.EvilCase.Business.Contacts;
-using EvilBrains.EvilCase.Data;
-using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Entities;
-using EvilBrains.EvilCase.Domain.Acts;
-using EvilBrains.EvilCase.Domain.Cases;
-using EvilBrains.EvilCase.Domain.Contacts;
-using EvilBrains.EvilCase.Domain.Users;
-using EvilBrains.EvilCase.Tests.Auth;
 using EvilBrains.EvilCase.Tests.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
-using Npgsql;
 
 namespace EvilBrains.EvilCase.Tests.Contacts;
 
-public class ContactDeleteTests
+public class ContactDeleteTests : TenantFixture
 {
-    [Test]
-    public async Task AReferenceWrittenAfterTheChecksLeavesTheContactInUse()
+    private static readonly DateOnly Day = new(2026, 8, 7);
+
+    private ContactWriter writer = null!;
+
+    [SetUp]
+    public void SetUpWriter()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
-
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var seeded = await SeedContactAndCase(context, tenantId, userId);
-
-        // The act lands between the delete's checks and its save, on another connection: the race, without timing.
-        context.SavingChanges += (_, _) => WriteAct(userContext, seeded.Case, seeded.Contact.Id);
-
-        var writer = new ContactWriter(new FixedDbSession(context), NullLogger<ContactWriter>.Instance);
-
-        var outcome = await writer.DeleteContact(seeded.Contact.Id, CancellationToken.None);
-
-        Assert.That(
-            outcome,
-            Is.EqualTo(ContactDeleteOutcome.Referenced),
-            "a reference written after the checks leaves the contact in use rather than failing the request");
+        this.writer = new ContactWriter(new FixedDbSession(this.Tenant.Context), NullLogger<ContactWriter>.Instance);
     }
 
     [Test]
-    public async Task ADeleteRefusedByAForeignKeyIsReadAsOne()
+    public async Task AContactNothingPointsAtIsDeleted()
     {
-        var userContext = new StubUserContext();
-        var tenantId = Guid.CreateVersion7();
-        var userId = Guid.CreateVersion7();
-        using var entered = userContext.Enter(tenantId, userId);
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        var other = await this.Tenant.AddContact("Krajský soud");
+        var @case = await this.Tenant.AddCase(Day, contact: other);
+        await this.Tenant.AddAct(@case, Day, contact: other);
 
-        await using var context = TestDatabase.CreateMigrated(userContext);
-        var seeded = await SeedContactAndCase(context, tenantId, userId);
-        WriteAct(userContext, seeded.Case, seeded.Contact.Id);
-
-        context.Contacts.Remove(seeded.Contact);
-
-        Assert.That(
-            async () => await context.SaveChangesAsync(),
-            Throws.InstanceOf<DbUpdateException>().With.Matches<DbUpdateException>(static exception => exception!.IsForeignKeyViolation()),
-            "the write PostgreSQL refuses for a foreign key is read as a foreign-key violation");
-    }
-
-    [Test]
-    public void AUniqueViolationIsNotAForeignKeyViolation()
-    {
-        var exception = new DbUpdateException(
-            "duplicate key",
-            new PostgresException("duplicate key", "ERROR", "ERROR", PostgresErrorCodes.UniqueViolation));
+        var outcome = await this.writer.DeleteContact(contact.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(exception.IsForeignKeyViolation(), Is.False, "the two readings of a failed write answer for their own error alone");
-            Assert.That(exception.IsUniqueViolation(), Is.True, "the two readings of a failed write answer for their own error alone");
+            Assert.That(outcome, Is.EqualTo(ContactDeleteOutcome.Deleted), "nothing points at the contact, so nothing stands between it and deletion");
+            Assert.That(await this.Tenant.Context.Contacts.Select(static row => row.Id).ToListAsync(), Is.EqualTo([other.Id]));
         }
     }
 
-    private static async Task<(Contact Contact, Case Case)> SeedContactAndCase(ApplicationDbContext context, Guid tenantId, Guid userId)
+    [Test]
+    public async Task AContactAnActNamesIsInUse()
     {
-        var account = new Account { Name = "contact delete" };
-        var tenant = new Tenant { Id = tenantId, AccountId = account.Id, Name = "tenant" };
-        var contact = new Contact { TenantId = tenantId, Kind = ContactKind.Authority, Name = "Krajský soud" };
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        var @case = await this.Tenant.AddCase(Day);
+        await this.Tenant.AddAct(@case, Day, contact: contact);
 
-        var user = new User
+        var outcome = await this.writer.DeleteContact(contact.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
         {
-            Id = userId,
-            TenantId = tenantId,
-            Email = $"{Guid.CreateVersion7()}@example.com",
-            PasswordHash = "hash",
-            Role = UserRole.User,
-        };
-
-        var @case = new Case
-        {
-            TenantId = tenantId,
-            UserId = userId,
-            CaseNumber = "EC/20260821-001",
-            Date = new DateOnly(2026, 8, 21),
-            Title = "Přestupek",
-            Status = CaseStatus.Active,
-        };
-
-        context.Accounts.Add(account);
-        context.Tenants.Add(tenant);
-        context.Contacts.Add(contact);
-        context.Users.Add(user);
-        context.Cases.Add(@case);
-        await context.SaveChangesAsync();
-
-        // The delete runs on rows the request did not write, so nothing the seed added stays tracked.
-        context.ChangeTracker.Clear();
-
-        return (contact, @case);
+            Assert.That(outcome, Is.EqualTo(ContactDeleteOutcome.Referenced), "an act naming the contact still points at it");
+            Assert.That(await this.Tenant.Context.Contacts.CountAsync(), Is.EqualTo(1));
+        }
     }
 
-    private static void WriteAct(IUserContext userContext, Case @case, Guid contactId)
+    [Test]
+    public async Task AContactACaseNamesIsInUse()
     {
-        using var context = TestDatabase.CreateMigrated(userContext);
+        var contact = await this.Tenant.AddContact("Městský úřad");
+        await this.Tenant.AddCase(Day, contact: contact);
 
-        context.Acts.Add(new Act
+        var outcome = await this.writer.DeleteContact(contact.Id, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
         {
-            TenantId = @case.TenantId,
-            UserId = @case.UserId,
-            CaseId = @case.Id,
-            ActNumber = "EC/20260821-001/01",
-            Direction = ActDirection.Incoming,
-            ContactId = contactId,
-            Title = "Rozhodnutí",
-            Date = @case.Date,
-        });
-
-        context.SaveChanges();
+            Assert.That(outcome, Is.EqualTo(ContactDeleteOutcome.Referenced), "a case naming the contact still points at it");
+            Assert.That(await this.Tenant.Context.Contacts.CountAsync(), Is.EqualTo(1));
+        }
     }
 }
