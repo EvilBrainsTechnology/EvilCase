@@ -49,7 +49,7 @@
         }
 
         <div class="ec-recent-cases">
-            <CaseList Columns="CaseColumns" Filter="CaseTile" Title="Naposledy změněné spisy"
+            <CaseList Columns="CaseColumns" Filter="CaseTile" Title="Naposledy změněné spisy" HideSorting="true"
                       EmptyText="Zatím tu není žádný spis.">
                 <Actions>
                     <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
@@ -62,7 +62,7 @@
         </div>
 
         <div class="ec-recent-acts">
-            <ActList Columns="ActColumns" DateHeader="Datum úkonu" Filter="ActTile" Title="Naposledy změněné úkony"
+            <ActList Columns="ActColumns" DateHeader="Datum úkonu" Filter="ActTile" Title="Naposledy změněné úkony" HideSorting="true"
                      EmptyText="Zatím tu není žádný úkon." />
         </div>
     }

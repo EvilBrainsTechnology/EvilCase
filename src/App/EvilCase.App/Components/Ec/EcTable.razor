@@ -56,7 +56,7 @@
             @foreach (var column in this.Columns)
             {
                 <span class="ec-table-header">
-                    @if (column.SortKey is not null)
+                    @if (this.AllowSorting && column.SortKey is not null)
                     {
                         <button type="button" class="@this.HeaderClass(column)" @onclick="() => this.SortChanged.InvokeAsync(column.SortKey)">@column.Header @this.Arrow(column)</button>
                     }
@@ -123,6 +123,9 @@
     public EventCallback<string> SortChanged { get; set; }
 
     [Parameter]
+    public bool AllowSorting { get; set; } = true;
+
+    [Parameter]
     public bool Loading { get; set; }
 
     [Parameter]
@@ -154,7 +157,7 @@
 
     private string Template => string.Join(" ", this.Columns.Select(static column => column.Width));
 
-    private IReadOnlyList<EcColumn<TItem>> Sortable => [.. this.Columns.Where(static column => column.SortKey is not null)];
+    private IReadOnlyList<EcColumn<TItem>> Sortable => this.AllowSorting ? [.. this.Columns.Where(static column => column.SortKey is not null)] : [];
 
     private string BarClass => this.ShowToolbar ? "ec-table-bar" : "ec-table-bar ec-table-bar-sortonly";
 

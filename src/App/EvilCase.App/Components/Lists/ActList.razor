@@ -98,7 +98,7 @@
          Columns="columns" Items="this.items" RowHref="RowHref"
          SortKey="@this.sort.ToString()"
          SortDescending="@(this.Direction == ListSortDirection.Descending)"
-         SortChanged="this.OnSortChanged"
+         SortChanged="this.OnSortChanged" AllowSorting="!this.HideSorting"
          Loading="this.Loading" Failure="@this.Failure" Retry="this.ReloadFirstPage"
          Skip="this.Skip" Take="this.Filter.Take" Total="this.Total"
          ShowPaging="this.ShowPaging" Previous="this.ToPreviousPage" Next="this.ToNextPage">
@@ -205,6 +205,9 @@
     /// </summary>
     [Parameter]
     public bool HideToolbarWhenEmpty { get; set; }
+
+    [Parameter]
+    public bool HideSorting { get; set; }
 
     [Parameter]
     public EventCallback<int> TotalChanged { get; set; }
