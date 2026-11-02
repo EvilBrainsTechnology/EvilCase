@@ -29,11 +29,14 @@ internal sealed class TestTenant : IAsyncDisposable
         this.entered = entered;
         this.stubUserContext = stubUserContext;
         this.Context = context;
+        this.Session = new FixedDbSession(context);
         this.tenantId = tenantId;
         this.UserId = userId;
     }
 
     public ApplicationDbContext Context { get; }
+
+    public IDbSession Session { get; }
 
     public Guid UserId { get; }
 

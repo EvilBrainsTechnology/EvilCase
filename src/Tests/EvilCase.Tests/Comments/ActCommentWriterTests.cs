@@ -18,7 +18,7 @@ public class ActCommentWriterTests : TenantFixture
     [SetUp]
     public void SetUpWriter()
     {
-        this.writer = new CommentWriter(new FixedDbSession(this.Tenant.Context), this.Tenant.UserContext, NullLogger<CommentWriter>.Instance);
+        this.writer = new CommentWriter(this.Tenant.Session, this.Tenant.UserContext, NullLogger<CommentWriter>.Instance);
     }
 
     [Test]

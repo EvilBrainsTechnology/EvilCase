@@ -14,7 +14,7 @@ public class CasePathTests : TenantFixture
     {
         var root = await this.Tenant.AddCase(Day, "Kořen");
 
-        var detail = await new CaseReader(new FixedDbSession(this.Tenant.Context)).GetCaseDetail(root.Id, CancellationToken.None);
+        var detail = await new CaseReader(this.Tenant.Session).GetCaseDetail(root.Id, CancellationToken.None);
 
         Assert.That(detail!.Ancestors, Is.Empty);
     }
@@ -26,7 +26,7 @@ public class CasePathTests : TenantFixture
         var middle = await this.Tenant.AddCase(Day, "Prostřední", parentCaseId: root.Id);
         var leaf = await this.Tenant.AddCase(Day, "List", parentCaseId: middle.Id);
 
-        var detail = await new CaseReader(new FixedDbSession(this.Tenant.Context)).GetCaseDetail(leaf.Id, CancellationToken.None);
+        var detail = await new CaseReader(this.Tenant.Session).GetCaseDetail(leaf.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -43,7 +43,7 @@ public class CasePathTests : TenantFixture
         var leaf = await this.Tenant.AddCase(Day, "List", parentCaseId: middle.Id);
         var act = await this.Tenant.AddAct(leaf, Day);
 
-        var detail = await new ActReader(new FixedDbSession(this.Tenant.Context)).GetActDetail(act.Id, CancellationToken.None);
+        var detail = await new ActReader(this.Tenant.Session).GetActDetail(act.Id, CancellationToken.None);
 
         Assert.That(detail!.CaseAncestors.Select(static crumb => crumb.CaseId), Is.EqualTo([root.Id, middle.Id]));
     }
@@ -58,7 +58,7 @@ public class CasePathTests : TenantFixture
             .Where(@case => @case.Id == first.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(static @case => @case.ParentCaseId, second.Id));
 
-        var detail = await new CaseReader(new FixedDbSession(this.Tenant.Context)).GetCaseDetail(first.Id, CancellationToken.None);
+        var detail = await new CaseReader(this.Tenant.Session).GetCaseDetail(first.Id, CancellationToken.None);
 
         Assert.That(detail!.Ancestors.Select(static crumb => crumb.CaseId), Is.EqualTo([second.Id]));
     }
@@ -72,7 +72,7 @@ public class CasePathTests : TenantFixture
         await this.Tenant.AddCaseLabel(leaf, await this.Tenant.AddLabel("InfZ"));
         await this.Tenant.AddCaseLabel(leaf, await this.Tenant.AddLabel("Soud"));
 
-        var detail = await new CaseReader(new FixedDbSession(this.Tenant.Context)).GetCaseDetail(leaf.Id, CancellationToken.None);
+        var detail = await new CaseReader(this.Tenant.Session).GetCaseDetail(leaf.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {

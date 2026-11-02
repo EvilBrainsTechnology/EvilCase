@@ -202,7 +202,7 @@ public class UserWriteInterceptorTests
         return new()
         {
             TenantId = tenantId,
-            Email = "user@evilcase.test",
+            Email = AuthTestHarness.Email,
             PasswordHash = "hash",
             Role = UserRole.User,
         };

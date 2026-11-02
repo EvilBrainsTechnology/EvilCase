@@ -12,7 +12,7 @@ public class ActCommentReaderTests : TenantFixture
     [SetUp]
     public void SetUpReader()
     {
-        this.reader = new CommentReader(new FixedDbSession(this.Tenant.Context), this.Tenant.UserContext);
+        this.reader = new CommentReader(this.Tenant.Session, this.Tenant.UserContext);
     }
 
     [Test]

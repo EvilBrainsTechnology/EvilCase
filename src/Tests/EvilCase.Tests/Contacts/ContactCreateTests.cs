@@ -16,7 +16,7 @@ public class ContactCreateTests : TenantFixture
     [SetUp]
     public void SetUpWriter()
     {
-        this.writer = new ContactWriter(new FixedDbSession(this.Tenant.Context), NullLogger<ContactWriter>.Instance);
+        this.writer = new ContactWriter(this.Tenant.Session, NullLogger<ContactWriter>.Instance);
     }
 
     [Test]

@@ -17,7 +17,7 @@ public class ActDeleteTests : TenantFixture
     public void SetUpWriter()
     {
         this.writer = new ActWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
+            this.Tenant.Session, new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
     }
 
     [Test]

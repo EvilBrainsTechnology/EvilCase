@@ -179,7 +179,7 @@ public class FileSignatureReaderTests : TenantFixture
 
     private FileSignatureReader Reader(StubSignatureRevocation revocation)
     {
-        return new FileSignatureReader(new FixedDbSession(this.Tenant.Context), this.blobs, this.pki.Trust, revocation, this.cache, NullLogger<FileSignatureReader>.Instance);
+        return new FileSignatureReader(this.Tenant.Session, this.blobs, this.pki.Trust, revocation, this.cache, NullLogger<FileSignatureReader>.Instance);
     }
 
     private async Task<FileAsset> AddSealedFile()

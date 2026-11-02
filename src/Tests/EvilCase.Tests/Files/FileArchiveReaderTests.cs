@@ -22,7 +22,7 @@ public class FileArchiveReaderTests : TenantFixture
     public void SetUpReader()
     {
         this.blobs = new FakeFileBlobStore();
-        this.reader = new FileArchiveReader(new FixedDbSession(this.Tenant.Context), this.blobs, NullLogger<FileArchiveReader>.Instance);
+        this.reader = new FileArchiveReader(this.Tenant.Session, this.blobs, NullLogger<FileArchiveReader>.Instance);
     }
 
     [Test]

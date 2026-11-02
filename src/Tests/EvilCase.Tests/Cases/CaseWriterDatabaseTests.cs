@@ -19,7 +19,7 @@ public class CaseWriterDatabaseTests : TenantFixture
 
         await this.Tenant.AddCase(new DateOnly(2026, 8, 21), caseNumber: taken);
 
-        var writer = new CaseWriter(new FixedDbSession(this.Tenant.Context), new QueuedCaseNumberIssuer([taken, free]), NullLogger<CaseWriter>.Instance);
+        var writer = new CaseWriter(this.Tenant.Session, new QueuedCaseNumberIssuer([taken, free]), NullLogger<CaseWriter>.Instance);
 
         var result = await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
 
@@ -37,7 +37,7 @@ public class CaseWriterDatabaseTests : TenantFixture
     public void AFailureThatIsNotATakenNumberReachesTheCaller()
     {
         var tooLong = new string('9', 65);
-        var writer = new CaseWriter(new FixedDbSession(this.Tenant.Context), new QueuedCaseNumberIssuer([tooLong]), NullLogger<CaseWriter>.Instance);
+        var writer = new CaseWriter(this.Tenant.Session, new QueuedCaseNumberIssuer([tooLong]), NullLogger<CaseWriter>.Instance);
 
         Assert.That(
             async () => await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None),

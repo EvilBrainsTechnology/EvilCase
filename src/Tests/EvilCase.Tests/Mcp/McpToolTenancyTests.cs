@@ -22,7 +22,7 @@ public class McpToolTenancyTests : TenantFixture
     {
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day, title: "Cizí spis");
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         Assert.That(
             async () => await CaseTools.GetCase(reader, otherCase.Id, CancellationToken.None),
@@ -38,7 +38,7 @@ public class McpToolTenancyTests : TenantFixture
         var otherFile = await other.AddCaseFile(otherCase, "zapis.txt");
         var blobs = new FakeFileBlobStore();
         blobs.WrittenByPath[otherFile.Versions.Single().StoragePath] = "cizí obsah";
-        var reader = new FileTextReader(new FixedDbSession(this.Tenant.Context), blobs, NullLogger<FileTextReader>.Instance);
+        var reader = new FileTextReader(this.Tenant.Session, blobs, NullLogger<FileTextReader>.Instance);
 
         Assert.That(
             async () => await FileTools.ReadFileText(reader, otherFile.Id, version: null, page: 1, CancellationToken.None),
@@ -53,7 +53,7 @@ public class McpToolTenancyTests : TenantFixture
         var file = await this.Tenant.AddCaseFile(@case, "zapis.txt");
         var blobs = new FakeFileBlobStore();
         blobs.WrittenByPath[file.Versions.Single().StoragePath] = "vlastní obsah";
-        var reader = new FileTextReader(new FixedDbSession(this.Tenant.Context), blobs, NullLogger<FileTextReader>.Instance);
+        var reader = new FileTextReader(this.Tenant.Session, blobs, NullLogger<FileTextReader>.Instance);
 
         var page = await FileTools.ReadFileText(reader, file.Id, version: null, page: 1, CancellationToken.None);
 

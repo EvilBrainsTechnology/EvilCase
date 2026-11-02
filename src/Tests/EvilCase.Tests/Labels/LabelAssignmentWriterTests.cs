@@ -15,7 +15,7 @@ public class LabelAssignmentWriterTests : TenantFixture
     [SetUp]
     public void SetUpWriter()
     {
-        this.writer = new LabelAssignmentWriter(new FixedDbSession(this.Tenant.Context), NullLogger<LabelAssignmentWriter>.Instance);
+        this.writer = new LabelAssignmentWriter(this.Tenant.Session, NullLogger<LabelAssignmentWriter>.Instance);
     }
 
     [Test]

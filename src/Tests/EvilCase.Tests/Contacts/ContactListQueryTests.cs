@@ -213,7 +213,7 @@ public class ContactListQueryTests : TenantFixture
         await this.Tenant.AddContact("Novák");
         await this.Tenant.AddContact("Zeman");
 
-        var reader = new ContactReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new ContactReader(this.Tenant.Session);
 
         var page = await reader.ListContacts(
             new ContactListRequest { Skip = 1, Take = 1, SortDirection = ListSortDirection.Ascending }, CancellationToken.None);

@@ -13,7 +13,7 @@ public class LabelListQueryTests : TenantFixture
     [SetUp]
     public void SetUpReader()
     {
-        this.reader = new LabelReader(new FixedDbSession(this.Tenant.Context));
+        this.reader = new LabelReader(this.Tenant.Session);
     }
 
     [Test]

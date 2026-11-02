@@ -22,7 +22,7 @@ public class ActUpdateTests : TenantFixture
     public void SetUpWriter()
     {
         this.writer = new ActWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
+            this.Tenant.Session, new FakeActNumberIssuer(), NullLogger<ActWriter>.Instance);
     }
 
     [Test]
@@ -270,7 +270,7 @@ public class ActUpdateTests : TenantFixture
         var secondNumber = second.ActNumber;
 
         var caseWriter = new CaseWriter(
-            new FixedDbSession(this.Tenant.Context), new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
+            this.Tenant.Session, new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);
         var caseEdit = new CaseEditRequest
         {
             CaseNumber = "EC/20260101-042",

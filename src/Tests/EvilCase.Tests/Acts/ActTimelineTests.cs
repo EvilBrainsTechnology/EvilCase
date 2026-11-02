@@ -149,7 +149,7 @@ public class ActTimelineTests : TenantFixture
     [Test]
     public async Task TheReaderReturnsNothingForAnUnknownAct()
     {
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new ActReader(this.Tenant.Session);
 
         var detail = await reader.GetActDetail(Guid.CreateVersion7(), CancellationToken.None);
 
@@ -169,7 +169,7 @@ public class ActTimelineTests : TenantFixture
 
     private async Task<ActDetail> ReadActDetail(Guid actId)
     {
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new ActReader(this.Tenant.Session);
 
         return (await reader.GetActDetail(actId, CancellationToken.None))!;
     }

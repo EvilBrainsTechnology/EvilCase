@@ -129,7 +129,7 @@ public class ActDetailQueryTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var reader = new ActReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new ActReader(this.Tenant.Session);
         var detail = await reader.GetActDetail(act.Id, CancellationToken.None);
 
         Assert.That(detail!.ActId, Is.EqualTo(act.Id));
