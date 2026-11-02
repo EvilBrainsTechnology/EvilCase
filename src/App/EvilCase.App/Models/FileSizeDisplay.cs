@@ -8,7 +8,7 @@ public static class FileSizeDisplay
 
     private static readonly NumberFormatInfo CzechNumbers = NumberFormatInfo.ReadOnly(new NumberFormatInfo { NumberDecimalSeparator = "," });
 
-    public static string Text(in long sizeBytes)
+    public static string Text(long sizeBytes)
     {
         if (sizeBytes < Kilobyte)
             return string.Create(CzechNumbers, $"{sizeBytes} B");

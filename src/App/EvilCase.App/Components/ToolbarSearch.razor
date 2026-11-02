@@ -1,5 +1,3 @@
-@using System.Globalization
-
 @* The search at the right end of a preview or editor toolbar: the matches, the field and the steps to the previous and
    next match. Escape clears the search and does not close the dialog. *@
 @if (this.Collapsible)
@@ -75,7 +73,7 @@
                 return "";
 
             if (this.matches > 0)
-                return string.Create(CultureInfo.InvariantCulture, $"{this.match} z {this.matches}");
+                return $"{NumberDisplay.Text(this.match)} z {NumberDisplay.Text(this.matches)}";
 
             return this.searching ? "Hledám…" : "Nenalezeno";
         }

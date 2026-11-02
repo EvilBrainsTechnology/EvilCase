@@ -17,7 +17,7 @@
         </Actions>
     </EcPageHeader>
 
-    @if (this.view is { IsEmpty: true })
+    @if (this.counts is { Total: 0 })
     {
         <EcCard>
             <EcEmptyState Icon="@AppIcons.Folders" Text="Zatím tu není žádný spis.">
@@ -41,10 +41,10 @@
         }
         else
         {
-            <div class="ec-tiles" aria-busy="@(this.view is null ? "true" : "false")">
-                <CaseCountTile Status="CaseStatus.Active" Count="this.view?.Counts.Active" />
-                <CaseCountTile Status="CaseStatus.WaitingOnAuthority" Count="this.view?.Counts.WaitingOnAuthority" />
-                <CaseCountTile Status="CaseStatus.Closed" Count="this.view?.Counts.Closed" />
+            <div class="ec-tiles" aria-busy="@(this.counts is null ? "true" : "false")">
+                <CaseCountTile Status="CaseStatus.Active" Count="this.counts?.Active" />
+                <CaseCountTile Status="CaseStatus.WaitingOnAuthority" Count="this.counts?.WaitingOnAuthority" />
+                <CaseCountTile Status="CaseStatus.Closed" Count="this.counts?.Closed" />
             </div>
         }
 
@@ -103,7 +103,7 @@
         Take = TileItems,
     };
 
-    private DashboardView? view;
+    private CaseStatusCounts? counts;
 
     private string? failure;
 
@@ -114,12 +114,12 @@
 
     private async Task LoadCounts()
     {
-        this.view = null;
+        this.counts = null;
         this.failure = null;
 
         try
         {
-            this.view = new DashboardView { Counts = await this.CasesClient.CountCases(CancellationToken.None) };
+            this.counts = await this.CasesClient.CountCases(CancellationToken.None);
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

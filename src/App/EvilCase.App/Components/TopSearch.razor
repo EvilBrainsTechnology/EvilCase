@@ -253,15 +253,8 @@
 
         if (this.module is not null)
         {
-            try
-            {
-                await this.module.InvokeVoidAsync("detach");
-                await this.module.DisposeAsync();
-            }
-            catch (JSDisconnectedException)
-            {
-                // The circuit is gone; the listeners went with the page.
-            }
+            await this.module.InvokeVoidAsync("detach");
+            await this.module.DisposeAsync();
         }
     }
 

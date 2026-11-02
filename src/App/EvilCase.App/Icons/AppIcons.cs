@@ -143,10 +143,6 @@ public static class AppIcons
         + "<path d='M5 10h14' />"
         + "<path d='M5 14h14' />";
 
-    public const string Eye = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
-        + "<path d='M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0' />"
-        + "<path d='M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6' />";
-
     public const string FileText = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M14 3v4a1 1 0 0 0 1 1h4' />"
         + "<path d='M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z' />"
@@ -259,14 +255,6 @@ public static class AppIcons
         + "<path d='M4 6l16 0' />"
         + "<path d='M4 12l16 0' />"
         + "<path d='M4 18l16 0' />";
-
-    public const string ListDetails = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
-        + "<path d='M13 5h8' />"
-        + "<path d='M13 9h5' />"
-        + "<path d='M13 15h8' />"
-        + "<path d='M13 19h5' />"
-        + "<path d='M3 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z' />"
-        + "<path d='M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z' />";
 
     public const string List = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M9 6l11 0' />"

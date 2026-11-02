@@ -2,7 +2,6 @@ using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Labels;
-using EvilBrains.EvilCase.App.Models;
 using EvilBrains.EvilCase.App.Pages;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Components;
@@ -67,7 +66,7 @@ public class NewActRenderTests
     private static IRenderedComponent<NewAct> Render(BunitContext ctx, Guid? caseId)
     {
         var navigation = ctx.Services.GetRequiredService<NavigationManager>();
-        navigation.NavigateTo(ActRoutes.New(caseId));
+        navigation.NavigateTo(caseId is null ? "/acts/new" : $"/acts/new?case={caseId}");
 
         return ctx.Render<NewAct>();
     }

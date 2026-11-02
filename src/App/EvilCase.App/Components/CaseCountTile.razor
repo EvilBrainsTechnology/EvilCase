@@ -1,5 +1,4 @@
 @using System.Diagnostics
-@using System.Globalization
 @using EvilBrains.EvilCase.Api.Contract.Cases
 @using EvilBrains.EvilCase.Domain.Cases
 
@@ -8,7 +7,7 @@
         <EcIcon Paths="@AppIcons.Folders" />
     </span>
     <span class="ec-stat-text">
-        <span class="ec-stat-value">@(this.Count?.ToString(CultureInfo.CurrentCulture) ?? "—")</span>
+        <span class="ec-stat-value">@(this.Count is { } count ? NumberDisplay.Text(count) : "—")</span>
         <span class="ec-stat-label">@CaseStatusDisplay.CountText(this.Status)</span>
     </span>
     <span class="ec-stat-more">Zobrazit<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" /></span>

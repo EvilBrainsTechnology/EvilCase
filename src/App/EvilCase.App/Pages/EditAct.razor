@@ -156,7 +156,7 @@
         : [
             .. CaseCrumbs.Through(this.act.CaseAncestors),
             new EcCrumb(this.act.CaseTitle, $"/cases/{this.act.CaseId}"),
-            new EcCrumb(this.act.Title, ActRoutes.Detail(this.ActId)),
+            new EcCrumb(this.act.Title, $"/acts/{this.ActId}"),
             new EcCrumb("Upravit", null),
         ];
 
@@ -215,7 +215,7 @@
 
     private void Cancel()
     {
-        this.Navigation.NavigateTo(ActRoutes.Detail(this.ActId));
+        this.Navigation.NavigateTo($"/acts/{this.ActId}");
     }
 
     private async Task SubmitAct()
@@ -242,7 +242,7 @@
 
             await this.ActsClient.EditAct(this.ActId, request, CancellationToken.None);
 
-            this.Navigation.NavigateTo(ActRoutes.Detail(this.ActId));
+            this.Navigation.NavigateTo($"/acts/{this.ActId}");
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {

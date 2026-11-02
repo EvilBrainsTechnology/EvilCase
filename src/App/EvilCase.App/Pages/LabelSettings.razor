@@ -144,7 +144,7 @@
 
     private static string CountText(int count)
     {
-        return count == 0 ? "—" : count.ToString(CultureInfo.CurrentCulture);
+        return count == 0 ? "—" : NumberDisplay.Text(count);
     }
 
     private void StartEditing(LabelListItem label)
