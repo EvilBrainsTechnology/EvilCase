@@ -1,0 +1,16 @@
+@foreach (var segment in TextLinks.Segments(this.Text))
+{
+    @if (segment.Link)
+    {
+        <a href="@segment.Text" target="_blank" rel="noopener noreferrer">@segment.Text</a>
+    }
+    else
+    {
+        @segment.Text
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required string Text { get; set; }
+}

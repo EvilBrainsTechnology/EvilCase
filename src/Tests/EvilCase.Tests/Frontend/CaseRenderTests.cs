@@ -175,6 +175,28 @@ public class CaseRenderTests
             TimeSpan.FromSeconds(2));
     }
 
+    [Test]
+    public async Task AnAddressInTheDescriptionIsALink()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId) with { Description = "Rozhodnutí je na https://example.cz/rozhodnuti." });
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        var link = component.Find(".ec-detail-text a");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(link.GetAttribute("href"), Is.EqualTo("https://example.cz/rozhodnuti"));
+            Assert.That(link.GetAttribute("target"), Is.EqualTo("_blank"));
+            Assert.That(link.GetAttribute("rel"), Is.EqualTo("noopener noreferrer"), "the opened page gets no hold on the application");
+            Assert.That(component.Find(".ec-detail-text").TextContent, Is.EqualTo("Rozhodnutí je na https://example.cz/rozhodnuti."), "the text around the link stays");
+        }
+    }
+
     private static CaseDetail Detail(Guid caseId)
     {
         return new CaseDetail
