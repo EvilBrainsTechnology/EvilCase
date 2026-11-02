@@ -60,15 +60,6 @@
                                         </InputSelect>
                                     </ChildContent>
                                 </EcField>
-                                <EcField Label="Externí spisová značka" ControlId="case-external-number">
-                                    <ChildContent>
-                                        <InputText id="case-external-number" class="ec-input ec-input-mono" placeholder="Značka, kterou spisu dal jiný úřad" @bind-Value="this.model.ExternalCaseNumber" />
-                                    </ChildContent>
-                                    <Error><ValidationMessage For="() => this.model.ExternalCaseNumber" /></Error>
-                                </EcField>
-                            </div>
-
-                            <div class="ec-form-row">
                                 <EcField Label="Spisová značka" Required ControlId="case-number" Hint="Tvar EC/RRRRMMDD-NNN. Změna data spisu značku nemění.">
                                     <ChildContent>
                                         <InputText id="case-number" class="ec-input ec-input-mono" @bind-Value="this.model.CaseNumber" />
@@ -76,6 +67,13 @@
                                     <Error><ValidationMessage For="() => this.model.CaseNumber" /></Error>
                                 </EcField>
                             </div>
+
+                            <EcField Label="Externí spisová značka" ControlId="case-external-number">
+                                <ChildContent>
+                                    <InputText id="case-external-number" class="ec-input ec-input-mono" placeholder="Značka, kterou spisu dal jiný úřad" @bind-Value="this.model.ExternalCaseNumber" />
+                                </ChildContent>
+                                <Error><ValidationMessage For="() => this.model.ExternalCaseNumber" /></Error>
+                            </EcField>
 
                             <EcField Label="Štítky" ControlId="case-labels">
                                 <ChildContent>
