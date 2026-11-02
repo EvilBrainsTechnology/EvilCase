@@ -5193,13 +5193,15 @@ html.ec-scroll-locked {
         order: 1;
         align-items: center;
         justify-content: flex-end;
-        gap: var(--ec-space-3);
+        gap: var(--ec-space-1);
     }
 
-    /* The actions and the stepping through files do not fit one row: the stepping takes the next row, at its right end. */
     .ec-preview-nav {
-        flex: 1 1 100%;
-        justify-content: flex-end;
+        gap: var(--ec-space-1);
+    }
+
+    .ec-preview-position {
+        min-width: 0;
     }
 
     .ec-modal-large .ec-modal-header .ec-preview-actions .ec-button {
