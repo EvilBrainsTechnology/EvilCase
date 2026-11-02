@@ -48,6 +48,32 @@ public class LoginRenderTests
         }
     }
 
+    [Test]
+    public async Task AnInvalidSubmitClearsTheFailedSignIn()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        ctx.Services.GetRequiredService<StubAuthSession>().Outcome = SignInOutcome.InvalidCredentials;
+
+        var component = ctx.Render<Login>();
+
+        await component.Find("#login-email").ChangeAsync(new ChangeEventArgs { Value = "spravce@example.cz" });
+        await component.Find("#login-password").ChangeAsync(new ChangeEventArgs { Value = "SpatneHeslo1" });
+        await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
+
+        var failed = component.FindAll(".ec-alert").Count;
+
+        await component.Find("#login-email").ChangeAsync(new ChangeEventArgs { Value = "" });
+        await component.Find("#login-password").ChangeAsync(new ChangeEventArgs { Value = "" });
+        await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(failed, Is.EqualTo(1));
+            Assert.That(component.FindAll(".ec-alert"), Is.Empty, "an invalid submit drops the error of the previous sign-in");
+        }
+    }
+
     private static async Task<(string Uri, string BaseUri)> SignInReturningTo(string returnUrl)
     {
         await using var ctx = new BunitContext();
