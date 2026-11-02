@@ -61,6 +61,12 @@
     [Parameter]
     public ContactDetail? Contact { get; set; }
 
+    /// <summary>
+    /// The name a new contact starts with.
+    /// </summary>
+    [Parameter]
+    public string InitialName { get; set; } = "";
+
     [Parameter]
     public bool Open { get; set; }
 
@@ -89,6 +95,8 @@
 
     protected override void OnInitialized()
     {
+        this.model.Name = this.InitialName;
+
         if (this.Contact is { } contact)
         {
             this.model.Name = contact.Name;
