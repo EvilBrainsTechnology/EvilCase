@@ -47,7 +47,7 @@ internal static class ActTools
         return result.Outcome switch
         {
             ActCreateOutcome.Created => result.Act!,
-            ActCreateOutcome.CaseNotFound => throw McpProblem.Of(CaseProblems.NotFound),
+            ActCreateOutcome.CaseNotFound => throw McpProblem.Of(CaseProblems.UnknownCase, CaseProblems.UnknownCaseDetail),
             ActCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, "The contact named in the request does not exist."),
             ActCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, "A label named in the request does not exist."),
             _ => throw new UnreachableException(),

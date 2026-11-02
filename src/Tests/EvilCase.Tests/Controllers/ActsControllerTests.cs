@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
 using EvilBrains.EvilCase.Api.Controllers;
 using EvilBrains.EvilCase.Business.Acts;
@@ -24,6 +25,22 @@ public class ActsControllerTests
         var problem = AssertProblem(result.Result, 409);
 
         Assert.That(problem.Title, Is.EqualTo(ContactProblems.UnknownContact), "an id named in the body is a conflict, not a 404");
+    }
+
+    [Test]
+    public async Task FilingInACaseThatIsNotThereIsAConflict()
+    {
+        var writer = Substitute.For<IActWriter>();
+        writer
+            .CreateAct(Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
+            .Returns(new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound });
+        var controller = new ActsController();
+
+        var result = await controller.CreateAct(writer, Request(), CancellationToken.None);
+
+        var problem = AssertProblem(result.Result, 409);
+
+        Assert.That(problem.Title, Is.EqualTo(CaseProblems.UnknownCase), "an id named in the body is a conflict, not a 404");
     }
 
     [Test]

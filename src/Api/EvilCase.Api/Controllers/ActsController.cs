@@ -25,7 +25,6 @@ public class ActsController : ControllerBase
     [HttpPost("acts")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ActListItem>> CreateAct(
         [FromServices] IActWriter writer, [FromBody] CreateActRequest request, CancellationToken token)
@@ -35,7 +34,10 @@ public class ActsController : ControllerBase
         return result.Outcome switch
         {
             ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { actId = result.Act!.ActId }, result.Act),
-            ActCreateOutcome.CaseNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
+            ActCreateOutcome.CaseNotFound => this.Problem(
+                detail: CaseProblems.UnknownCaseDetail,
+                statusCode: StatusCodes.Status409Conflict,
+                title: CaseProblems.UnknownCase),
             ActCreateOutcome.ContactNotFound => this.Problem(
                 detail: "The contact named in the request does not exist.",
                 statusCode: StatusCodes.Status409Conflict,
