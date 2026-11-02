@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.Api.Contract.Mcp;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Domain.ApiTokens;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace EvilBrains.EvilCase.Auth;
@@ -38,20 +37,9 @@ internal sealed class ApiTokenBoundaryMiddleware(RequestDelegate next, ILogger<A
             return;
         }
 
-        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-
-        var problemDetails = context.RequestServices.GetRequiredService<IProblemDetailsService>();
-
-        await problemDetails.TryWriteAsync(new()
-        {
-            HttpContext = context,
-            ProblemDetails =
-            {
-                Status = StatusCodes.Status403Forbidden,
-                Title = "Forbidden",
-                Detail = detail,
-            },
-        });
+        await Results
+            .Problem(detail: detail, statusCode: StatusCodes.Status403Forbidden, title: "Forbidden")
+            .ExecuteAsync(context);
     }
 
     private static string? Refusal(HttpRequest request, ClaimsPrincipal user)
