@@ -401,7 +401,7 @@ html {
 
 .ec-form-row {
     display: grid;
-    grid-template-columns: 200px 200px minmax(0, 1fr);
+    grid-template-columns: var(--ec-form-col) var(--ec-form-col) minmax(0, 1fr);
     gap: var(--ec-space-5);
 }
 
@@ -579,7 +579,7 @@ html {
     z-index: 20;
     display: flex;
     flex-direction: column;
-    max-height: 320px;
+    max-height: var(--ec-combobox-max-height);
     overflow-y: auto;
     border: 1px solid var(--ec-border);
     border-radius: var(--ec-radius-xl);
@@ -724,7 +724,7 @@ html {
 }
 
 .ec-modal {
-    width: min(560px, calc(100vw - 2 * var(--ec-space-5)));
+    width: min(var(--ec-modal-width), calc(100vw - 2 * var(--ec-space-5)));
     max-height: calc(100vh - 2 * var(--ec-space-8));
     padding: 0;
     border: 1px solid var(--ec-border);
@@ -3620,7 +3620,7 @@ html.ec-scroll-locked {
 
 .ec-form-group-row {
     display: grid;
-    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-columns: var(--ec-form-group-col) minmax(0, 1fr);
     gap: var(--ec-space-5);
     align-items: start;
 }
@@ -4104,7 +4104,7 @@ html.ec-scroll-locked {
 
 .ec-detail-text {
     margin: 0;
-    max-width: 900px;
+    max-width: var(--ec-detail-text-max);
     font-size: var(--ec-text-lg);
     line-height: var(--ec-leading-body);
     color: var(--ec-text-soft);

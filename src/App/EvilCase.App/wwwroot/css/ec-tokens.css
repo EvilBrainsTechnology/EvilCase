@@ -208,6 +208,11 @@
     --ec-settings-export-max: 760px;
     --ec-popover-width: 320px;
     --ec-menu-width: 240px;
+    --ec-combobox-max-height: 320px;
+    --ec-modal-width: 560px;
+    --ec-form-col: 200px;
+    --ec-form-group-col: 260px;
+    --ec-detail-text-max: 900px;
     --ec-viewport-height: 100vh;
     --ec-topbar-gap: 36px;
     --ec-topbar-mark: 32px;
