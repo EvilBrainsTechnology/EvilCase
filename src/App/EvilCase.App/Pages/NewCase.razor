@@ -195,9 +195,9 @@
                 LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
-            _ = await this.CasesClient.CreateCase(request, CancellationToken.None);
+            var created = await this.CasesClient.CreateCase(request, CancellationToken.None);
 
-            this.Navigation.NavigateTo(this.ParentCaseId is { } parent ? $"/cases/{parent}" : "/cases");
+            this.Navigation.NavigateTo($"/cases/{created.CaseId}");
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {

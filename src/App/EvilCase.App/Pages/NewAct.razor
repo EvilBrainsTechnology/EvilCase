@@ -138,7 +138,7 @@
                     </EcCard>
                 }
                 <EcCard Title="Co přijde po uložení">
-                    <p class="ec-card-text">Otevře se detail spisu se založeným úkonem v seznamu. Dokumenty a komentáře k úkonu přidáte na jeho detailu.</p>
+                    <p class="ec-card-text">Úkon se otevře na svém detailu, kde rovnou přidáte jeho dokumenty a komentáře.</p>
                 </EcCard>
             </aside>
         </div>
@@ -288,9 +288,9 @@
                 LabelIds = [.. this.model.Labels.Select(static label => label.LabelId)],
             };
 
-            _ = await this.ActsClient.CreateAct(request, CancellationToken.None);
+            var created = await this.ActsClient.CreateAct(request, CancellationToken.None);
 
-            this.Navigation.NavigateTo($"/cases/{request.CaseId}");
+            this.Navigation.NavigateTo($"/acts/{created.ActId}");
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.Conflict)
         {
