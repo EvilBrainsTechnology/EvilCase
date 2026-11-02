@@ -36,21 +36,10 @@ public class ActFilesController : ControllerBase
     {
         var fileName = FileNameRules.LastSegment(request.FileName);
 
-        if (FileNameRules.Violation(fileName) is { } violation)
-        {
-            this.ModelState.AddModelError("fileName", violation);
-            return this.ValidationProblem(statusCode: StatusCodes.Status400BadRequest);
-        }
+        if (this.FileNameProblem(fileName) is { } problem)
+            return problem;
 
-        var outcome = await writer.RenameActFile(actId, fileId, fileName, token);
-
-        return outcome switch
-        {
-            FileRenameOutcome.Renamed => this.NoContent(),
-            FileRenameOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
-            FileRenameOutcome.NameTaken => this.Problem(detail: "Another file of the act already carries the name.", statusCode: StatusCodes.Status409Conflict, title: FileProblems.NameTaken),
-            _ => throw new UnreachableException(),
-        };
+        return this.RenameAnswer(await writer.RenameActFile(actId, fileId, fileName, token), "act");
     }
 
     [HttpDelete("{fileId:guid}")]

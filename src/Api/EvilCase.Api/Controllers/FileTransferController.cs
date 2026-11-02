@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
@@ -34,15 +33,7 @@ public class FileTransferController : ControllerBase
 
         await using var content = upload!.Content;
 
-        var result = await writer.UploadCaseFile(caseId, upload, token);
-
-        return result.Outcome switch
-        {
-            UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
-            UploadFileOutcome.Unchanged => this.Ok(result.File),
-            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound),
-            _ => throw new UnreachableException(),
-        };
+        return this.Answer(await writer.UploadCaseFile(caseId, upload, token), CaseProblems.NotFound);
     }
 
     [HttpPost("acts/{actId:guid}/files")]
@@ -61,15 +52,7 @@ public class FileTransferController : ControllerBase
 
         await using var content = upload!.Content;
 
-        var result = await writer.UploadActFile(actId, upload, token);
-
-        return result.Outcome switch
-        {
-            UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId = result.File!.FileId }, result.File),
-            UploadFileOutcome.Unchanged => this.Ok(result.File),
-            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
-            _ => throw new UnreachableException(),
-        };
+        return this.Answer(await writer.UploadActFile(actId, upload, token), ActProblems.NotFound);
     }
 
     [HttpPost("files/{fileId:guid}/versions")]
@@ -88,16 +71,7 @@ public class FileTransferController : ControllerBase
 
         await using var content = upload!.Content;
 
-        var result = await writer.UploadFileVersion(fileId, upload, token);
-
-        return result.Outcome switch
-        {
-            FileVersionUploadOutcome.VersionAdded => this.CreatedAtAction(nameof(this.DownloadFileContent), new { fileId, version = result.File!.Version }, result.File),
-            FileVersionUploadOutcome.Unchanged => this.Ok(result.File),
-            FileVersionUploadOutcome.FileNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
-            FileVersionUploadOutcome.ExtensionMismatch => this.ExtensionMismatchProblem(),
-            _ => throw new UnreachableException(),
-        };
+        return this.Answer(await writer.UploadFileVersion(fileId, upload, token));
     }
 
     [HttpGet("files/{fileId:guid}/content")]

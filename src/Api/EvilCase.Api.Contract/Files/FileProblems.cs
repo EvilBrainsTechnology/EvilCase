@@ -11,4 +11,9 @@ public static class FileProblems
     public const string LastVersion = "Last file version";
 
     public const string LinkNotFound = "File link not found";
+
+    public static string NameTakenDetail(string ownerWord)
+    {
+        return $"Another file of the {ownerWord} already carries the name.";
+    }
 }

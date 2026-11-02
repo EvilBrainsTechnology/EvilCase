@@ -21,8 +21,6 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route(FileLinkRoute.Template)]
 public class FileLinksController : ControllerBase
 {
-    private const string FileTransferController = "FileTransfer";
-
     [HttpGet("")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -100,34 +98,6 @@ public class FileLinksController : ControllerBase
         {
             FileLinkConsumeOutcome.Consumed => result.Link,
             FileLinkConsumeOutcome.NotFound => null,
-            _ => throw new UnreachableException(),
-        };
-    }
-
-    private ActionResult<FileListItem> Answer(UploadFileResult result, string ownerNotFound)
-    {
-        return result.Outcome switch
-        {
-            UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => this.CreatedAtAction(
-                nameof(Controllers.FileTransferController.DownloadFileContent), FileTransferController, new { fileId = result.File!.FileId }, result.File),
-            UploadFileOutcome.Unchanged => this.Ok(result.File),
-            UploadFileOutcome.OwnerNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: ownerNotFound),
-            _ => throw new UnreachableException(),
-        };
-    }
-
-    private ActionResult<FileListItem> Answer(FileVersionUploadResult result)
-    {
-        return result.Outcome switch
-        {
-            FileVersionUploadOutcome.VersionAdded => this.CreatedAtAction(
-                nameof(Controllers.FileTransferController.DownloadFileContent),
-                FileTransferController,
-                new { fileId = result.File!.FileId, version = result.File.Version },
-                result.File),
-            FileVersionUploadOutcome.Unchanged => this.Ok(result.File),
-            FileVersionUploadOutcome.FileNotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
-            FileVersionUploadOutcome.ExtensionMismatch => this.ExtensionMismatchProblem(),
             _ => throw new UnreachableException(),
         };
     }
