@@ -2,10 +2,8 @@ using System.Text;
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
-using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -178,19 +176,11 @@ public class FilePreviewModalDataMessageRenderTests
 
     private static BunitContext NewContext(out StubBrowserFiles files, out StubFilePreviews previews)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
-
-        files = new StubBrowserFiles();
-        previews = new StubFilePreviews();
-        ctx.Services.AddSingleton<IBrowserFiles>(files);
-        ctx.Services.AddSingleton<IFilePreviews>(previews);
-        ctx.Services.AddSingleton(new StubTextEditors());
-        ctx.Services.AddSingleton<ITextEditors>(static services => services.GetRequiredService<StubTextEditors>());
-        ctx.Services.AddSingleton(new StubAuthSession());
-        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
+        var ctx = FrontendContext.Create();
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
+
+        files = ctx.Services.GetRequiredService<StubBrowserFiles>();
+        previews = ctx.Services.GetRequiredService<StubFilePreviews>();
 
         return ctx;
     }

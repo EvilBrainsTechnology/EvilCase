@@ -1,9 +1,7 @@
 using Bunit;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
-using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -17,7 +15,7 @@ public class FilesCardRenderTests
     [Test]
     public async Task ADropDuringAnUploadGoesToAFreshInputAndIsRejected()
     {
-        await using var ctx = NewContext();
+        await using var ctx = FrontendContext.Create();
 
         var gate = new TaskCompletionSource();
         var uploaded = new List<string>();
@@ -81,7 +79,7 @@ public class FilesCardRenderTests
     [Test]
     public async Task ADropCarryingNoFileUploadsNothingAndShowsNoError()
     {
-        await using var ctx = NewContext();
+        await using var ctx = FrontendContext.Create();
 
         var uploaded = new List<string>();
         var loads = 0;
@@ -123,7 +121,7 @@ public class FilesCardRenderTests
     [Test]
     public void AFinishedBatchLeavesAFreshInputBehind()
     {
-        using var ctx = NewContext();
+        using var ctx = FrontendContext.Create();
 
         var component = new Card().Render(ctx);
 
@@ -140,7 +138,7 @@ public class FilesCardRenderTests
     [Test]
     public async Task SavingARenameSendsTheNameWithTheExtensionAndReloadsTheList()
     {
-        await using var ctx = NewContext();
+        await using var ctx = FrontendContext.Create();
 
         var renamed = new List<(Guid FileId, string FileName)>();
         var loads = 0;
@@ -207,26 +205,10 @@ public class FilesCardRenderTests
         };
     }
 
-    private static BunitContext NewContext()
-    {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
-        var files = new StubBrowserFiles();
-        ctx.Services.AddSingleton(files);
-        ctx.Services.AddSingleton<IBrowserFiles>(files);
-        ctx.Services.AddSingleton<IFilePreviews>(new StubFilePreviews());
-        ctx.Services.AddSingleton<ITextEditors>(new StubTextEditors());
-        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
-        ctx.Services.AddSingleton<IAuthSession>(new StubAuthSession());
-
-        return ctx;
-    }
-
     [Test]
     public async Task ABatchReportsNewVersionsAndUnchangedFilesAndHighlightsWhatItStored()
     {
-        await using var ctx = NewContext();
+        await using var ctx = FrontendContext.Create();
 
         var stored = File("nový.txt");
         var same = Versioned("stejný.txt", 2, 2);
@@ -269,7 +251,7 @@ public class FilesCardRenderTests
     [Test]
     public async Task ANewVersionWithAnotherExtensionIsRefusedWithoutAnUpload()
     {
-        await using var ctx = NewContext();
+        await using var ctx = FrontendContext.Create();
 
         var calls = 0;
         var component = new Card
@@ -298,7 +280,7 @@ public class FilesCardRenderTests
     [Test]
     public async Task AVersionPreviewedFromTheVersionsOpensThatVersion()
     {
-        await using var ctx = NewContext();
+        await using var ctx = FrontendContext.Create();
 
         var loaded = new List<int?>();
         var component = new Card

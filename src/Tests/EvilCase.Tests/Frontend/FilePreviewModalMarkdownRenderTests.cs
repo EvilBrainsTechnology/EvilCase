@@ -2,10 +2,7 @@ using System.Text;
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Files;
-using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Web;
@@ -227,26 +224,17 @@ public class FilePreviewModalMarkdownRenderTests
 
     private static BunitContext NewContext(out StubMarkdownEditors markdown, out StubTextEditors editors, out StubFilePreviews previews)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-
-        markdown = new StubMarkdownEditors();
-        editors = new StubTextEditors();
-        previews = new StubFilePreviews();
-        ctx.Services.AddSingleton<IFilePreviews>(previews);
-        ctx.Services.AddSingleton<IBrowserFiles>(new StubBrowserFiles());
-        ctx.Services.AddSingleton(new StubAuthSession());
-        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
-        ctx.Services.AddSingleton<ITextEditors>(editors);
-        ctx.Services.AddSingleton<IMarkdownEditors>(markdown);
-        ctx.Services.AddSingleton(new StubBrowserHistory());
-        ctx.Services.AddSingleton<IBrowserHistory>(static services => services.GetRequiredService<StubBrowserHistory>());
+        var ctx = FrontendContext.Create();
         ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
 
         var signers = Substitute.For<IFileSignersClient>();
         signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [] });
         signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
         ctx.Services.AddSingleton(signers);
+
+        markdown = ctx.Services.GetRequiredService<StubMarkdownEditors>();
+        editors = ctx.Services.GetRequiredService<StubTextEditors>();
+        previews = ctx.Services.GetRequiredService<StubFilePreviews>();
 
         return ctx;
     }

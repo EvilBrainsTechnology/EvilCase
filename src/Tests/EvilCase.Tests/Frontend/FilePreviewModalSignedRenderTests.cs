@@ -1,11 +1,8 @@
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Components;
-using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Models;
-using EvilBrains.EvilCase.App.Navigation;
 using EvilBrains.EvilCase.Tests.Files.Signatures;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -100,27 +97,19 @@ public class FilePreviewModalSignedRenderTests
         }
     }
 
-    private static BunitContext NewContext(
-        out StubFilePreviews previews, out StubBrowserFiles files, out IFileSignersClient signers)
+    private static BunitContext NewContext(out StubFilePreviews previews, out StubBrowserFiles files, out IFileSignersClient signers)
     {
-        var ctx = new BunitContext();
-        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IBrowserHistory>(new StubBrowserHistory());
+        var ctx = FrontendContext.Create();
+        ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
 
-        previews = new StubFilePreviews();
-        files = new StubBrowserFiles();
         signers = Substitute.For<IFileSignersClient>();
         var signer = new FileSigner { Name = "Jan Testovací", Kind = FileSignerKind.QualifiedSignature, CertificateIssuer = "I.CA" };
         signers.ListFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new FileSignersResponse { Signers = [signer] });
         signers.VerifyFileSigners(Arg.Any<Guid>(), Arg.Any<int?>(), Arg.Any<CancellationToken>()).Returns(new TaskCompletionSource<FileSignersResponse>().Task);
-        ctx.Services.AddSingleton<IFilePreviews>(previews);
-        ctx.Services.AddSingleton(new StubTextEditors());
-        ctx.Services.AddSingleton<ITextEditors>(static services => services.GetRequiredService<StubTextEditors>());
-        ctx.Services.AddSingleton<IBrowserFiles>(files);
-        ctx.Services.AddSingleton(new StubAuthSession());
-        ctx.Services.AddSingleton<IAuthSession>(static services => services.GetRequiredService<StubAuthSession>());
-        ctx.Services.AddSingleton(Substitute.For<IFileSignaturesClient>());
         ctx.Services.AddSingleton(signers);
+
+        previews = ctx.Services.GetRequiredService<StubFilePreviews>();
+        files = ctx.Services.GetRequiredService<StubBrowserFiles>();
 
         return ctx;
     }
