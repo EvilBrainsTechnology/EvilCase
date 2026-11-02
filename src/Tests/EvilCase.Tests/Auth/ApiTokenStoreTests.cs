@@ -15,7 +15,7 @@ public class ApiTokenStoreTests : TenantFixture
     [Test]
     public async Task TheLastUseIsStampedAtMostOnceAMinute()
     {
-        var store = new ApiTokenStore(new FixedDbSession(this.Tenant.Context));
+        var store = new ApiTokenStore(this.Tenant.Session);
         var apiToken = await this.AddApiToken(this.Tenant.UserId);
 
         await Touch(store, apiToken, Now);
@@ -54,7 +54,7 @@ public class ApiTokenStoreTests : TenantFixture
     {
         var other = await this.Tenant.AddUser();
         var apiToken = await this.AddApiToken(this.Tenant.UserId);
-        var store = new ApiTokenStore(new FixedDbSession(this.Tenant.Context));
+        var store = new ApiTokenStore(this.Tenant.Session);
 
         var byOther = await store.DeleteApiToken(other.Id, apiToken.Id, CancellationToken.None);
         var stillThere = await this.Tenant.Context.ApiTokens.AnyAsync(stored => stored.Id == apiToken.Id);

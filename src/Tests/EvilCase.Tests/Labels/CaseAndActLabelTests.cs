@@ -25,7 +25,7 @@ public class CaseAndActLabelTests : TenantFixture
     [SetUp]
     public void SetUpReadersAndWriters()
     {
-        var dbSession = new FixedDbSession(this.Tenant.Context);
+        var dbSession = this.Tenant.Session;
 
         this.caseReader = new CaseReader(dbSession);
         this.caseWriter = new CaseWriter(dbSession, new FakeCaseNumberIssuer(), NullLogger<CaseWriter>.Instance);

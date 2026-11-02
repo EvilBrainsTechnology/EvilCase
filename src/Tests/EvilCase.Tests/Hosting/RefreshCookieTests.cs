@@ -1,13 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Threading.RateLimiting;
 using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Tests.Auth;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
@@ -18,10 +16,6 @@ namespace EvilBrains.EvilCase.Tests.Hosting;
 /// </summary>
 public class RefreshCookieTests
 {
-    private const string Email = "user@evilcase.test";
-
-    private const string Password = "correct-horse-battery-staple";
-
     private EvilCaseHost host = null!;
 
     private HttpClient client = null!;
@@ -34,22 +28,18 @@ public class RefreshCookieTests
         users.SeedUser(new()
         {
             TenantId = Guid.CreateVersion7(),
-            Email = Email,
-            PasswordHash = PasswordHasher.Hash(Password),
+            Email = AuthTestHarness.Email,
+            PasswordHash = PasswordHasher.Hash(AuthTestHarness.Password),
             Role = UserRole.User,
         });
 
-        // The limiter is off: this fixture signs in more often than the login partition allows;
-        // RateLimitingTests pins the limits.
-        this.host = new EvilCaseHost(configureServices: services =>
-        {
-            services.AddSingleton<IUserStore>(users);
-            services.AddSingleton<IRefreshTokenStore>(new FakeRefreshTokenStore(TimeProvider.System));
-
-            services.Configure<RateLimiterOptions>(
-                static options => options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-                    static _ => RateLimitPartition.GetNoLimiter("tests")));
-        });
+        this.host = new EvilCaseHost(
+            rateLimiter: false,
+            configureServices: services =>
+            {
+                services.AddSingleton<IUserStore>(users);
+                services.AddSingleton<IRefreshTokenStore>(new FakeRefreshTokenStore(TimeProvider.System));
+            });
 
         this.client = this.host.CreateClient();
     }
@@ -64,7 +54,7 @@ public class RefreshCookieTests
     [Test]
     public async Task SigningInReturnsNoTokenInTheBodyAndBothTokensInCookies()
     {
-        using var response = await this.SignIn(Password);
+        using var response = await this.SignIn(AuthTestHarness.Password);
 
         var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
         var cookie = RefreshCookieOf(response);
@@ -73,7 +63,7 @@ public class RefreshCookieTests
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(body?.ExpiresAt, Is.GreaterThan(DateTime.UtcNow));
-            Assert.That(body?.Email, Is.EqualTo(Email));
+            Assert.That(body?.Email, Is.EqualTo(AuthTestHarness.Email));
             Assert.That(cookie, Does.Contain("httponly").IgnoreCase);
             Assert.That(cookie, Does.Contain("secure").IgnoreCase);
             Assert.That(cookie, Does.Contain("samesite=strict").IgnoreCase);
@@ -84,7 +74,7 @@ public class RefreshCookieTests
     [Test]
     public async Task SigningInSetsTheAccessCookieWithTheSameGuardsAsTheRefreshCookie()
     {
-        using var response = await this.SignIn(Password);
+        using var response = await this.SignIn(AuthTestHarness.Password);
 
         var cookie = AccessCookieOf(response);
 
@@ -105,7 +95,7 @@ public class RefreshCookieTests
     [Test]
     public async Task RenewingSetsTheAccessCookieAgain()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
 
         using var refresh = await this.Refresh(ValueOf(RefreshCookieOf(signIn)));
 
@@ -115,7 +105,7 @@ public class RefreshCookieTests
     [Test]
     public async Task TheApiAuthenticatesARequestThatCarriesOnlyTheAccessCookie()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
         var token = ValueOf(AccessCookieOf(signIn));
 
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri("/api/auth/user-info", UriKind.Relative));
@@ -127,7 +117,7 @@ public class RefreshCookieTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Email, Is.EqualTo(Email));
+            Assert.That(body?.Email, Is.EqualTo(AuthTestHarness.Email));
         }
     }
 
@@ -145,7 +135,7 @@ public class RefreshCookieTests
     [Test]
     public async Task AnAccessCookieNamedInAnotherCaseIsUnauthorized()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
 
         using var response = await this.GetUserInfo($"{AccessCookie.Name.ToUpperInvariant()}={ValueOf(AccessCookieOf(signIn))}");
 
@@ -155,7 +145,7 @@ public class RefreshCookieTests
     [Test]
     public async Task TwoAccessCookiesUnderTheExactNameAreUnauthorized()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
         var token = ValueOf(AccessCookieOf(signIn));
 
         using var response = await this.GetUserInfo($"{AccessCookie.Name}={token}; {AccessCookie.Name}={token}");
@@ -167,7 +157,7 @@ public class RefreshCookieTests
     [TestCase("Bearer")]
     public async Task AnAuthorizationHeaderWinsOverTheAccessCookie(string authorization)
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
 
         using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(AuthRoute.Path + "/user-info", UriKind.Relative));
         request.Headers.Add("Cookie", $"{AccessCookie.Name}={ValueOf(AccessCookieOf(signIn))}");
@@ -181,7 +171,7 @@ public class RefreshCookieTests
     [Test]
     public async Task ARefreshCookieNamedInAnotherCaseIsRefused()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(AuthRoute.RefreshPath, UriKind.Relative));
         request.Headers.Add("Cookie", $"{RefreshCookie.Name.ToUpperInvariant()}={ValueOf(RefreshCookieOf(signIn))}");
@@ -194,7 +184,7 @@ public class RefreshCookieTests
     [Test]
     public async Task TheCookieCarriesTheHostPrefix()
     {
-        using var response = await this.SignIn(Password);
+        using var response = await this.SignIn(AuthTestHarness.Password);
 
         Assert.That(RefreshCookieOf(response), Does.StartWith("__Host-"), "the prefix is what a browser enforces the other attributes against");
     }
@@ -214,7 +204,7 @@ public class RefreshCookieTests
     [Test]
     public async Task RenewingSwapsTheCookieForAnother()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
         var first = ValueOf(RefreshCookieOf(signIn));
 
         using var refresh = await this.Refresh(first);
@@ -239,7 +229,7 @@ public class RefreshCookieTests
     [Test]
     public async Task SigningOutClearsTheCookie()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
         var issued = ValueOf(RefreshCookieOf(signIn));
 
         using var signOut = await this.Post(AuthRoute.LogoutPath, issued);
@@ -259,7 +249,7 @@ public class RefreshCookieTests
     [Test]
     public async Task SigningOutEverywhereWithOnlyTheAccessCookieClearsBothCookies()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(AuthRoute.Path + "/logout-all", UriKind.Relative));
         request.Headers.Add("Cookie", $"{AccessCookie.Name}={ValueOf(AccessCookieOf(signIn))}");
@@ -277,7 +267,7 @@ public class RefreshCookieTests
     [Test]
     public async Task ARefreshTokenAnotherTabJustSpentIsSupersededAndLeavesTheReplacementCookieAlone()
     {
-        using var signIn = await this.SignIn(Password);
+        using var signIn = await this.SignIn(AuthTestHarness.Password);
         var first = ValueOf(RefreshCookieOf(signIn));
 
         using var renewed = await this.Refresh(first);
@@ -345,7 +335,7 @@ public class RefreshCookieTests
     {
         return await this.client.PostAsJsonAsync(
             new Uri(AuthRoute.LoginPath, UriKind.Relative),
-            new LoginRequest { Email = Email, Password = password });
+            new LoginRequest { Email = AuthTestHarness.Email, Password = password });
     }
 
     private async Task<HttpResponseMessage> GetUserInfo(string cookieHeader)

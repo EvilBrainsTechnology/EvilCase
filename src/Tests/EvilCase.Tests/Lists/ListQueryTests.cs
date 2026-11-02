@@ -122,7 +122,7 @@ public class ListQueryTests : TenantFixture
 
     private async Task<CaseListResponse> List(CaseListRequest request)
     {
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         return await reader.ListCases(request, CancellationToken.None);
     }

@@ -27,7 +27,7 @@ public class FileWriterTests : TenantFixture
     public void SetUpWriter()
     {
         this.blobs = new FakeFileBlobStore();
-        this.writer = new FileWriter(new FixedDbSession(this.Tenant.Context), this.blobs, this.Tenant.UserContext, NullLogger<FileWriter>.Instance);
+        this.writer = new FileWriter(this.Tenant.Session, this.blobs, this.Tenant.UserContext, NullLogger<FileWriter>.Instance);
     }
 
     [Test]
@@ -64,7 +64,7 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var recording = new RecordingTenantBlobStore();
-        var recordingWriter = new FileWriter(new FixedDbSession(this.Tenant.Context), recording, this.Tenant.UserContext, NullLogger<FileWriter>.Instance);
+        var recordingWriter = new FileWriter(this.Tenant.Session, recording, this.Tenant.UserContext, NullLogger<FileWriter>.Instance);
 
         await recordingWriter.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
 

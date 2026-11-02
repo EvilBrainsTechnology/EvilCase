@@ -13,7 +13,7 @@ public class FileListQueryTests : TenantFixture
     [SetUp]
     public void SetUpReader()
     {
-        this.reader = new FileReader(new FixedDbSession(this.Tenant.Context), new FakeFileBlobStore());
+        this.reader = new FileReader(this.Tenant.Session, new FakeFileBlobStore());
     }
 
     [Test]

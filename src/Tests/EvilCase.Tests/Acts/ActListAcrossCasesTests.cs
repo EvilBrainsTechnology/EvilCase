@@ -133,6 +133,6 @@ public class ActListAcrossCasesTests : TenantFixture
 
     private ActReader Reader()
     {
-        return new ActReader(new FixedDbSession(this.Tenant.Context));
+        return new ActReader(this.Tenant.Session);
     }
 }

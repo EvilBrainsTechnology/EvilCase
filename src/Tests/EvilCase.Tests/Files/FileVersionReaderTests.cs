@@ -17,7 +17,7 @@ public class FileVersionReaderTests : TenantFixture
     public void SetUpReader()
     {
         this.blobs = new FakeFileBlobStore();
-        this.reader = new FileReader(new FixedDbSession(this.Tenant.Context), this.blobs);
+        this.reader = new FileReader(this.Tenant.Session, this.blobs);
     }
 
     [Test]

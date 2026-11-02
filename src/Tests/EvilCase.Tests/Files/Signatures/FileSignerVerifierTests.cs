@@ -275,7 +275,7 @@ public class FileSignerVerifierTests : TenantFixture
     private FileSignerVerifier Verifier(StubSignatureRevocation? revocation = null)
     {
         return new FileSignerVerifier(
-            new FixedDbSession(this.Tenant.Context),
+            this.Tenant.Session,
             this.blobs,
             this.pki.Trust,
             revocation ?? new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked),

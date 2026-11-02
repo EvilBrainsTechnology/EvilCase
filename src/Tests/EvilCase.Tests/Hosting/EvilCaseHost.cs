@@ -1,5 +1,8 @@
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +19,7 @@ internal sealed class EvilCaseHost(
     int? httpsPort = null,
     string? jwtKey = null,
     string? filesRootPath = null,
+    bool rateLimiter = true,
     Action<IServiceCollection>? configureServices = null) : WebApplicationFactory<Program>
 {
     private static readonly string ValidJwtKey = new('k', 64);
@@ -51,6 +55,14 @@ internal sealed class EvilCaseHost(
                 ["EvilBrains:EvilCase:Hosting:HttpsRedirection"] = httpsRedirection ? "true" : "false",
                 ["HTTPS_PORT"] = httpsPort?.ToString(CultureInfo.InvariantCulture),
             }));
+
+        // Off for a fixture that calls /api/auth more often than a partition allows; RateLimitingTests pins the limits.
+        if (!rateLimiter)
+        {
+            builder.ConfigureTestServices(static services => services.Configure<RateLimiterOptions>(
+                static options => options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+                    static _ => RateLimitPartition.GetNoLimiter("tests"))));
+        }
 
         if (configureServices is not null)
             builder.ConfigureTestServices(configureServices);

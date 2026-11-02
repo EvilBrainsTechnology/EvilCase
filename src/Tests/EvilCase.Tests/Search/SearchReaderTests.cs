@@ -16,7 +16,7 @@ public class SearchReaderTests : TenantFixture
     [SetUp]
     public void SetUpReader()
     {
-        this.reader = new SearchReader(new FixedDbSession(this.Tenant.Context));
+        this.reader = new SearchReader(this.Tenant.Session);
     }
 
     [Test]

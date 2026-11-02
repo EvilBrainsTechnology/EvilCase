@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Domain.Users;
+using EvilBrains.EvilCase.Tests.Auth;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
@@ -50,7 +51,7 @@ public class AuthenticationTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-            Assert.That(body?.Email, Is.EqualTo(TestTokens.Email));
+            Assert.That(body?.Email, Is.EqualTo(AuthTestHarness.Email));
             Assert.That(body?.Role, Is.EqualTo(UserRole.Admin));
         }
     }

@@ -1,9 +1,5 @@
 using System.Net;
-using System.Threading.RateLimiting;
 using EvilBrains.EvilCase.Api.Contract.User;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
 
@@ -19,10 +15,7 @@ public class CrossSiteWriteTests
     [OneTimeSetUp]
     public void SetUp()
     {
-        // The limiter is off: this fixture posts to /api/auth more often than its partition allows.
-        this.host = new EvilCaseHost(configureServices: static services => services.Configure<RateLimiterOptions>(
-            static options => options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
-                static _ => RateLimitPartition.GetNoLimiter("tests"))));
+        this.host = new EvilCaseHost(rateLimiter: false);
 
         this.client = this.host.CreateClient();
     }

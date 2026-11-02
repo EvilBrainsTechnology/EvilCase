@@ -339,7 +339,7 @@ public class CaseListQueryTests : TenantFixture
         await this.Tenant.Context.Cases.Where(@case => @case.Id == older.Id)
             .ExecuteUpdateAsync(static setters => setters.SetProperty(static @case => @case.Title, "Starší upravený"));
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         var byDate = await reader.ListCases(new CaseListRequest { Take = 20 }, CancellationToken.None);
         var byChange = await reader.ListCases(new CaseListRequest { Take = 20, Sort = CaseSortKey.Changed }, CancellationToken.None);
@@ -386,7 +386,7 @@ public class CaseListQueryTests : TenantFixture
         var root = await this.Tenant.AddCase(Day, "Rodič");
         await this.Tenant.AddCase(Day, "Podřízený", parentCaseId: root.Id);
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         var whole = await reader.ListCases(new CaseListRequest { Take = 20, Scope = CaseListScope.All }, CancellationToken.None);
         var roots = await reader.ListCases(new CaseListRequest { Take = 20 }, CancellationToken.None);

@@ -19,7 +19,7 @@ public class CaseCountsTests : TenantFixture
         await this.Tenant.AddCase(Day, "Uzavřená 2", status: CaseStatus.Closed);
         await this.Tenant.AddCase(Day, "Uzavřená 3", status: CaseStatus.Closed);
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 
@@ -35,7 +35,7 @@ public class CaseCountsTests : TenantFixture
     [Test]
     public async Task AnEmptyTenantCountsZeroInEveryStatus()
     {
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 
@@ -54,7 +54,7 @@ public class CaseCountsTests : TenantFixture
         await this.Tenant.AddCase(Day, "Aktivní", status: CaseStatus.Active);
         await this.Tenant.AddCase(Day, "Uzavřená", status: CaseStatus.Closed);
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         var listed = await reader.ListCases(new CaseListRequest { Take = 20, Status = CaseStatusFilter.Active }, CancellationToken.None);
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
@@ -78,7 +78,7 @@ public class CaseCountsTests : TenantFixture
             await other.AddCase(Day, "Cizí 3", status: CaseStatus.Closed);
         }
 
-        var reader = new CaseReader(new FixedDbSession(this.Tenant.Context));
+        var reader = new CaseReader(this.Tenant.Session);
 
         var counts = await reader.CountCasesByStatus(CancellationToken.None);
 

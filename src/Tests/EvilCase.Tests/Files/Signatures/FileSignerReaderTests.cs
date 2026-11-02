@@ -151,7 +151,7 @@ public class FileSignerReaderTests : TenantFixture
 
     private FileSignerReader Reader()
     {
-        return new FileSignerReader(new FixedDbSession(this.Tenant.Context), this.blobs);
+        return new FileSignerReader(this.Tenant.Session, this.blobs);
     }
 
     private void ServeSignedFile(string storagePath, bool detached = false)
