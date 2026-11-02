@@ -137,7 +137,7 @@
     [Parameter]
     public Guid ActId { get; set; }
 
-    private readonly ActEditModel model = new();
+    private ActEditModel model = null!;
 
     private EditContext editContext = null!;
 
@@ -160,11 +160,6 @@
             new EcCrumb("Upravit", null),
         ];
 
-    protected override void OnInitialized()
-    {
-        this.editContext = new EditContext(this.model);
-    }
-
     protected override Task OnParametersSetAsync()
     {
         return this.LoadAct();
@@ -181,7 +176,8 @@
         {
             var detail = await this.ActsClient.GetAct(this.ActId, CancellationToken.None);
 
-            this.model.CopyFrom(ActEditModel.From(detail));
+            this.model = ActEditModel.From(detail);
+            this.editContext = new EditContext(this.model);
 
             this.act = detail;
         }

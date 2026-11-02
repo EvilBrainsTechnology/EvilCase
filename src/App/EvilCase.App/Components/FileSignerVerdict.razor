@@ -102,23 +102,18 @@
         }
     }
 
-    private RenderFragment SignedAt => builder =>
-    {
-        if (this.Signer.Timestamped is { } timestamped)
+    private RenderFragment SignedAt => @<text>
+        @if (this.Signer.Timestamped is { } timestamped)
         {
-            builder.AddMarkupContent(0, "<dt>Časové razítko</dt>");
-            builder.OpenElement(1, "dd");
-            builder.AddContent(2, MomentDisplay.Text(timestamped));
-            builder.CloseElement();
+            <dt>Časové razítko</dt>
+            <dd>@MomentDisplay.Text(timestamped)</dd>
         }
         else
         {
-            builder.AddMarkupContent(3, "<dt>Čas podpisu</dt>");
-            builder.OpenElement(4, "dd");
-            builder.AddContent(5, this.Signer.SigningTime is { } signingTime ? MomentDisplay.Text(signingTime) : "neuveden");
-            builder.CloseElement();
+            <dt>Čas podpisu</dt>
+            <dd>@(this.Signer.SigningTime is { } signingTime ? MomentDisplay.Text(signingTime) : "neuveden")</dd>
         }
-    };
+    </text>;
 
     private async Task Retry()
     {

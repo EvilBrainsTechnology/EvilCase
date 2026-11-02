@@ -124,7 +124,7 @@
     [Parameter]
     public Guid CaseId { get; set; }
 
-    private readonly CaseEditModel model = new();
+    private CaseEditModel model = null!;
 
     private EditContext editContext = null!;
 
@@ -145,11 +145,6 @@
             new EcCrumb(this.caseDetail.Title, $"/cases/{this.CaseId}"),
             new EcCrumb("Upravit", null),
         ];
-
-    protected override void OnInitialized()
-    {
-        this.editContext = new EditContext(this.model);
-    }
 
     protected override Task OnParametersSetAsync()
     {
@@ -185,8 +180,11 @@
 
         try
         {
-            this.caseDetail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
-            this.model.CopyFrom(CaseEditModel.From(this.caseDetail));
+            var detail = await this.CasesClient.GetCase(this.CaseId, CancellationToken.None);
+
+            this.model = CaseEditModel.From(detail);
+            this.editContext = new EditContext(this.model);
+            this.caseDetail = detail;
         }
         catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
         {

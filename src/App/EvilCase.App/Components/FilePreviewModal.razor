@@ -961,12 +961,10 @@
 
             case FilePreviewKind.Document:
             {
-                using var bytes = new MemoryStream();
-
-                await content.CopyToAsync(bytes, token);
+                var bytes = await ReadBytes(content, token);
 
                 if (!token.IsCancellationRequested)
-                    this.document = bytes.ToArray();
+                    this.document = bytes;
 
                 break;
             }
@@ -994,38 +992,32 @@
             // A stored PDF is requested by the library itself; only an attachment held in memory comes here.
             case FilePreviewKind.Pdf:
             {
-                using var bytes = new MemoryStream();
-
-                await content.CopyToAsync(bytes, token);
+                var bytes = await ReadBytes(content, token);
 
                 if (!token.IsCancellationRequested)
-                    this.pdf = bytes.ToArray();
+                    this.pdf = bytes;
 
                 break;
             }
 
             case FilePreviewKind.DataMessage:
             {
-                using var bytes = new MemoryStream();
-
-                await content.CopyToAsync(bytes, token);
+                var bytes = await ReadBytes(content, token);
 
                 if (!token.IsCancellationRequested)
-                    this.dataMessage = bytes.ToArray();
+                    this.dataMessage = bytes;
 
                 break;
             }
 
             case FilePreviewKind.SignedDocument:
             {
-                using var bytes = new MemoryStream();
-
-                await content.CopyToAsync(bytes, token);
+                var bytes = await ReadBytes(content, token);
 
                 if (token.IsCancellationRequested)
                     break;
 
-                var signed = SignedData.ParseOrDefault(bytes.ToArray());
+                var signed = SignedData.ParseOrDefault(bytes);
 
                 if (signed is null)
                 {
@@ -1419,12 +1411,10 @@
         try
         {
             await using var content = await this.LoadContent(file, number == file.Version ? null : number, token);
-            using var bytes = new MemoryStream();
-
-            await content.CopyToAsync(bytes, token);
+            var bytes = await ReadBytes(content, token);
 
             if (!token.IsCancellationRequested)
-                this.changesTexts[(file.FileId, number, version.Created)] = EditableText.ParseOrDefault(bytes.GetBuffer().AsSpan(0, (int)bytes.Length))?.Text;
+                this.changesTexts[(file.FileId, number, version.Created)] = EditableText.ParseOrDefault(bytes)?.Text;
         }
         catch (OperationCanceledException)
         {
@@ -1725,5 +1715,14 @@
         var editable = truncated ? null : EditableText.ParseOrDefault(shown);
 
         return (editable?.Text ?? Encoding.UTF8.GetString(shown).TrimStart('\uFEFF'), truncated, editable);
+    }
+
+    private static async Task<byte[]> ReadBytes(Stream content, CancellationToken token)
+    {
+        using var bytes = new MemoryStream();
+
+        await content.CopyToAsync(bytes, token);
+
+        return bytes.ToArray();
     }
 }
