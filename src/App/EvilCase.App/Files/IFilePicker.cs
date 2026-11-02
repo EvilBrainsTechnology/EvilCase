@@ -8,4 +8,9 @@ internal interface IFilePicker
     /// Opens the browser's file picker of a hidden input from a control that cannot be its label.
     /// </summary>
     public Task PickFile(ElementReference input, CancellationToken token);
+
+    /// <summary>
+    /// Makes the card a drop zone that hands dropped files to its first file input.
+    /// </summary>
+    public Task AttachDropZone(ElementReference card, CancellationToken token);
 }

@@ -14,6 +14,13 @@ internal sealed class FilePicker(IJSRuntime jsRuntime) : IFilePicker, IAsyncDisp
         await this.module.InvokeVoidAsync("pickFile", token, input);
     }
 
+    public async Task AttachDropZone(ElementReference card, CancellationToken token)
+    {
+        this.module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", token, "./js/files.js");
+
+        await this.module.InvokeVoidAsync("attachDropZone", token, card);
+    }
+
     public async ValueTask DisposeAsync()
     {
         if (this.module is not null)

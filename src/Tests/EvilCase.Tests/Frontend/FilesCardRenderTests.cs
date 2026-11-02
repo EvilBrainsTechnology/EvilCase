@@ -210,11 +210,7 @@ public class FilesCardRenderTests
     private static BunitContext NewContext()
     {
         var ctx = new BunitContext();
-
-        // FileDropZone imports its own module from a path carrying a version query string, which
-        // no SetupModule can name, and reads a property bUnit's runtime does not answer.
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
-        ctx.Services.AddSingleton<IJSRuntime>(new PropertyReadingJSRuntime(ctx.JSInterop.JSRuntime));
 
         var downloader = new StubFileDownloader();
         ctx.Services.AddSingleton(downloader);
