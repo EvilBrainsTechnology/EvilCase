@@ -2549,12 +2549,12 @@ html.ec-scroll-locked {
     outline-offset: 1px;
 }
 
-/* The tooltip of a stretch in another format names the change. */
+/* The tooltip of a stretch or block in another format or of another type names the change; a tap focuses it. */
 .ec-markdown-compare-format[data-format] {
     position: relative;
 }
 
-.ec-markdown-compare-format[data-format]:hover::after {
+.ec-markdown-compare-format[data-format]:is(:hover, :focus)::after {
     content: attr(data-format);
     position: absolute;
     bottom: calc(100% + var(--ec-space-2));
@@ -2574,27 +2574,6 @@ html.ec-scroll-locked {
     font-weight: var(--ec-weight-medium);
     white-space: nowrap;
     pointer-events: none;
-}
-
-/* A block names its changes of type and format on a label after its text; a long label wraps inside itself. */
-.ec-markdown-compare-chip {
-    display: inline-block;
-    box-sizing: border-box;
-    max-width: calc(100% - var(--ec-space-3));
-    margin-left: var(--ec-space-3);
-    padding: 0 var(--ec-space-3);
-    border-radius: calc(var(--ec-compare-chip-height) / 2);
-    background: var(--ec-compare-format-bg);
-    color: var(--ec-compare-format-text);
-    outline: var(--ec-compare-format-outline);
-    font-family: var(--ec-font);
-    font-size: var(--ec-text-xs);
-    font-style: normal;
-    font-weight: var(--ec-weight-semibold);
-    line-height: var(--ec-compare-chip-height);
-    overflow-wrap: anywhere;
-    vertical-align: middle;
-    user-select: none;
 }
 
 .ec-markdown-compare-legend {

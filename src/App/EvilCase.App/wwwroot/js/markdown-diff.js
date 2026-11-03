@@ -167,8 +167,9 @@ function following(steps, items) {
     return found;
 }
 
-// The format changes of the stretch both blocks keep alike: ranges of the newer with the change named. Answers the names.
-function restyle(a, b, fromA, fromB, length, out) {
+// The format changes of the stretch both blocks keep alike: ranges of the newer with the change named, after the
+// block's change of type where it has one.
+function restyle(a, b, fromA, fromB, length, type) {
     const cuts = new Set([0, length]);
     for (const [block, from] of [[a, fromA], [b, fromB]]) {
         for (const [start, end] of block.runs) {
@@ -178,10 +179,11 @@ function restyle(a, b, fromA, fromB, length, out) {
         }
     }
     const sorted = [...cuts].sort((first, second) => first - second);
-    const titles = [];
+    const ranges = [];
     let last = null;
     for (let index = 0; index + 1 < sorted.length; index++) {
-        const title = formatChange(marksAt(a, fromA + sorted[index]), marksAt(b, fromB + sorted[index]));
+        const change = formatChange(marksAt(a, fromA + sorted[index]), marksAt(b, fromB + sorted[index]));
+        const title = change && type ? type + '; ' + change : change;
         const from = b.pos + fromB + sorted[index];
         const to = b.pos + fromB + sorted[index + 1];
         if (!title) {
@@ -190,15 +192,14 @@ function restyle(a, b, fromA, fromB, length, out) {
             last.to = to;
         } else {
             last = { from, to, type: 'format', title };
-            out.newer.push(last);
-            titles.push(title);
+            ranges.push(last);
         }
     }
-    return titles;
+    return ranges;
 }
 
-// Compares two text blocks that face each other; typed compares their types too. The newer block names its changes of
-// type and format on a label. Answers whether they differ.
+// Compares two text blocks that face each other; typed compares their types too. The newer block names a change of type
+// over the text that no change of format covers. Answers whether they differ.
 function compareBlocks(a, b, out, diff, typed) {
     const changes = a.text === b.text ? [] : diff(a.text, b.text);
     for (const change of changes) {
@@ -208,16 +209,19 @@ function compareBlocks(a, b, out, diff, typed) {
         }
         if (change.toB > change.fromB) out.newer.push({ from: b.pos + change.fromB, to: b.pos + change.toB, type: 'inserted' });
     }
-    const names = new Set();
-    if (typed && blockName(a) !== blockName(b)) {
-        out.newer.push({ node: b.node, end: b.end, type: 'restyled' });
-        names.add(blockName(a) + ' → ' + blockName(b));
+    const type = typed && blockName(a) !== blockName(b) ? blockName(a) + ' → ' + blockName(b) : '';
+    const formats = kept(changes, a.text.length).flatMap(([fromA, fromB, length]) => restyle(a, b, fromA, fromB, length, type));
+    if (type && b.text.length === 0) {
+        out.newer.push({ node: b.node, end: b.end, type: 'restyled', title: type });
+    } else if (type) {
+        let at = b.pos;
+        for (const { from, to } of [...formats, { from: b.pos + b.text.length }]) {
+            if (from > at) out.newer.push({ from: at, to: from, type: 'restyled', title: type });
+            at = to;
+        }
     }
-    for (const [fromA, fromB, length] of kept(changes, a.text.length)) {
-        for (const title of restyle(a, b, fromA, fromB, length, out)) names.add(title);
-    }
-    if (names.size > 0) out.newer.push({ node: b.node, end: b.end, type: 'named', title: [...names].join('; ') });
-    return changes.length > 0 || names.size > 0;
+    out.newer.push(...formats);
+    return changes.length > 0 || type !== '' || formats.length > 0;
 }
 
 // Where a removed block stands in the newer document: before the block that follows it, inside the blocks around both,
