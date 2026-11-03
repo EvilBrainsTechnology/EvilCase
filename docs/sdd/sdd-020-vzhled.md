@@ -176,8 +176,9 @@ a Stáhnout přílohu jsou tlačítka jen s ikonou.
 
 Aplikace jde přidat na plochu telefonu z nabídky prohlížeče (Chrome na Androidu, Safari na iOS);
 sama instalaci nenabízí. Z plochy se otevře jako EvilCase na celou obrazovku bez lišty
-prohlížeče. Aplikace nemá režim bez připojení: na zařízení si nedrží žádná data a bez
-připojení se neotevře. Na iOS se aplikace z plochy
+prohlížeče. Stavový řádek telefonu je černý a žádný ovládací prvek neleží pod výřezem displeje
+ani pod indikátorem domovské obrazovky. Aplikace nemá režim bez připojení:
+na zařízení si nedrží žádná data a bez připojení se neotevře. Na iOS se aplikace z plochy
 přihlašuje zvlášť, nezávisle na Safari.
 
 Ikona aplikace i ikona záložky jsou značka z přihlášení: bílé váhy na poli v barvě akcentu,

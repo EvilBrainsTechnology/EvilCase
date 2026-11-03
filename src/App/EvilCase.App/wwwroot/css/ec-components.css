@@ -5338,10 +5338,12 @@ html.ec-scroll-locked {
     }
 
     .ec-modal-large {
+        box-sizing: border-box;
         width: 100vw;
         max-width: none;
         height: var(--ec-viewport-height);
         margin: 0;
+        padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         border: 0;
         border-radius: 0;
     }
@@ -6570,7 +6572,8 @@ html:has(.ec-gate) {
 @media (max-width: 991.98px) {
     .ec-topbar:has(.ec-topsearch-open) {
         gap: var(--ec-space-3);
-        padding: 0 var(--ec-space-4);
+        padding-right: calc(var(--ec-space-4) + env(safe-area-inset-right));
+        padding-left: calc(var(--ec-space-4) + env(safe-area-inset-left));
     }
 
     .ec-topbar:has(.ec-topsearch-open) > :not(.ec-topsearch, .ec-topsearch-backdrop) {
@@ -6624,6 +6627,7 @@ html:has(.ec-gate) {
         display: flex;
         flex-direction: column;
         width: auto;
+        padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
         border: 0;
         border-radius: 0;
         box-shadow: none;
@@ -6894,7 +6898,8 @@ html:has(.ec-gate) {
 @media (max-width: 991.98px) {
     .ec-topbar {
         gap: var(--ec-space-3);
-        padding: 0 var(--ec-space-3) 0 var(--ec-space-4);
+        padding-right: calc(var(--ec-space-3) + env(safe-area-inset-right));
+        padding-left: calc(var(--ec-space-4) + env(safe-area-inset-left));
     }
 
     .ec-shell-body {
