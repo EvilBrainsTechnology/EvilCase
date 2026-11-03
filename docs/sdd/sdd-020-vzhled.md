@@ -140,7 +140,9 @@ se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 Mobil je každá šířka pod `lg` (992 px), tablet včetně. Desktop je primární, každá denně
 používaná obrazovka je plnohodnotná i na mobilu. Menu je ve spodní liště (SDD-016); spodní
 panel i lepivá patička formuláře leží nad ní, okno, náhled a hledání ji překryjí. Boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
-tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo
+tlačítka zůstávají u spodního okraje okna. Věta o čísle, které přidělí aplikace, stojí pod
+posledním polem, karta s ovládáním (nadřízený spis, spis) nad tlačítky a informační karta se
+na mobilu nekreslí. Výběr kontaktu a spisu je spodní panel s nadpisem, hledáním a Hotovo. Pole i celá lišta seznamu mají na mobilu písmo
 16 px. Seznam se nikdy neposouvá vodorovně: řádek nese název na nejvýše dva řádky, pod ním
 spis, do něhož patří, jednu řádku údajů (datum, stav nebo směr, zkrácený kontakt, změněno) a štítky
 pod ní; řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.

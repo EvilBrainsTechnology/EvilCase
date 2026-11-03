@@ -648,6 +648,11 @@ html {
     background: var(--ec-surface-sunken);
 }
 
+/* Only below lg, where the open field is a sheet. */
+.ec-combobox-sheet-head {
+    display: none;
+}
+
 .ec-combobox-option-meta {
     margin-left: auto;
     font-size: var(--ec-text-sm);
@@ -8218,6 +8223,137 @@ html:has(.ec-gate) {
     .ec-child-all:focus-visible {
         outline: none;
         box-shadow: var(--ec-focus-ring);
+    }
+}
+
+/* A form below lg (SDD-020): the fields, the sentence below them, the cards with controls, then the sticky
+   buttons; informational cards are not drawn. The contact and case pickers are sheets like the labels. */
+@media (max-width: 991.98px) {
+    .ec-form-layout {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ec-form-layout > .ec-card,
+    .ec-form-layout > .ec-card > .ec-card-footer,
+    .ec-form-aside {
+        display: contents;
+    }
+
+    .ec-form-layout .ec-form-note {
+        order: 1;
+        padding: 0 var(--ec-space-5) var(--ec-space-5);
+        font-size: var(--ec-text-xs);
+    }
+
+    .ec-form-aside > .ec-card {
+        order: 2;
+    }
+
+    .ec-form-aside > .ec-card:has(> .ec-card-body > .ec-card-text:first-child) {
+        display: none;
+    }
+
+    .ec-form-layout .ec-form-actions {
+        position: sticky;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        z-index: 1;
+        order: 3;
+        padding: var(--ec-space-4) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border);
+        background: var(--ec-surface);
+    }
+
+    .ec-form-layout .ec-form-actions .ec-button {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-combobox-search:has(> .ec-combobox-backdrop) {
+        position: fixed;
+        right: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        left: 0;
+        z-index: 52;
+        flex-direction: column;
+        max-height: calc(var(--ec-viewport-height) * 0.8);
+    }
+
+    /* The sheet's background lies above the backdrop, which is inside the sheet. */
+    .ec-combobox-search:has(> .ec-combobox-backdrop)::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+        background: var(--ec-surface);
+        box-shadow: var(--ec-shadow-sheet);
+    }
+
+    .ec-combobox-backdrop {
+        z-index: 9;
+        background: var(--ec-overlay);
+    }
+
+    .ec-combobox-sheet-head {
+        position: relative;
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--ec-space-4) var(--ec-space-3) 0 var(--ec-space-5);
+    }
+
+    .ec-combobox-sheet-title {
+        font-size: var(--ec-text-xl);
+        font-weight: var(--ec-weight-semibold);
+    }
+
+    .ec-combobox-sheet-done {
+        min-height: var(--ec-touch-min);
+        padding: 0 var(--ec-space-3);
+        border: 0;
+        background: transparent;
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-semibold);
+        color: var(--ec-accent-text);
+        cursor: pointer;
+    }
+
+    .ec-combobox-search:has(> .ec-combobox-backdrop) .ec-input {
+        flex: none;
+        height: var(--ec-touch-min);
+        margin: var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-combobox-menu {
+        position: relative;
+        top: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        padding: 0;
+        border: 0;
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .ec-combobox-option,
+    .ec-combobox-create {
+        flex: none;
+        padding-inline: var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+    }
+
+    .ec-combobox-option:first-child {
+        border-top: 0;
+    }
+
+    .ec-combobox-option-meta {
+        white-space: nowrap;
     }
 }
 
