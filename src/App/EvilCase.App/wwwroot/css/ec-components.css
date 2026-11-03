@@ -4081,6 +4081,11 @@ html.ec-scroll-locked {
     flex-shrink: 0;
 }
 
+/* Below lg the secret wraps in a block instead of the field. */
+.ec-token-secret-text {
+    display: none;
+}
+
 .ec-button-quiet {
     background: transparent;
     color: var(--ec-text-soft);
@@ -5154,25 +5159,64 @@ html.ec-scroll-locked {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    /* The bottom bar names the page; the sections are one switch across the width. */
+    .ec-page:has(> .ec-settings-layout) > .ec-page-header {
+        position: absolute;
+        width: calc(var(--ec-space-1) / 4);
+        height: calc(var(--ec-space-1) / 4);
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
     .ec-settings-nav {
         flex-direction: row;
-        flex-wrap: wrap;
-        gap: var(--ec-space-3);
-        padding: 0;
+        gap: var(--ec-space-1);
+        padding: var(--ec-space-1);
         border: 0;
-        background: transparent;
+        border-radius: var(--ec-radius-lg);
+        background: var(--ec-surface-track);
     }
 
     .ec-settings-nav-item {
+        flex: 1 1 0;
+        justify-content: center;
         height: var(--ec-touch-min);
-        border: 1px solid var(--ec-border);
-        border-radius: var(--ec-radius-pill);
+        border-radius: var(--ec-radius-md);
         white-space: nowrap;
-        background: var(--ec-surface);
     }
 
     .ec-settings-nav-item[aria-current="page"] {
-        border-color: transparent;
+        background: var(--ec-surface);
+        color: var(--ec-text);
+        box-shadow: var(--ec-shadow-raised);
+    }
+
+    /* The secret shows whole: a block of its own with the copy below. */
+    .ec-token-secret {
+        flex-direction: column;
+    }
+
+    .ec-token-secret .ec-input {
+        display: none;
+    }
+
+    .ec-token-secret-text {
+        display: block;
+        padding: var(--ec-space-3) var(--ec-space-4);
+        border: 1px solid var(--ec-border-strong);
+        border-radius: var(--ec-radius-md);
+        background: var(--ec-surface-sunken);
+        font-family: var(--ec-font-mono);
+        font-size: var(--ec-text-lg);
+        line-height: var(--ec-leading-body);
+        word-break: break-all;
+        user-select: all;
+    }
+
+    .ec-token-secret .ec-button {
+        justify-content: center;
+        min-height: var(--ec-touch-min);
     }
 
     .ec-export-action {
@@ -7939,7 +7983,7 @@ html:has(.ec-gate) {
     }
 
     .ec-settings-nav {
-        padding: var(--ec-space-4) var(--ec-space-5) var(--ec-space-1);
+        margin: var(--ec-space-4) var(--ec-space-4) var(--ec-space-1);
     }
 
     .ec-file-list {

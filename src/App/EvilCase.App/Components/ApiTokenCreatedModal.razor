@@ -15,6 +15,7 @@
                      Hint="@($"{ApiTokenDisplay.ScopeText(this.Created.Token.Scope)} · platí do {DateDisplay.Day(this.Created.Token.Expires)}")">
                 <div class="ec-token-secret">
                     <input id="api-token-secret" class="ec-input ec-input-mono" readonly value="@this.Created.Secret" />
+                    <code class="ec-token-secret-text">@this.Created.Secret</code>
                     <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Form" Icon="@(this.copied ? AppIcons.Check : AppIcons.Copy)"
                               OnClick="this.Copy">@(this.copied ? "Zkopírováno" : "Kopírovat")</EcButton>
                 </div>
