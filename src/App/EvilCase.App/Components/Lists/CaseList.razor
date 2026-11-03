@@ -79,17 +79,29 @@
 
         @if (this.ShowStatusFilter)
         {
-            <label class="ec-visually-hidden" for="@($"{this.InputPrefix}-status")">Stav</label>
-            <select id="@($"{this.InputPrefix}-status")" class="ec-select" @onchange="this.OnStatusSelected">
-                @foreach (var value in StatusFilters)
-                {
-                    <option value="@value" selected="@(value == this.status)">@CaseStatusDisplay.FilterText(value)</option>
-                }
-            </select>
+            <label class="ec-select-labeled" for="@($"{this.InputPrefix}-status")">
+                <span class="ec-select-labeled-name">Stav</span>
+                <select id="@($"{this.InputPrefix}-status")" class="ec-select" @onchange="this.OnStatusSelected">
+                    @foreach (var value in StatusFilters)
+                    {
+                        <option value="@value" selected="@(value == this.status)">@CaseStatusDisplay.FilterText(value)</option>
+                    }
+                </select>
+            </label>
         }
 
         @if (this.ShowStatusSwitch)
         {
+            @* Below lg a select takes the switch's place. *@
+            <label class="ec-select-labeled ec-select-narrow" for="@($"{this.InputPrefix}-status-select")">
+                <span class="ec-select-labeled-name">Stav</span>
+                <select id="@($"{this.InputPrefix}-status-select")" class="ec-select" @onchange="this.OnStatusSelected">
+                    @foreach (var value in StatusFilters)
+                    {
+                        <option value="@value" selected="@(value == this.status)">@CaseStatusDisplay.FilterText(value)</option>
+                    }
+                </select>
+            </label>
             <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Stav spisu">
                 @foreach (var value in StatusSwitch)
                 {
@@ -105,7 +117,16 @@
                          FromLabel="Datum spisu od" ToLabel="do"
                          From="this.From" To="this.To" SelectedLabels="this.SelectedLabels" ActiveCount="this.ActiveFilterCount"
                          FromChanged="this.OnFromInput" ToChanged="this.OnToInput" LabelsChanged="this.OnLabelsChanged"
-                         Cleared="this.ClearFilters" />
+                         Cleared="this.ClearFilters" ShowText="@($"Zobrazit {Plural.Text(this.Total, "spis", "spisy", "spisů")}")">
+                @if (this.ShowScopeFilter)
+                {
+                    <label class="ec-check" for="@($"{this.InputPrefix}-scope-sheet")">
+                        <input id="@($"{this.InputPrefix}-scope-sheet")" type="checkbox" class="ec-check-box"
+                               checked="@(this.scope == CaseListScope.RootOnly)" @onchange="this.OnScopeChanged" />
+                        Jen rodičovské spisy
+                    </label>
+                }
+            </ListFilters>
         }
 
         @if (this.ShowScopeFilter)

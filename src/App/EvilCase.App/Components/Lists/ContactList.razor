@@ -88,6 +88,16 @@
 
         @if (this.ShowKindFilter)
         {
+            @* Below lg a select takes the switch's place. *@
+            <label class="ec-select-labeled ec-select-narrow" for="@($"{this.InputPrefix}-kind")">
+                <span class="ec-select-labeled-name">Druh</span>
+                <select id="@($"{this.InputPrefix}-kind")" class="ec-select" @onchange="this.OnKindSelected">
+                    @foreach (var value in KindFilters)
+                    {
+                        <option value="@(value?.ToString() ?? "")" selected="@(this.kind == value)">@KindText(value)</option>
+                    }
+                </select>
+            </label>
             <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Typ kontaktu">
                 @foreach (var value in KindFilters)
                 {
@@ -205,6 +215,11 @@
         this.kind = value;
 
         return this.ReloadFirstPage();
+    }
+
+    private Task OnKindSelected(ChangeEventArgs args)
+    {
+        return this.SetKind(Enum.TryParse<ContactKind>(args.Value as string, out var value) ? value : null);
     }
 
     private Task SortBy(ContactSortKey key)

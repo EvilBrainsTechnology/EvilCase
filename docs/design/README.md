@@ -17,6 +17,7 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`prihlaseni.html`](prihlaseni.html) | Přihlášení | `/login` |
 | [`prehled.html`](prehled.html) | Přehled | `/` |
 | [`spisy.html`](spisy.html) | Seznam spisů | `/cases` |
+| [`spisy-mobil.html`](spisy-mobil.html) | Seznam spisů na mobilu, předloha lišty a řádků všech seznamů | `/cases` |
 | [`novy-spis.html`](novy-spis.html) | Založení spisu, předloha i pro editaci | `/cases/new`, `/cases/{id}/edit` |
 | [`detail-spisu.html`](detail-spisu.html) | Detail spisu | `/cases/{id}` |
 | [`detail-spisu-mobil.html`](detail-spisu-mobil.html) | Detail spisu na mobilu | `/cases/{id}` |

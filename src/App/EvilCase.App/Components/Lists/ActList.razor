@@ -114,6 +114,16 @@
 
         @if (this.ShowDirectionFilter)
         {
+            @* Below lg a select takes the switch's place. *@
+            <label class="ec-select-labeled ec-select-narrow" for="@($"{this.InputPrefix}-direction")">
+                <span class="ec-select-labeled-name">Směr</span>
+                <select id="@($"{this.InputPrefix}-direction")" class="ec-select" @onchange="this.OnDirectionSelected">
+                    @foreach (var value in DirectionFilters)
+                    {
+                        <option value="@(value?.ToString() ?? "")" selected="@(this.direction == value)">@(value is null ? "Vše" : ActDirectionDisplay.Text(value))</option>
+                    }
+                </select>
+            </label>
             <div class="ec-segmented ec-segmented-compact" role="group" aria-label="Směr úkonu">
                 @foreach (var value in DirectionFilters)
                 {
@@ -136,7 +146,16 @@
             <ListFilters InputPrefix="@this.InputPrefix" ShowDates="this.ShowDates" ShowLabelFilter="this.ShowLabelFilter"
                          From="this.From" To="this.To" SelectedLabels="this.SelectedLabels" ActiveCount="this.ActiveFilterCount"
                          FromChanged="this.OnFromInput" ToChanged="this.OnToInput" LabelsChanged="this.OnLabelsChanged"
-                         Cleared="this.ClearFilters" />
+                         Cleared="this.ClearFilters" ShowText="@($"Zobrazit {Plural.Text(this.Total, "úkon", "úkony", "úkonů")}")">
+                @if (this.ShowCaseStatusFilter)
+                {
+                    <label class="ec-check" for="@($"{this.InputPrefix}-open-cases-sheet")">
+                        <input id="@($"{this.InputPrefix}-open-cases-sheet")" type="checkbox" class="ec-check-box"
+                               checked="@(this.caseStatus == CaseStatusFilter.Open)" @onchange="this.OnCaseStatusChanged" />
+                        Jen z otevřených spisů
+                    </label>
+                }
+            </ListFilters>
         }
 
         @if (this.ShowCaseStatusFilter)
@@ -311,6 +330,11 @@
         this.direction = value;
 
         return this.ReloadFirstPage();
+    }
+
+    private Task OnDirectionSelected(ChangeEventArgs args)
+    {
+        return this.SetDirection(Enum.TryParse<ActDirection>(args.Value as string, out var value) ? value : null);
     }
 
     private Task OnCaseStatusChanged(ChangeEventArgs args)

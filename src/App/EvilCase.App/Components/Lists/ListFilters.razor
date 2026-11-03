@@ -1,9 +1,10 @@
 @using EvilBrains.EvilCase.Api.Contract.Labels
 
 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Filter"
+          AriaLabel="@(this.ActiveCount > 0 ? $"Filtry {this.ActiveCount}" : "Filtry")"
           aria-expanded="@(this.open ? "true" : "false")" aria-controls="@($"{this.InputPrefix}-filters")"
           OnClick="this.Toggle">
-    Filtry
+    <span class="ec-text-wide">Filtry</span>
     @if (this.ActiveCount > 0)
     {
         <span class="ec-filter-count">@this.ActiveCount</span>
@@ -12,7 +13,10 @@
 
 @if (this.open)
 {
+    @* Below lg the panel is a sheet at the bottom edge with its own title, the switches of the toolbar and a close. *@
+    <div class="ec-filter-backdrop" @onclick="this.Close"></div>
     <div id="@($"{this.InputPrefix}-filters")" class="ec-filter-panel">
+        <h2 class="ec-filter-sheet-title">Filtry</h2>
         @if (this.ShowDates)
         {
             <div class="ec-filter-field">
@@ -33,10 +37,17 @@
                 <LabelField AllowCreate="false" InputId="@($"{this.InputPrefix}-labels")" Selected="this.SelectedLabels" SelectedChanged="this.LabelsChanged" />
             </div>
         }
+        @if (this.ChildContent is not null)
+        {
+            <div class="ec-filter-sheet-switches">@this.ChildContent</div>
+        }
         @if (this.ActiveCount > 0)
         {
             <button type="button" class="ec-filter-clear" @onclick="() => this.Cleared.InvokeAsync()">Zrušit filtry</button>
         }
+        <div class="ec-filter-sheet-footer">
+            <EcButton Variant="EcButtonVariant.Primary" OnClick="this.Close">@this.ShowText</EcButton>
+        </div>
     </div>
 }
 
@@ -74,6 +85,18 @@
     [Parameter]
     public int ActiveCount { get; set; }
 
+    /// <summary>
+    /// The close of the sheet below lg, naming what the filters leave, e.g. „Zobrazit 7 spisů".
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string ShowText { get; set; }
+
+    /// <summary>
+    /// The toolbar's switches, repeated in the sheet below lg, where the toolbar does not show them.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
     [Parameter]
     public EventCallback<ChangeEventArgs> FromChanged { get; set; }
 
@@ -91,5 +114,10 @@
     private void Toggle()
     {
         this.open = !this.open;
+    }
+
+    private void Close()
+    {
+        this.open = false;
     }
 }

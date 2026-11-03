@@ -56,7 +56,10 @@ Seznam spisů a úkonů má poslední sloupec Změněno; datum spisu
 a úkonu je v každém seznamu tučné. Žádný seznam nezobrazuje číslo jednací ani spisovou značku.
 Drobečky nad stránkou vedou přes všechny nadřízené spisy od kořenového a pojmenují spis, úkon
 i kontakt názvem, nikdy číslem jednacím ani spisovou značkou.
-Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Seznam na víc stránek nese
+Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Lišta seznamu na mobilu
+nese pod hledáním selecty se jménem v rámečku (stav, směr nebo druh, řazení) a tlačítko filtrů
+s počtem aktivních filtrů. Přepínač je na mobilu select; data, štítek a zaškrtávací volby jsou ve
+spodním panelu Filtry, který zavírá tlačítko s počtem výsledků („Zobrazit 7 spisů"). Seznam na víc stránek nese
 v patičce zobrazený rozsah, celkový počet a předchozí/další; seznam na jednu stránku patičku nemá.
 
 Hledání v horní liště prochází všechny entity ([SDD-021](sdd-021-vyhledavani.md)). Seznam spisů,
