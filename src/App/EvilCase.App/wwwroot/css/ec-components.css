@@ -2562,8 +2562,11 @@ html.ec-scroll-locked {
     z-index: 1;
     display: flex;
     align-items: center;
-    height: var(--ec-compare-tooltip-height);
-    padding: 0 var(--ec-space-4);
+    box-sizing: border-box;
+    width: max-content;
+    max-width: var(--ec-compare-tooltip-max-width);
+    min-height: var(--ec-compare-tooltip-height);
+    padding: var(--ec-space-1) var(--ec-space-4);
     border-radius: var(--ec-radius-sm);
     background: var(--ec-compare-tooltip-bg);
     box-shadow: var(--ec-shadow-overlay);
@@ -2572,7 +2575,7 @@ html.ec-scroll-locked {
     font-size: var(--ec-text-xs);
     font-style: normal;
     font-weight: var(--ec-weight-medium);
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     pointer-events: none;
 }
 

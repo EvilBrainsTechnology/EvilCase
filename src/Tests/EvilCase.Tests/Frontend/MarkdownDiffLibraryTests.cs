@@ -145,10 +145,11 @@ public class MarkdownDiffLibraryTests
         var lines = await this.Diff("""
             [
               [["h2", "Poznámka"], ["p", "Bod"], ["p", "Úkol", { "in": ["task"] }], ["p", "Citát", { "in": ["quote"] }],
-               ["code", "x = 1"], ["p", "Vnořený", { "in": ["bullet"] }], ["h3", "Termíny plnění díla"]],
+               ["code", "x = 1"], ["p", "Vnořený", { "in": ["bullet"] }], ["h3", "Termíny plnění díla"], ["h4", "Lhůta"],
+               ["h4", ""]],
               [["p", "Poznámka"], ["p", "Bod", { "in": ["bullet"] }], ["p", "Úkol", { "in": ["done"] }], ["p", "Citát"],
                ["p", "x = 1"], ["p", "Vnořený", { "in": ["bullet", "bullet"] }],
-               ["p", "Termíny plnění díla", { "marks": [[8, 14, { "strong": true }]] }]]
+               ["p", "Termíny plnění díla", { "marks": [[8, 14, { "strong": true }]] }], ["p", "Lhůta běží"], ["p", ""]]
             ]
             """);
 
@@ -163,10 +164,13 @@ public class MarkdownDiffLibraryTests
             "newer restyled \"Termíny \": nadpis 3 → odstavec",
             "newer restyled \" díla\": nadpis 3 → odstavec",
             "newer format \"plnění\": nadpis 3 → odstavec; nově tučně",
-            "summary +7 −7 in 1",
+            "newer inserted \" běží\"",
+            "newer restyled \"Lhůta běží\": nadpis 4 → odstavec",
+            "newer restyled \"\": nadpis 4 → odstavec",
+            "summary +9 −9 in 1",
         ];
 
-        Assert.That(lines, Is.EqualTo(expected), "a stretch of another format in a block of another type names both changes, the rest of the block the type alone");
+        Assert.That(lines, Is.EqualTo(expected), "a stretch of another format in a block of another type names both changes, the rest of the block and an empty block the type alone");
     }
 
     [Test]
