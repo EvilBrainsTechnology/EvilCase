@@ -5,7 +5,7 @@
 @inject ICasesClient CasesClient
 @inject ILogger<CaseChildrenCard> Logger
 
-<EcCard Title="Podřízené spisy">
+<EcCard Id="@this.Id" Title="Podřízené spisy">
     <Header>
         @if (this.children is not null)
         {
@@ -36,11 +36,14 @@
         else
         {
             var closedCount = this.children.Count(static item => item.Status == CaseStatus.Closed);
+            var shown = this.children.Where(item => this.showClosed || item.Status != CaseStatus.Closed).ToList();
+            var capped = !this.expanded && shown.Count > MobileRows;
 
             <div class="ec-child-card">
                 <span class="ec-child-counts"><MetaLine Parts="@CountParts(this.children.Count - closedCount, closedCount)" /></span>
-                <div id="case-children" class="ec-child-list">
-                    @foreach (var item in this.children.Where(item => this.showClosed || item.Status != CaseStatus.Closed))
+                @* Below lg the list shows three rows until the button below lets out the rest. *@
+                <div id="case-children" class="@(capped ? "ec-child-list ec-child-list-capped" : "ec-child-list")">
+                    @foreach (var item in shown)
                     {
                         <a class="ec-child-row" href="@($"/cases/{item.CaseId}")">
                             <span class="ec-child-title" title="@item.Title">@item.Title</span>
@@ -50,6 +53,12 @@
                         </a>
                     }
                 </div>
+                @if (capped)
+                {
+                    <button type="button" class="ec-child-all" aria-controls="case-children" @onclick="this.Expand">
+                        @AllText(shown.Count)<EcIcon Paths="@AppIcons.ChevronRight" Size="EcIconSize.Small" />
+                    </button>
+                }
                 @if (closedCount > 0)
                 {
                     <button type="button" class="ec-child-toggle" aria-expanded="@(this.showClosed ? "true" : "false")"
@@ -67,6 +76,14 @@
         return [Plural.Text(openCount, "otevřený", "otevřené", "otevřených"), Plural.Text(closedCount, "uzavřený", "uzavřené", "uzavřených")];
     }
 
+    // "Všechny 4 podřízené spisy", "Všech 16 podřízených spisů".
+    private static string AllText(int count)
+    {
+        return count < 5 ? $"Všechny {count} podřízené spisy" : $"Všech {count} podřízených spisů";
+    }
+
+    private const int MobileRows = 3;
+
     /// <summary>
     /// The sidebar summary lists every child of one case; the tenant holds no case with more.
     /// </summary>
@@ -75,11 +92,21 @@
     [Parameter, EditorRequired]
     public required Guid ParentCaseId { get; set; }
 
+    /// <summary>The target of a section anchor.</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>The count of child cases, raised after each successful load.</summary>
+    [Parameter]
+    public EventCallback<int> CountChanged { get; set; }
+
     private IReadOnlyList<CaseListItem>? children;
 
     private string? failure;
 
     private bool showClosed;
+
+    private bool expanded;
 
     private Guid loaded;
 
@@ -96,6 +123,11 @@
     private void ToggleClosed()
     {
         this.showClosed = !this.showClosed;
+    }
+
+    private void Expand()
+    {
+        this.expanded = true;
     }
 
     private async Task LoadChildren()
@@ -115,6 +147,8 @@
             var response = await this.CasesClient.ListCases(request, CancellationToken.None);
 
             this.children = response.Items;
+
+            await this.CountChanged.InvokeAsync(this.children.Count);
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {

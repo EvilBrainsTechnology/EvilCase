@@ -40,7 +40,9 @@ s tím, který záznam chybí.
 ### Menu a vzhled
 
 Menu nese Přehled, Spisy, Úkony, Kontakty a Nastavení a zvýrazňuje položku i na podřízených
-routách; menu je ve vodorovné liště nad obsahem. Vizuální jazyk drží [SDD-020](sdd-020-vzhled.md):
+routách; menu je ve vodorovné liště nad obsahem. Na mobilu je menu ve spodní liště: pět
+položek s ikonou nad popiskem, aktivní v barvě akcentu, a horní lišta nese jen značku,
+hledání a uživatelské menu. Vizuální jazyk drží [SDD-020](sdd-020-vzhled.md):
 tokeny, primitiva `Ec*` a předlohy obrazovek v [`docs/design/`](../design/README.md).
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná
 i na mobilu a seznam se na mobilu nikdy neposouvá vodorovně. Datum se všude píše `d. M. yyyy`,
@@ -54,7 +56,10 @@ Seznam spisů a úkonů má poslední sloupec Změněno; datum spisu
 a úkonu je v každém seznamu tučné. Žádný seznam nezobrazuje číslo jednací ani spisovou značku.
 Drobečky nad stránkou vedou přes všechny nadřízené spisy od kořenového a pojmenují spis, úkon
 i kontakt názvem, nikdy číslem jednacím ani spisovou značkou.
-Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Seznam na víc stránek nese
+Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Lišta seznamu na mobilu
+nese pod hledáním selecty se jménem v rámečku (stav, směr nebo druh, řazení) a tlačítko filtrů
+s počtem aktivních filtrů. Přepínač je na mobilu select; data, štítek a zaškrtávací volby jsou ve
+spodním panelu Filtry, který zavírá tlačítko s počtem výsledků („Zobrazit 7 spisů"). Seznam na víc stránek nese
 v patičce zobrazený rozsah, celkový počet a předchozí/další; seznam na jednu stránku patičku nemá.
 
 Hledání v horní liště prochází všechny entity ([SDD-021](sdd-021-vyhledavani.md)). Seznam spisů,
@@ -71,6 +76,7 @@ Každá stránka kromě `/login` vyžaduje přihlášení; nepřihlášeného ap
 
 - Identifikátor v URL: `CaseNumber` / UUID. Platí UUID.
 - Umístění menu: levý sloupec / vodorovná lišta. Platí vodorovná lišta.
+- Menu na mobilu: zásuvka / spodní lišta. Platí spodní lišta.
 
 ## Dopady
 

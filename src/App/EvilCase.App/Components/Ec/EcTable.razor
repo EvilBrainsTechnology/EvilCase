@@ -1,6 +1,6 @@
 @typeparam TItem
 
-<div class="ec-card ec-table" style="--ec-table-columns: @this.Template">
+<div class="ec-card ec-table" id="@this.Id" style="--ec-table-columns: @this.Template">
     @if (this.Title is not null || this.Actions is not null)
     {
         <div class="ec-card-header">
@@ -25,12 +25,15 @@
             @this.Toolbar
             @if (this.Sortable.Count > 0)
             {
-                <select class="ec-select ec-sort-select" aria-label="Řazení" @onchange="this.OnSortSelected">
-                    @foreach (var column in this.Sortable)
-                    {
-                        <option value="@column.SortKey" selected="@(column.SortKey == this.SortKey)">@column.Header</option>
-                    }
-                </select>
+                <label class="ec-select-labeled ec-sort-select">
+                    <span class="ec-select-labeled-name">Řazení</span>
+                    <select class="ec-select" @onchange="this.OnSortSelected">
+                        @foreach (var column in this.Sortable)
+                        {
+                            <option value="@column.SortKey" selected="@(column.SortKey == this.SortKey)">@column.Header</option>
+                        }
+                    </select>
+                </label>
             }
         </div>
     }
@@ -92,6 +95,10 @@
 </div>
 
 @code {
+    /// <summary>The target of a section anchor, e.g. „acts".</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
     [Parameter]
     public string? Title { get; set; }
 

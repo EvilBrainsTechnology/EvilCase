@@ -55,6 +55,23 @@ public class EcMenuRenderTests
         }
     }
 
+    [Test]
+    public async Task AnOpenMenuTakesAnItemAddedToIt()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = Render(ctx, []);
+
+        await component.Find("button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+
+        EcMenuItem[] grown = [new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Empty }, .. component.Instance.Items];
+
+        component.Render(parameters => parameters.Add(static menu => menu.Items, grown));
+
+        Assert.That(component.FindAll("[role=menuitem]"), Has.Count.EqualTo(4), "an item that appears while the menu is open renders in it");
+    }
+
     private static IRenderedComponent<EcMenu> Render(BunitContext ctx, List<string> chosen)
     {
         EcMenuItem[] items =

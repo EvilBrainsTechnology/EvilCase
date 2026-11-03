@@ -5,7 +5,7 @@
 @inject ILogger<ContactField> Logger
 
 <EcCombobox TItem="ContactListItem" InputId="@this.InputId" Placeholder="Hledat v názvu, schránce a adrese"
-            SelectedLabel="Vybraný kontakt" EmptyText="@this.emptyText" ItemText="@(static contact => contact.Name)"
+            SelectedLabel="Vybraný kontakt" SheetTitle="Kontakt" EmptyText="@this.emptyText" ItemText="@(static contact => contact.Name)"
             Search="this.SearchContacts" CreateText="Nový kontakt" OnCreate="this.OpenCreate"
             Selected="this.Selected" SelectedChanged="this.SelectedChanged">
     <ItemTemplate>

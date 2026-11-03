@@ -53,6 +53,10 @@
         <div class="ec-toolbar-notes">@this.Notes</div>
     }
     <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.Ready)" Collapsible OnSearch="this.OnSearch" />
+    @if (this.Actions is not null)
+    {
+        <div class="ec-preview-toolbar-actions">@this.Actions</div>
+    }
 </div>
 
 @code {
@@ -134,6 +138,12 @@
     /// </summary>
     [Parameter]
     public RenderFragment? Notes { get; set; }
+
+    /// <summary>
+    /// The preview's file actions, which below lg sit at the end of the toolbar.
+    /// </summary>
+    [CascadingParameter(Name = "PreviewActions")]
+    public RenderFragment? Actions { get; set; }
 
     [Parameter]
     public EventCallback<PreviewZoom> OnZoom { get; set; }

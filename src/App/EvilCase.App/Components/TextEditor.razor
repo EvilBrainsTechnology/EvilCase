@@ -40,7 +40,7 @@
             {
                 <div class="ec-toolbar-notes">@this.Notes</div>
             }
-            <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
+            <ToolbarSearch @ref="this.search" Label="Hledat v textu" Collapsible OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
         </div>
         @if (this.Changes is { Shown: true, Status: { } status })
         {

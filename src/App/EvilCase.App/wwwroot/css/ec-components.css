@@ -247,6 +247,21 @@ html {
     color: var(--ec-text-muted);
 }
 
+/* The link back to the parent replaces the crumbs only below lg. */
+.ec-page-back {
+    display: none;
+}
+
+/* Text a button drops below lg; from lg up it is part of the button's text. */
+.ec-text-wide {
+    display: contents;
+}
+
+/* Text a button carries only below lg. */
+.ec-text-narrow {
+    display: none;
+}
+
 .ec-page-header-row {
     display: flex;
     align-items: center;
@@ -459,7 +474,8 @@ html {
     margin: 0;
 }
 
-.ec-visually-hidden {
+.ec-visually-hidden,
+.ec-select-labeled-name {
     position: absolute;
     width: calc(var(--ec-space-1) / 4);
     height: calc(var(--ec-space-1) / 4);
@@ -469,6 +485,16 @@ html {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+/* A select with its name inside the frame (Stav, Řazení); from lg up the name is for screen readers only. */
+.ec-select-labeled {
+    display: contents;
+}
+
+/* Only below lg, where it replaces the switch. */
+.ec-select-narrow {
+    display: none;
 }
 
 .ec-input,
@@ -627,6 +653,11 @@ html {
     background: var(--ec-surface-sunken);
 }
 
+/* Only below lg, where the open field is a sheet. */
+.ec-combobox-sheet-head {
+    display: none;
+}
+
 .ec-combobox-option-meta {
     margin-left: auto;
     font-size: var(--ec-text-sm);
@@ -782,13 +813,11 @@ html.ec-scroll-locked {
 }
 
 /* Zavírací křížek je tichý, nečte se jako akce (docs/design/nastaveni.html). */
-.ec-modal-header .ec-button-ghost,
-.ec-drawer-head .ec-button-ghost {
+.ec-modal-header .ec-button-ghost {
     color: var(--ec-text-soft);
 }
 
-.ec-modal-header .ec-button-ghost:hover:enabled,
-.ec-drawer-head .ec-button-ghost:hover:enabled {
+.ec-modal-header .ec-button-ghost:hover:enabled {
     background: var(--ec-surface-sunken);
     color: var(--ec-text);
 }
@@ -1089,6 +1118,15 @@ html.ec-scroll-locked {
     height: var(--ec-control-md);
 }
 
+/* The row's menu from lg up; below lg the one that opens with the download. */
+.ec-file-menu-wide {
+    display: contents;
+}
+
+.ec-file-menu-narrow {
+    display: none;
+}
+
 .ec-file-upload {
     cursor: pointer;
 }
@@ -1358,6 +1396,13 @@ html.ec-scroll-locked {
 /* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
 .ec-preview-actions {
     display: contents;
+}
+
+/* Below lg the file actions sit in the preview's toolbar and the file's position in the meta line. */
+.ec-preview-compact,
+.ec-preview-toolbar-actions,
+.ec-preview-meta-position {
+    display: none;
 }
 
 .ec-preview-nav {
@@ -2599,8 +2644,13 @@ html.ec-scroll-locked {
     overflow-x: auto;
 }
 
-.ec-markdown-toolbar-buttons > * {
+.ec-markdown-toolbar-buttons > *,
+.ec-markdown-toolbar-format > * {
     flex: 0 0 auto;
+}
+
+.ec-markdown-toolbar-format {
+    display: contents;
 }
 
 .ec-markdown-toolbar-buttons > .ec-toolbar-notes {
@@ -4031,6 +4081,11 @@ html.ec-scroll-locked {
     flex-shrink: 0;
 }
 
+/* Below lg the secret wraps in a block instead of the field. */
+.ec-token-secret-text {
+    display: none;
+}
+
 .ec-button-quiet {
     background: transparent;
     color: var(--ec-text-soft);
@@ -4510,12 +4565,11 @@ html.ec-scroll-locked {
         position: fixed;
         top: auto;
         right: 0;
-        bottom: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         left: 0;
         z-index: 52;
         width: auto;
-        max-height: calc(var(--ec-viewport-height) * 0.8);
-        padding-bottom: env(safe-area-inset-bottom);
+        max-height: calc(var(--ec-viewport-height) * 0.85 - var(--ec-tabbar-height) - env(safe-area-inset-bottom));
         border-width: 1px 0 0;
         border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
     }
@@ -4550,6 +4604,12 @@ html.ec-scroll-locked {
         height: var(--ec-touch-min);
         margin: var(--ec-space-3) var(--ec-space-5);
         font-size: var(--ec-text-lg);
+    }
+
+    .ec-label-options {
+        flex: 0 1 auto;
+        min-height: 0;
+        max-height: none;
     }
 
     .ec-label-option {
@@ -4910,6 +4970,13 @@ html.ec-scroll-locked {
     text-decoration: underline;
 }
 
+/* Only below lg: the section anchors, the button showing all child cases and the label edit button. */
+.ec-anchors,
+.ec-child-all,
+.ec-label-edit {
+    display: none;
+}
+
 .ec-child-toggle:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
@@ -4929,15 +4996,75 @@ html.ec-scroll-locked {
         font-size: var(--ec-title-mobile);
     }
 
-    .ec-page-actions {
-        flex: 1 1 100%;
-        margin-left: 0;
+    /* The primary action stays at the right of the title row. */
+    .ec-page-header-row {
+        gap: var(--ec-space-3);
     }
 
-    /* The current page gives way last. */
-    .ec-crumb[aria-current="page"] {
-        flex-shrink: 0;
-        max-width: 50%;
+    .ec-page-actions {
+        flex: none;
+        margin-left: auto;
+    }
+
+    /* One link back to the parent replaces the crumbs. */
+    .ec-crumbs {
+        display: none;
+    }
+
+    .ec-page-back {
+        display: flex;
+        align-items: center;
+        gap: var(--ec-space-1);
+        box-sizing: border-box;
+        width: fit-content;
+        max-width: calc(100% + var(--ec-space-3));
+        height: var(--ec-touch-min);
+        margin-left: calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-accent-text);
+    }
+
+    .ec-page-back .ec-icon {
+        flex: none;
+    }
+
+    .ec-page-back-text {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-page > .ec-page-header:has(> .ec-page-back) {
+        gap: 0;
+        padding-top: var(--ec-space-1);
+    }
+
+    .ec-card-body:has(> .ec-detail) {
+        padding-top: var(--ec-space-1);
+    }
+
+    /* On a detail the title has the whole row; the status and the actions go below it. */
+    .ec-detail .ec-page-header-row > .ec-page-title {
+        flex: 1 0 100%;
+    }
+
+    .ec-detail .ec-page-title {
+        line-height: var(--ec-leading-title);
+    }
+
+    .ec-detail .ec-page-header {
+        gap: var(--ec-space-2);
+    }
+
+    .ec-detail .ec-page-header-row {
+        row-gap: var(--ec-space-3);
+    }
+
+    .ec-text-wide {
+        display: none;
     }
 
     .ec-form-layout,
@@ -5010,9 +5137,8 @@ html.ec-scroll-locked {
     /* Akce formuláře zůstávají na mobilu u spodního okraje okna. */
     .ec-form-layout .ec-card-footer {
         position: sticky;
-        bottom: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         z-index: 1;
-        padding-bottom: calc(var(--ec-space-4) + env(safe-area-inset-bottom));
         border-radius: 0 0 var(--ec-radius-card) var(--ec-radius-card);
         background: var(--ec-surface);
     }
@@ -5033,25 +5159,64 @@ html.ec-scroll-locked {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    /* The bottom bar names the page; the sections are one switch across the width. */
+    .ec-page:has(> .ec-settings-layout) > .ec-page-header {
+        position: absolute;
+        width: calc(var(--ec-space-1) / 4);
+        height: calc(var(--ec-space-1) / 4);
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
     .ec-settings-nav {
         flex-direction: row;
-        flex-wrap: wrap;
-        gap: var(--ec-space-3);
-        padding: 0;
+        gap: var(--ec-space-1);
+        padding: var(--ec-space-1);
         border: 0;
-        background: transparent;
+        border-radius: var(--ec-radius-lg);
+        background: var(--ec-surface-track);
     }
 
     .ec-settings-nav-item {
+        flex: 1 1 0;
+        justify-content: center;
         height: var(--ec-touch-min);
-        border: 1px solid var(--ec-border);
-        border-radius: var(--ec-radius-pill);
+        border-radius: var(--ec-radius-md);
         white-space: nowrap;
-        background: var(--ec-surface);
     }
 
     .ec-settings-nav-item[aria-current="page"] {
-        border-color: transparent;
+        background: var(--ec-surface);
+        color: var(--ec-text);
+        box-shadow: var(--ec-shadow-raised);
+    }
+
+    /* The secret shows whole: a block of its own with the copy below. */
+    .ec-token-secret {
+        flex-direction: column;
+    }
+
+    .ec-token-secret .ec-input {
+        display: none;
+    }
+
+    .ec-token-secret-text {
+        display: block;
+        padding: var(--ec-space-3) var(--ec-space-4);
+        border: 1px solid var(--ec-border-strong);
+        border-radius: var(--ec-radius-md);
+        background: var(--ec-surface-sunken);
+        font-family: var(--ec-font-mono);
+        font-size: var(--ec-text-lg);
+        line-height: var(--ec-leading-body);
+        word-break: break-all;
+        user-select: all;
+    }
+
+    .ec-token-secret .ec-button {
+        justify-content: center;
+        min-height: var(--ec-touch-min);
     }
 
     .ec-export-action {
@@ -5173,13 +5338,72 @@ html.ec-scroll-locked {
     }
 
     .ec-modal-large {
-        width: calc(100vw - 2 * var(--ec-space-4));
-        height: calc(100vh - 2 * var(--ec-space-4));
+        width: 100vw;
+        max-width: none;
+        height: var(--ec-viewport-height);
+        margin: 0;
+        border: 0;
+        border-radius: 0;
     }
 
     .ec-modal-large .ec-modal-header {
         flex-wrap: wrap;
-        padding: var(--ec-space-3) var(--ec-space-4);
+        gap: var(--ec-space-3);
+        min-height: 0;
+        padding: var(--ec-space-2) var(--ec-space-2) var(--ec-space-2) var(--ec-space-4);
+    }
+
+    .ec-preview-meta-position {
+        display: inline;
+    }
+
+    /* The header keeps the name and the close; the file actions are the toolbar's, or a row of their own. */
+    .ec-preview-actions:has(+ .ec-preview-compact) {
+        display: none;
+    }
+
+    .ec-preview-compact,
+    .ec-preview-toolbar-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ec-preview-compact:has(> :nth-child(3)) {
+        flex: 1 1 100%;
+        order: 1;
+        justify-content: flex-end;
+    }
+
+    .ec-modal-large:has(.ec-preview-toolbar-actions) .ec-modal-header .ec-preview-compact {
+        display: none;
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-compact .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-modal-large .ec-modal-header > .ec-button-ghost {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+
+    /* The editor's header holds Zrušit and Uložit; Zrušit closes it. */
+    .ec-modal-large .ec-modal-header:has(> .ec-preview-edit-actions) > .ec-button-ghost {
+        display: none;
+    }
+
+    /* Beside them the file name gets two lines. */
+    .ec-modal-header:has(> .ec-preview-edit-actions) .ec-preview-name {
+        display: -webkit-box;
+        overflow-wrap: anywhere;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     .ec-modal-large .ec-modal-header > :is(.ec-preview-title, .ec-file-rename) {
@@ -5226,11 +5450,9 @@ html.ec-scroll-locked {
     }
 
     .ec-preview-edit-actions {
-        display: grid;
-        flex: 1 1 100%;
-        order: 1;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--ec-space-3);
+        display: flex;
+        flex: 0 0 auto;
+        gap: var(--ec-space-2);
     }
 
     .ec-modal-large .ec-modal-header .ec-preview-edit-actions .ec-button {
@@ -5249,7 +5471,7 @@ html.ec-scroll-locked {
     .ec-modal-sheet {
         width: auto;
         max-width: none;
-        max-height: calc(100vh - var(--ec-space-8));
+        max-height: calc(var(--ec-viewport-height) - var(--ec-space-8));
         margin: auto 0 0;
         border-bottom: 0;
         border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
@@ -5293,8 +5515,29 @@ html.ec-scroll-locked {
         flex-direction: column;
     }
 
+    /* One row: the version picker and the way back to the current version. */
     .ec-preview-versions {
-        padding: var(--ec-space-3) var(--ec-space-4);
+        flex-wrap: nowrap;
+        gap: var(--ec-space-2);
+        padding: var(--ec-space-2) var(--ec-space-3);
+    }
+
+    .ec-preview-versions-label,
+    .ec-preview-versions-note {
+        display: none;
+    }
+
+    .ec-preview-versions .ec-preview-versions-trigger {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-versions > .ec-button {
+        min-height: var(--ec-touch-min);
+        margin-left: auto;
+    }
+
+    .ec-text-narrow {
+        display: contents;
     }
 
     .ec-preview-versions-option,
@@ -5380,11 +5623,10 @@ html.ec-scroll-locked {
     .ec-preview-sheet-tabs {
         padding-inline: var(--ec-space-4);
     }
-
-    /* Na mobilu zůstane lupa, stránka a ikona hledání; pole hledání se otevře na vlastním řádku. */
+    /* The toolbar keeps the page, the view switches, the search icon and the file actions; the search field opens on a row of its own. */
     .ec-preview-toolbar {
-        gap: var(--ec-space-2) var(--ec-space-3);
-        padding: var(--ec-space-2) var(--ec-space-4);
+        gap: var(--ec-space-2) var(--ec-space-1);
+        padding: var(--ec-space-2) var(--ec-space-3);
     }
 
     .ec-preview-toolbar .ec-button {
@@ -5398,17 +5640,30 @@ html.ec-scroll-locked {
         height: var(--ec-touch-min);
     }
 
+    /* Two fingers zoom the preview; a double tap fits it to the width. */
     .ec-preview-toolbar-page-word,
-    .ec-preview-toolbar-zoom-value,
-    .ec-preview-toolbar-fit-page,
-    .ec-preview-toolbar-fit-actual,
+    .ec-preview-toolbar-zoom,
+    .ec-preview-toolbar > .ec-preview-toolbar-separator,
     .ec-preview-toolbar-label {
         display: none;
+    }
+
+    .ec-preview-stage,
+    .ec-preview-pdf {
+        touch-action: pan-x pan-y;
     }
 
     .ec-preview-toolbar-search-toggle {
         display: block;
         margin-left: auto;
+    }
+
+    .ec-preview-toolbar-actions .ec-button-secondary,
+    .ec-preview-compact .ec-button-secondary,
+    .ec-preview-toolbar-search-toggle .ec-button-secondary {
+        border-color: transparent;
+        background: transparent;
+        color: var(--ec-text-soft);
     }
 
     .ec-preview-toolbar-search-collapsible {
@@ -5432,9 +5687,13 @@ html.ec-scroll-locked {
         min-width: 0;
     }
 
-    /* The editor's toolbar stays one row: what does not fit scrolls sideways. */
+    /* The editor's toolbar stays one row: what does not fit scrolls sideways. An open search takes a row of its own. */
     .ec-text-editor-toolbar {
         overflow-x: auto;
+    }
+
+    .ec-text-editor-toolbar:has(> .ec-preview-toolbar-search-open) {
+        flex-wrap: wrap;
     }
 
     .ec-text-editor-toolbar > * {
@@ -5445,17 +5704,39 @@ html.ec-scroll-locked {
         flex: 1 1 0;
     }
 
-    .ec-text-editor-toolbar > .ec-preview-toolbar-search {
-        flex: 1 1 auto;
-        min-width: 0;
+    .ec-text-editor-toolbar > .ec-preview-toolbar-search-open,
+    .ec-markdown-toolbar > .ec-preview-toolbar-search-open {
+        flex: 1 1 100%;
     }
 
-    .ec-text-editor-toolbar .ec-preview-toolbar-search-box {
-        min-width: var(--ec-preview-toolbar-search-mobile);
-    }
-
+    /* The Markdown editor: the history, the view and the search on the first row, the formatting scrolls on the second. */
     .ec-markdown-toolbar {
         flex-wrap: wrap;
+    }
+
+    .ec-markdown-toolbar-buttons {
+        display: contents;
+    }
+
+    .ec-markdown-toolbar-format {
+        display: flex;
+        flex: 1 1 100%;
+        order: 2;
+        align-items: center;
+        gap: var(--ec-space-1);
+        margin: 0 calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+    }
+
+    .ec-markdown-toolbar-format > .ec-preview-toolbar-separator:first-child {
+        display: none;
+    }
+
+    .ec-markdown-toolbar-format > .ec-button {
+        scroll-snap-align: start;
     }
 
     /* The version, the steps and the summary on one row, the legend on a short row below. */
@@ -5543,6 +5824,40 @@ html.ec-scroll-locked {
     .ec-text-compare-version .ec-preview-versions-trigger {
         justify-content: space-between;
         min-height: var(--ec-touch-min);
+    }
+
+    /* Starší and Novější stand inside their pickers. */
+    .ec-text-compare-versions .ec-text-compare-version {
+        display: grid;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version > * {
+        grid-area: 1 / 1;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-title {
+        margin-right: auto;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-label {
+        align-self: center;
+        position: relative;
+        z-index: 1;
+        padding-left: var(--ec-space-4);
+        font-size: var(--ec-text-xs);
+        font-weight: var(--ec-weight-regular);
+        color: var(--ec-text-muted);
+        pointer-events: none;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version .ec-preview-versions-trigger {
+        padding-left: var(--ec-compare-version-label-mobile);
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-meta {
+        display: none;
     }
 
     .ec-text-compare .cm-editor .cm-line,
@@ -6461,6 +6776,11 @@ html:has(.ec-gate) {
     color: var(--ec-danger-text);
 }
 
+/* Only below lg: the line naming what the items act on. */
+.ec-menu-title {
+    display: none;
+}
+
 .ec-menu .ec-menu-item-danger:hover {
     background: var(--ec-danger-bg);
 }
@@ -6566,83 +6886,57 @@ html:has(.ec-gate) {
     border-top: 1px solid var(--ec-border-subtle);
 }
 
-.ec-topbar-burger {
+/* The bottom tab bar exists only below lg (SDD-016). */
+.ec-tabbar {
     display: none;
-    align-items: center;
-    justify-content: center;
-    width: var(--ec-touch-min);
-    height: var(--ec-touch-min);
-    padding: 0;
-    border: 0;
-    border-radius: var(--ec-radius-lg);
-    background: transparent;
-    cursor: pointer;
-}
-
-.ec-topbar-burger:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-topbar-focus-ring);
-}
-
-.ec-drawer-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    background: var(--ec-overlay);
-}
-
-.ec-drawer {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 40;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-5);
-    box-sizing: border-box;
-    width: var(--ec-drawer-width);
-    padding: var(--ec-space-5);
-    background: var(--ec-surface);
-}
-
-.ec-drawer-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ec-space-4);
-}
-
-.ec-drawer .ec-topbar-brand {
-    color: var(--ec-text);
-}
-
-.ec-drawer-nav {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-1);
-}
-
-.ec-drawer-nav .ec-nav-link {
-    height: var(--ec-touch-min);
-    border-radius: var(--ec-radius-lg);
-}
-
-.ec-drawer-nav .ec-nav-link[aria-current="page"] {
-    background: var(--ec-accent-soft);
-    font-weight: var(--ec-weight-semibold);
-    color: var(--ec-accent-text);
 }
 
 @media (max-width: 991.98px) {
     .ec-topbar {
-        gap: var(--ec-space-4);
-        padding: 0 var(--ec-space-5);
+        gap: var(--ec-space-3);
+        padding: 0 var(--ec-space-3) 0 var(--ec-space-4);
     }
 
-    .ec-topbar-burger {
-        display: flex;
-        flex: none;
+    .ec-shell-body {
+        padding-bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+    }
+
+    .ec-tabbar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        border-top: 1px solid var(--ec-border);
+        background: var(--ec-surface);
+    }
+
+    .ec-tabbar .ec-nav-link {
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--ec-space-1);
+        min-width: 0;
+        height: var(--ec-tabbar-height);
+        padding: 0;
+        font-size: var(--ec-text-2xs);
+        color: var(--ec-text-muted);
+    }
+
+    .ec-tabbar .ec-nav-link .ec-icon {
+        width: var(--ec-tabbar-icon);
+        height: var(--ec-tabbar-icon);
+    }
+
+    .ec-tabbar .ec-nav-link[aria-current="page"] {
+        font-weight: var(--ec-weight-semibold);
+        color: var(--ec-accent);
+    }
+
+    .ec-tabbar .ec-nav-link:focus-visible {
+        box-shadow: inset var(--ec-focus-ring);
     }
 
     /* Značka zůstane malá; její dotyková plocha doroste na minimum. */
@@ -6686,7 +6980,7 @@ html:has(.ec-gate) {
         position: fixed;
         top: auto;
         right: var(--ec-space-5);
-        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        bottom: calc(var(--ec-space-5) + var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         left: var(--ec-space-5);
         min-width: 0;
     }
@@ -6695,10 +6989,15 @@ html:has(.ec-gate) {
         position: fixed;
         top: auto;
         right: var(--ec-space-5);
-        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        bottom: calc(var(--ec-space-5) + var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         left: var(--ec-space-5);
         width: auto;
         max-width: none;
+    }
+
+    /* An open dialog covers the tab bar. */
+    .ec-modal :is(.ec-popover, .ec-menu.ec-menu-popup) {
+        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
     }
 
     .ec-popover-trigger {
@@ -7404,6 +7703,14 @@ html:has(.ec-gate) {
     box-shadow: var(--ec-focus-ring);
 }
 
+/* The parts of the filter sheet, which exists only below lg. */
+.ec-filter-backdrop,
+.ec-filter-sheet-title,
+.ec-filter-sheet-switches,
+.ec-filter-sheet-footer {
+    display: none;
+}
+
 /* The labels beside a title leave it its minimum width and clip instead of overflowing. */
 .ec-chips {
     display: flex;
@@ -7495,9 +7802,876 @@ html:has(.ec-gate) {
         display: none;
     }
 
-    /* Pole má na mobilu písmo 16 px. */
-    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
+    /* Fields have 16 px text below lg, in the preview and the editor too. */
+    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input,
+        .ec-preview-toolbar-page-input, .ec-preview-toolbar-search-input),
+    .ec-preview-markdown[contenteditable="true"],
+    .ec-preview-markdown [contenteditable="true"] {
         font-size: var(--ec-text-lg);
+    }
+
+    .ec-text-editor .cm-editor .cm-content {
+        font-size: calc(var(--ec-text-lg) * var(--ec-preview-zoom, 1));
+    }
+
+    /* A quiet action has a 44 px touch area without growing its line. */
+    .ec-comment-action {
+        min-height: var(--ec-touch-min);
+        margin-block: calc((var(--ec-comment-action-height) - var(--ec-touch-min)) / 2);
+    }
+
+    .ec-detail-fact-link {
+        display: inline-block;
+        padding-block: var(--ec-space-4);
+        margin-block: calc(-1 * var(--ec-space-4));
+    }
+
+    .ec-timeline-item,
+    .ec-segment {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-combobox-option,
+    .ec-combobox-create {
+        min-height: var(--ec-touch-row);
+    }
+
+    .ec-topsearch-clear {
+        position: relative;
+    }
+
+    .ec-topsearch-clear::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
+    }
+
+    /* A contact's name in a list row takes the width beside the monogram and is clamped. */
+    .ec-table-cell-primary .ec-contact-name-text {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* A search result's labels take a line of their own below its details. */
+    .ec-sr-line {
+        display: contents;
+    }
+
+    .ec-sr-body > .ec-chips {
+        order: 1;
+        max-width: none;
+    }
+}
+
+/* Edge to edge below lg (SDD-020): sections are full-width white blocks divided by a line; only text is inset. */
+@media (max-width: 991.98px) {
+    .ec-shell,
+    .ec-page {
+        background: var(--ec-surface);
+    }
+
+    .ec-page {
+        gap: 0;
+        max-width: none;
+        padding: 0;
+    }
+
+    .ec-detail-layout,
+    .ec-detail-main,
+    .ec-detail-aside,
+    .ec-form-layout,
+    .ec-form-aside,
+    .ec-settings-layout,
+    .ec-contact-occurrences {
+        gap: 0;
+    }
+
+    .ec-card {
+        border: 0;
+        border-top: 1px solid var(--ec-border);
+        border-radius: 0;
+    }
+
+    /* A card right below the top bar or the title row has no line. */
+    .ec-page > .ec-card:first-child,
+    .ec-page > .ec-visually-hidden:first-child + .ec-card,
+    .ec-page-header + .ec-card,
+    .ec-page-header + :is(.ec-form-layout, .ec-detail-layout) > .ec-card:first-child,
+    .ec-page-header + .ec-form-layout > :first-child > .ec-card:first-child {
+        border-top: 0;
+    }
+
+    .ec-card-header {
+        min-height: calc(var(--ec-touch-min) + 2 * var(--ec-space-3));
+        box-sizing: border-box;
+        padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-card-body,
+    .ec-card-footer {
+        padding-inline: var(--ec-space-5);
+    }
+
+    .ec-page > .ec-page-header {
+        justify-content: center;
+        box-sizing: border-box;
+        min-height: calc(var(--ec-touch-min) + 2 * var(--ec-space-4));
+        padding: var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-table-bar,
+    .ec-contact-occurrences .ec-table-bar {
+        padding: 0 var(--ec-space-5) var(--ec-space-4);
+    }
+
+    .ec-table-row {
+        border-top: 1px solid var(--ec-border-subtle);
+        border-bottom: 0;
+        border-radius: 0;
+    }
+
+    /* The facts are one column of rows with full-width lines. */
+    .ec-detail-facts {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 0 calc(-1 * var(--ec-space-5));
+        border: 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .ec-detail-fact {
+        padding-inline: var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-right: 0;
+    }
+
+    .ec-detail-fact-copy .ec-copy {
+        margin-right: calc(-1 * var(--ec-space-4));
+    }
+
+    .ec-card-body:has(> .ec-detail) {
+        padding-bottom: 0;
+    }
+
+    .ec-tiles {
+        border: 0;
+        border-top: 1px solid var(--ec-border);
+        border-radius: 0;
+    }
+
+    .ec-stat {
+        padding: var(--ec-stat-pad-mobile);
+    }
+
+    /* The case link is a list row with a line, not an inset block. */
+    .ec-case-link {
+        margin: 0 calc(-1 * var(--ec-space-5));
+        padding: var(--ec-space-4) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+        background: none;
+    }
+
+    .ec-case-link:hover {
+        background: var(--ec-bg);
+    }
+
+    .ec-settings-nav {
+        margin: var(--ec-space-4) var(--ec-space-4) var(--ec-space-1);
+    }
+
+    .ec-file-list {
+        margin: 0 calc(-1 * var(--ec-space-5)) calc(-1 * var(--ec-space-5));
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-file-row,
+    .ec-file-row:first-child,
+    .ec-file-row:last-child {
+        padding: var(--ec-space-3) var(--ec-space-1) var(--ec-space-3) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-bottom: 0;
+        border-radius: 0;
+    }
+
+    .ec-file-name:focus-visible::after {
+        border-radius: 0;
+    }
+
+    /* The contact header: the monogram beside the name, below them the kind, Upravit and ⋯. */
+    .ec-contact-header {
+        display: grid;
+        grid-template-columns: var(--ec-monogram-mobile) minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-contact-header-name {
+        display: contents;
+    }
+
+    .ec-contact-header .ec-contact-monogram-lg {
+        width: var(--ec-monogram-mobile);
+        height: var(--ec-monogram-mobile);
+        border-radius: var(--ec-radius-pill);
+        font-size: var(--ec-monogram-text-mobile);
+    }
+
+    .ec-contact-header .ec-page-title {
+        grid-column: 2 / -1;
+    }
+
+    .ec-contact-header .ec-badge {
+        grid-column: 1 / 3;
+        justify-self: start;
+    }
+
+    .ec-contact-header .ec-page-actions {
+        grid-column: 3;
+    }
+
+    /* A sheet's items are full-width rows. */
+    .ec-label-option,
+    .ec-popover .ec-preview-versions-option {
+        padding-inline: var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+    }
+}
+
+/* The list toolbar below lg (SDD-016): the search across the width, below it the named selects and the
+   filter button, which opens a sheet. */
+@media (max-width: 991.98px) {
+    .ec-table-bar {
+        gap: var(--ec-space-3);
+    }
+
+    .ec-select-labeled {
+        display: flex;
+        flex: 1 1 0;
+        align-items: center;
+        gap: var(--ec-space-2);
+        box-sizing: border-box;
+        min-width: 0;
+        height: var(--ec-touch-min);
+        padding-left: var(--ec-space-4);
+        border: 1px solid var(--ec-border-strong);
+        border-radius: var(--ec-radius-lg);
+        background: var(--ec-surface);
+    }
+
+    .ec-select-labeled:focus-within {
+        border-color: var(--ec-accent);
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    .ec-select-labeled-name {
+        position: static;
+        flex: none;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        font-size: var(--ec-text-xs);
+        color: var(--ec-text-muted);
+    }
+
+    .ec-table-bar .ec-select-labeled .ec-select {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 100%;
+        padding-left: 0;
+        border: 0;
+        background-color: transparent;
+        font-weight: var(--ec-weight-medium);
+    }
+
+    .ec-select-labeled .ec-select:focus-visible {
+        box-shadow: none;
+    }
+
+    /* A select replaces each switch; the checkboxes are in the filter sheet. */
+    .ec-table-bar .ec-segmented,
+    .ec-table-bar:has(> [aria-controls$="-filters"]) > .ec-check {
+        display: none;
+    }
+
+    .ec-table-bar > [aria-controls$="-filters"] {
+        position: relative;
+        order: 1;
+        flex: none;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+        border-color: var(--ec-border-strong);
+        border-radius: var(--ec-radius-lg);
+    }
+
+    .ec-table-bar > [aria-controls$="-filters"] .ec-filter-count {
+        position: absolute;
+        top: calc(-1 * var(--ec-space-1));
+        right: calc(-1 * var(--ec-space-1));
+    }
+
+    .ec-filter-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        background: var(--ec-overlay);
+    }
+
+    /* The filter sheet: a head with Zrušit filtry, the dates side by side, the label and the switches below
+       them, a footer whose close names the result. */
+    .ec-filter-panel {
+        display: grid;
+        position: fixed;
+        right: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        left: 0;
+        z-index: 51;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: var(--ec-space-5) var(--ec-space-3);
+        max-height: calc(var(--ec-viewport-height) * 0.8);
+        overflow-y: auto;
+        padding: 0 var(--ec-space-5);
+        border: 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+        background: var(--ec-surface);
+        box-shadow: var(--ec-shadow-sheet);
+    }
+
+    .ec-filter-sheet-title {
+        display: flex;
+        grid-row: 1;
+        grid-column: 1 / -1;
+        align-items: center;
+        min-height: calc(var(--ec-touch-min) + 2 * var(--ec-space-3));
+        margin: 0 calc(-1 * var(--ec-space-5));
+        padding: 0 var(--ec-space-5);
+        border-bottom: 1px solid var(--ec-border-subtle);
+        font-size: var(--ec-text-xl);
+        font-weight: var(--ec-weight-semibold);
+    }
+
+    .ec-filter-panel .ec-filter-clear {
+        grid-row: 1;
+        grid-column: 2;
+        align-self: center;
+        justify-self: end;
+        margin-right: calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        font-size: var(--ec-text-md);
+        color: var(--ec-accent-text);
+    }
+
+    .ec-filter-field-grow,
+    .ec-filter-sheet-switches,
+    .ec-filter-sheet-footer {
+        grid-column: 1 / -1;
+    }
+
+    .ec-filter-sheet-switches {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .ec-filter-sheet-switches .ec-check {
+        margin-left: 0;
+    }
+
+    .ec-filter-sheet-footer {
+        display: block;
+        position: sticky;
+        bottom: 0;
+        margin: 0 calc(-1 * var(--ec-space-5));
+        padding: var(--ec-space-4) var(--ec-space-5) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        background: var(--ec-surface-header);
+    }
+
+    .ec-filter-sheet-footer .ec-button {
+        justify-content: center;
+        width: 100%;
+        height: var(--ec-touch-min);
+    }
+}
+
+/* A list row below lg (SDD-016): the title, the case below it, one line of details and the labels under it. */
+@media (max-width: 991.98px) {
+    .ec-table-row {
+        column-gap: var(--ec-space-3);
+    }
+
+    .ec-table-cell-primary:has(> .ec-chips, > .ec-cell-line),
+    .ec-table-cell-primary > .ec-cell-line {
+        display: contents;
+    }
+
+    .ec-table-cell-primary > .ec-cell-text:not(.ec-cell-sub),
+    .ec-table-cell-primary > .ec-cell-line > .ec-cell-text {
+        order: -2;
+        font-size: var(--ec-list-title-mobile);
+    }
+
+    .ec-table-cell-primary > .ec-cell-sub {
+        flex: 1 0 100%;
+        order: -1;
+    }
+
+    .ec-table-cell-primary > .ec-chips,
+    .ec-table-cell-primary > .ec-cell-line > .ec-chips {
+        flex: 1 0 100%;
+        order: 1;
+        padding-top: var(--ec-space-1);
+    }
+
+    .ec-table-row .ec-chip-sm {
+        height: var(--ec-chip-mobile-height);
+    }
+
+    /* The contact fits the line of details truncated. */
+    .ec-table-row > .ec-cell-contact {
+        flex: 1 1 0;
+    }
+
+    .ec-recent-cases .ec-card-header-actions .ec-button {
+        justify-content: center;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+}
+
+/* A detail below lg (SDD-020): the facts as name | value rows, read-only labels, the section anchors and
+   the section order in one column. */
+@media (max-width: 991.98px) {
+    .ec-detail-fact {
+        display: grid;
+        grid-template-columns: var(--ec-fact-name-mobile) minmax(0, 1fr);
+        align-items: center;
+        column-gap: var(--ec-space-4);
+        box-sizing: border-box;
+        min-height: var(--ec-touch-min);
+        padding-block: var(--ec-space-3);
+    }
+
+    .ec-detail-fact-name {
+        font-size: var(--ec-text-sm);
+    }
+
+    .ec-contact-facts {
+        max-width: none;
+    }
+
+    /* A value shows whole and wraps anywhere. */
+    .ec-detail-fact :is(.ec-detail-fact-value, .ec-detail-fact-mono, .ec-detail-fact-link) {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .ec-detail-fact-copy .ec-copy {
+        flex: none;
+        margin-left: auto;
+    }
+
+    .ec-detail-fact-labels {
+        align-items: start;
+    }
+
+    .ec-detail-fact-labels .ec-detail-fact-name {
+        line-height: calc(var(--ec-space-7) + var(--ec-space-1));
+    }
+
+    .ec-detail-fact-labels .ec-alert {
+        grid-column: 1 / -1;
+    }
+
+    /* Labels are chips without a remove button; one button opens the sheet that edits them. */
+    .ec-label-field .ec-chip-remove,
+    .ec-label-add {
+        display: none;
+    }
+
+    .ec-label-edit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+        border: 0;
+        border-radius: var(--ec-radius-lg);
+        background: transparent;
+        color: var(--ec-text-muted);
+        cursor: pointer;
+    }
+
+    .ec-label-edit:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    .ec-label-field-inline {
+        position: relative;
+        min-height: calc(var(--ec-space-7) + var(--ec-space-1));
+        padding-right: var(--ec-touch-min);
+    }
+
+    .ec-label-field-inline .ec-label-edit {
+        position: absolute;
+        top: calc((var(--ec-space-7) + var(--ec-space-1) - var(--ec-touch-min)) / 2);
+        right: calc(-1 * var(--ec-space-4));
+    }
+
+    /* In a form the whole field is the button. */
+    .ec-label-field-box .ec-label-edit {
+        position: absolute;
+        inset: 0;
+        width: auto;
+        height: auto;
+    }
+
+    .ec-label-field-box .ec-label-edit:focus-visible {
+        box-shadow: none;
+    }
+
+    .ec-label-toggle {
+        justify-content: space-between;
+    }
+
+    .ec-label-toggle .ec-icon {
+        color: var(--ec-border-strong);
+    }
+
+    .ec-label-toggle[aria-selected="true"] .ec-icon {
+        color: var(--ec-accent);
+    }
+
+    /* The section anchors below the detail header; the row scrolls sideways. */
+    .ec-anchors {
+        display: flex;
+        gap: var(--ec-space-3);
+        overflow-x: auto;
+        padding: var(--ec-space-4) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border);
+        scrollbar-width: none;
+    }
+
+    .ec-anchor {
+        position: relative;
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--ec-space-2);
+        box-sizing: border-box;
+        height: var(--ec-anchor-height);
+        padding: 0 var(--ec-space-4);
+        border: 1px solid var(--ec-border-strong);
+        border-radius: var(--ec-radius-pill);
+        font-size: var(--ec-text-sm);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-text);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .ec-anchor::after {
+        content: "";
+        position: absolute;
+        inset: calc((var(--ec-anchor-height) - var(--ec-touch-min)) / 2) 0;
+    }
+
+    .ec-anchor:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    .ec-anchor-count {
+        font-weight: var(--ec-weight-regular);
+        color: var(--ec-text-muted);
+    }
+
+    /* The sections stack: a case has the files, the child cases, the acts and the comments; an act the files,
+       the comments, the case's timeline and the case. */
+    .ec-detail-main,
+    .ec-detail-aside {
+        display: contents;
+    }
+
+    .ec-detail-layout {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ec-detail-layout .ec-file-card {
+        order: -1;
+    }
+
+    .ec-case-acts > .ec-table,
+    .ec-detail-layout .ec-card:has(.ec-timeline) {
+        order: 1;
+    }
+
+    .ec-detail-layout:has(.ec-case-acts) .ec-card:has(.ec-card-stack),
+    .ec-detail-layout .ec-card:has(> .ec-card-body > .ec-case-link) {
+        order: 2;
+    }
+
+    /* The child cases show three rows; the button below them shows the rest. */
+    .ec-child-list-capped > .ec-child-row:nth-child(n + 4) {
+        display: none;
+    }
+
+    .ec-child-all {
+        display: flex;
+        align-items: center;
+        gap: var(--ec-space-1);
+        min-height: var(--ec-touch-min);
+        padding: 0;
+        border: 0;
+        border-top: 1px solid var(--ec-border-subtle);
+        background: transparent;
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-accent-text);
+        cursor: pointer;
+    }
+
+    .ec-child-all:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+}
+
+/* A form below lg (SDD-020): the fields, the sentence below them, the cards with controls, then the sticky
+   buttons; informational cards are not drawn. The contact and case pickers are sheets like the labels. */
+@media (max-width: 991.98px) {
+    .ec-form-layout {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ec-form-layout > .ec-card,
+    .ec-form-layout > .ec-card > .ec-card-footer,
+    .ec-form-aside {
+        display: contents;
+    }
+
+    .ec-form-layout .ec-form-note {
+        order: 1;
+        padding: 0 var(--ec-space-5) var(--ec-space-5);
+        font-size: var(--ec-text-xs);
+    }
+
+    .ec-form-aside > .ec-card {
+        order: 2;
+    }
+
+    .ec-form-aside > .ec-card:has(> .ec-card-body > .ec-card-text:first-child) {
+        display: none;
+    }
+
+    .ec-form-layout .ec-form-actions {
+        position: sticky;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        z-index: 1;
+        order: 3;
+        padding: var(--ec-space-4) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border);
+        background: var(--ec-surface);
+    }
+
+    .ec-form-layout .ec-form-actions .ec-button {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-combobox-search:has(> .ec-combobox-backdrop) {
+        position: fixed;
+        right: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        left: 0;
+        z-index: 52;
+        flex-direction: column;
+        max-height: calc(var(--ec-viewport-height) * 0.8);
+    }
+
+    /* The sheet's background lies above the backdrop, which is inside the sheet. */
+    .ec-combobox-search:has(> .ec-combobox-backdrop)::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+        background: var(--ec-surface);
+        box-shadow: var(--ec-shadow-sheet);
+    }
+
+    .ec-combobox-backdrop {
+        z-index: 9;
+        background: var(--ec-overlay);
+    }
+
+    .ec-combobox-sheet-head {
+        position: relative;
+        z-index: 11;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--ec-space-4) var(--ec-space-3) 0 var(--ec-space-5);
+    }
+
+    .ec-combobox-sheet-title {
+        font-size: var(--ec-text-xl);
+        font-weight: var(--ec-weight-semibold);
+    }
+
+    .ec-combobox-sheet-done {
+        min-height: var(--ec-touch-min);
+        padding: 0 var(--ec-space-3);
+        border: 0;
+        background: transparent;
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-semibold);
+        color: var(--ec-accent-text);
+        cursor: pointer;
+    }
+
+    .ec-combobox-search:has(> .ec-combobox-backdrop) .ec-input {
+        flex: none;
+        height: var(--ec-touch-min);
+        margin: var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-combobox-menu {
+        position: relative;
+        top: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        padding: 0;
+        border: 0;
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .ec-combobox-option,
+    .ec-combobox-create {
+        flex: none;
+        padding-inline: var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+    }
+
+    .ec-combobox-option:first-child {
+        border-top: 0;
+    }
+
+    .ec-combobox-option-meta {
+        white-space: nowrap;
+    }
+}
+
+/* The file row and the menus below lg (SDD-020): a file carries only a quiet ⋯ with Stáhnout on top; a menu
+   and the version picker are edge-to-edge sheets. */
+@media (max-width: 991.98px) {
+    .ec-file-row,
+    .ec-file-row:first-child,
+    .ec-file-row:last-child {
+        min-height: var(--ec-file-row-mobile);
+    }
+
+    .ec-file-actions > .ec-button,
+    .ec-file-menu-wide {
+        display: none;
+    }
+
+    .ec-file-menu-narrow {
+        display: contents;
+    }
+
+    .ec-file-actions .ec-menu-anchor > .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        border-color: transparent;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .ec-file-meta {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-file-meta .ec-sep {
+        display: inline;
+    }
+
+    .ec-file-meta .ec-badge {
+        margin-right: var(--ec-space-2);
+    }
+
+    .ec-menu-backdrop:has(+ .ec-menu-popup),
+    .ec-popover-backdrop {
+        z-index: 50;
+        background: var(--ec-overlay);
+    }
+
+    .ec-menu.ec-menu-popup,
+    .ec-popover {
+        right: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        left: 0;
+        z-index: 51;
+        max-height: calc(var(--ec-viewport-height) * 0.8);
+        overflow-y: auto;
+        padding: var(--ec-space-3) 0;
+        border-width: 1px 0 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+        box-shadow: var(--ec-shadow-sheet);
+    }
+
+    .ec-modal :is(.ec-popover, .ec-menu.ec-menu-popup) {
+        bottom: 0;
+        padding-bottom: calc(var(--ec-space-3) + env(safe-area-inset-bottom));
+    }
+
+    .ec-menu-title {
+        display: block;
+        overflow: hidden;
+        padding: var(--ec-space-1) var(--ec-space-5) var(--ec-space-3);
+        font-size: var(--ec-text-xs);
+        color: var(--ec-text-muted);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-menu-popup .ec-menu-item {
+        flex: none;
+        gap: var(--ec-space-4);
+        height: var(--ec-touch-row);
+        padding: 0 var(--ec-space-5);
+        border-radius: 0;
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-menu-popup .ec-menu-divider {
+        margin-inline: 0;
     }
 }
 

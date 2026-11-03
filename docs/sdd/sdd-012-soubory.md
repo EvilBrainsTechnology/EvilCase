@@ -107,7 +107,8 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
 i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
-Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat. Upravit nese jen soubor, který
+Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat; na mobilu řádek nese jen nabídku
+a Stáhnout je její první položka. Upravit nese jen soubor, který
 náhled podle přípony upravuje (Úpravy textu) a který má nejvýše 1 MB; otevře náhled rovnou
 v úpravách, Markdown formátovaně. Soubor, který po načtení upravit nejde, zůstane v náhledu ke
 čtení s jeho poznámkou. Potvrzení smazání souboru s více verzemi řekne, kolik verzí se smaže.
@@ -148,7 +149,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   a zmenšením (50 až 400 %, také Ctrl nebo Cmd s kolečkem myši), na počítači i se skutečnou
   velikostí 100 %, a s hledáním. Hledání stojí na pravém konci lišty a zleva nese pořadí výskytu
   z počtu (3 z 12), Hledám… nebo Nenalezeno, pole hledání a předchozí a další výskyt; na mobilu
-  ho otevře ikona na vlastním řádku. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
+  ho otevře ikona na vlastním řádku. Na mobilu lišta tlačítka zvětšení nenese a náhled se zvětší
+  a zmenší dvěma prsty, ve stejných mezích. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
   všechny výskyty, aktuální odliší a posune do zobrazení; Enter přejde na další výskyt,
   Shift+Enter na předchozí, Esc hledání vymaže a náhled nezavře.
 - Poznámky náhledu i editoru textu, kódu a Markdownu (soubor je delší, není platný ve svém jazyce,
@@ -159,7 +161,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   posouvají celé a posuvník stojí u pravého okraje náhledu.
 - PDF se ukáže jako stránky pod sebou, zpočátku na šířku náhledu, nejvýš však ve 100 %, i
   v mobilním prohlížeči. Lišta navíc ukáže stránku z počtu stran s polem pro skok na stránku
-  a přizpůsobení na šířku a na celou stránku. Text jde vybrat a zkopírovat.
+  a přizpůsobení na šířku a na celou stránku; na mobilu přizpůsobení nenese a dvojí klepnutí vrátí
+  stránky na šířku. Text jde vybrat a zkopírovat.
 - U textu, kódu, Markdownu, e-mailu a datové zprávy zvětšení mění velikost písma a text se zalomí do šířky náhledu;
   zpočátku je 100 %.
 - Odkaz v PDF na místo v dokumentu přejde na jeho stránku, odkaz na webovou nebo e-mailovou adresu
@@ -216,12 +219,17 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - HEIC a HEIF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel, vždy v jejich aktuální verzi; hlavička
   ukáže pořadí „Soubor 2 z 5“. Listování souborů i příloh stojí v hlavičce vpravo za Stáhnout,
-  hned před zavřením; na mobilu na vlastním řádku pod tlačítky, u pravého okraje.
+  hned před zavřením. Na mobilu stojí pořadí „soubor 2 z 5“ za okamžikem nahrání a listování
+  souborů bez pořadí na konci lišty náhledu se Stáhnout a nabídkou ⋯; náhled bez lišty je nese
+  v hlavičce. Listování příloh zůstává v hlavičce.
 - Hlavička souboru karty nese Nová verze, která nahraje novou verzi jako akce řádku a pak ukáže
   aktuální verzi, a u souboru s více verzemi tlačítko Verze s počtem verzí, které ukáže a schová
-  pruh verzí pod hlavičkou. Náhled hlášku o nahrané verzi neukazuje, vypíše ji karta.
+  pruh verzí pod hlavičkou. Náhled hlášku o nahrané verzi neukazuje, vypíše ji karta. Na mobilu
+  jsou Upravit, Nahrát novou verzi, Verze (3), Porovnat a Přejmenovat v nabídce ⋯.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
+  Na mobilu je pruh jeden řádek bez e-mailu a bez textu o starší verzi a Zobrazit aktuální verzi
+  nese text Aktuální.
 - Starší verze se ukáže vždy s pruhem verzí v barvě upozornění, s textem „Starší verze. Stáhnout
   stáhne tuto verzi.“ a se Zobrazit aktuální verzi. Hlavička ukáže velikost a okamžik nahrání té
   verze; obsah, podpis datové zprávy, podepisující i stažení jsou té verze. Pruh samostatného
@@ -298,10 +306,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   Esc i klikem mimo a při přechodu v aplikaci, i tlačítkem Zpět prohlížeče. Po zahození změn
   udělá Zpět nebo Vpřed prohlížeče krok v historii a nový záznam do ní nepřidá. Zavření nebo
   obnovení záložky a přechod mimo aplikaci ohlásí vlastní dotaz prohlížeče.
-- Na mobilu nese hlavička pod jménem Zrušit a Uložit vedle sebe přes celou šířku a po změně
-  ukáže jen „Neuložené změny“; lišta se při nedostatku místa posouvá do strany. Lišta
-  formátovaných úprav je i na mobilu v jednom řádku a posouvá se do strany; přepínač nese
-  Formát / Zdroj.
+- Na mobilu nese hlavička vedle jména Zrušit a Uložit místo zavření a po změně ukáže jen
+  „Neuložené změny“; lišta se při nedostatku místa posouvá do strany a hledání otevře ikona.
+  Lišta formátovaných úprav má na mobilu dva řádky: Zpět, Znovu, přepínač Formát / Zdroj, Změny
+  a hledání na prvním, tlačítka formátu na druhém, který se posouvá do strany.
 
 ### Porovnání verzí
 
@@ -312,13 +320,14 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Během porovnání nese hlavička ikonu a jméno souboru, „Porovnání verze 2 s verzí 3“, Zavřít
   porovnání, Stáhnout a listování soubory; Upravit, Verze, Nová verze a Přejmenovat se skryjí.
   Stáhnout stáhne novější z porovnávaných verzí. Zavřít porovnání vrátí náhled k verzi, kterou
-  ukazoval předtím; přechod na jiný soubor porovnání ukončí.
+  ukazoval předtím; přechod na jiný soubor porovnání ukončí. Na mobilu jsou Zavřít porovnání,
+  Stáhnout a listování soubory v nabídce ⋯ hlavičky.
 - Nad texty stojí výběr Starší a Novější verze s číslem, dnem nahrání, štítkem „aktuální“,
   velikostí a e-mailem toho, kdo verzi nahrál. Starší nabízí jen verze před novější, Novější jen
   verze po starší; ostatní jsou v seznamu neaktivní.
 - Vedle sebe stojí starší verze vlevo a novější vpravo a oba texty se posouvají spolu. V jednom
   sloupci stojí odebrané řádky nad přidanými a čísla řádků jsou čísla novější verze. Na mobilu je
-  porovnání vždy v jednom sloupci a výběr verzí ukáže jen číslo verze. Texty mají čísla řádků,
+  porovnání vždy v jednom sloupci a výběr verzí ukáže jen Starší nebo Novější a číslo verze. Texty mají čísla řádků,
   zalomené dlouhé řádky a zvýraznění syntaxe jako náhled a nejdou měnit.
 - Odebraný řádek je červený se znaménkem −, přidaný zelený se znaménkem +; v řádku, který se
   změnil, jsou změněná slova zvýrazněná. Úsek aspoň pěti nezměněných řádků dál než tři řádky od

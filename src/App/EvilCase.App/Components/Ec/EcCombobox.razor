@@ -16,6 +16,11 @@
             @if (this.open)
             {
                 <div class="ec-combobox-backdrop" @onclick="this.Close"></div>
+                @* Below lg the open field is a sheet at the bottom edge with a title and a close. *@
+                <div class="ec-combobox-sheet-head">
+                    <span class="ec-combobox-sheet-title">@this.SheetTitle</span>
+                    <button type="button" class="ec-combobox-sheet-done" @onclick="this.Close">Hotovo</button>
+                </div>
             }
 
             <input id="@this.InputId" type="search" class="ec-input" placeholder="@this.Placeholder" aria-label="@this.Placeholder"
@@ -64,6 +69,10 @@
 
     [Parameter, EditorRequired]
     public required string SelectedLabel { get; set; }
+
+    /// <summary>The title of the sheet below lg, e.g. „Kontakt".</summary>
+    [Parameter, EditorRequired]
+    public required string SheetTitle { get; set; }
 
     [Parameter, EditorRequired]
     public required string EmptyText { get; set; }

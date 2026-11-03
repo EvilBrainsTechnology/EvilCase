@@ -197,6 +197,124 @@ public class CaseRenderTests
         }
     }
 
+    [Test]
+    public async Task TheSectionAnchorsCountEachSectionAndLeadToIt()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var caseId = Guid.CreateVersion7();
+
+        var (casesClient, _, caseCommentsClient, _) = Serve(ctx, caseId, Detail(caseId));
+
+        casesClient
+            .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new CaseListResponse { Items = [.. Enumerable.Range(1, 4).Select(Child)], TotalCount = 4 }));
+        caseCommentsClient
+            .ListCaseComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new CommentListResponse { Items = [Comment(), Comment()] }));
+        ctx.Services.GetRequiredService<IActsClient>()
+            .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 25 }));
+        ctx.Services.GetRequiredService<ICaseFilesClient>()
+            .ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new FileListResponse { Items = [File()] }));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        string[] expected = ["Soubory 1", "Podřízené spisy 4", "Úkony 25", "Komentáře 2"];
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-anchor").Select(AnchorText), Is.EqualTo(expected)),
+            TimeSpan.FromSeconds(2));
+
+        foreach (var anchor in component.FindAll(".ec-anchor"))
+        {
+            var href = anchor.GetAttribute("href")!;
+            var target = href[(href.IndexOf('#', StringComparison.Ordinal) + 1)..];
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(href, Does.StartWith($"/cases/{caseId}#"), "an anchor stays on the case");
+                Assert.That(component.FindAll($"#{target}"), Has.Count.EqualTo(1), "an anchor leads to its section");
+            }
+        }
+
+        Assert.That(Normalized(component.Find(".ec-child-all").TextContent), Is.EqualTo("Všechny 4 podřízené spisy"));
+    }
+
+    [Test]
+    public async Task AFailedFilesLoadLeavesTheFilesAnchorWithoutACount()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var caseId = Guid.CreateVersion7();
+
+        Serve(ctx, caseId, Detail(caseId));
+
+        ctx.Services.GetRequiredService<ICaseFilesClient>()
+            .ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<FileListResponse>(new HttpRequestException()));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll("#files [role=alert]"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        Assert.That(component.FindAll(".ec-anchor[href$='#files'] .ec-anchor-count"), Is.Empty, "a list that failed to load has no count");
+    }
+
+    private static string AnchorText(IElement anchor)
+    {
+        var count = anchor.QuerySelector(".ec-anchor-count")!.TextContent;
+
+        return $"{Normalized(anchor.TextContent[..^count.Length])} {count}";
+    }
+
+    private static string Normalized(string text)
+    {
+        return string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+    }
+
+    private static CaseListItem Child(int number)
+    {
+        return new CaseListItem
+        {
+            CaseId = Guid.CreateVersion7(),
+            CaseNumber = string.Create(CultureInfo.InvariantCulture, $"EC/20260821-00{number}"),
+            Title = string.Create(CultureInfo.InvariantCulture, $"Žádost {number}"),
+            Date = new DateOnly(2026, 8, 21),
+            Status = CaseStatus.Active,
+            Changed = DateTime.UtcNow,
+            Labels = [],
+        };
+    }
+
+    private static CommentItem Comment()
+    {
+        return new CommentItem
+        {
+            CommentId = Guid.CreateVersion7(),
+            Body = "Poznámka",
+            AuthorEmail = "autor@example.cz",
+            IsAuthor = true,
+            Created = DateTime.UtcNow,
+        };
+    }
+
+    private static FileListItem File()
+    {
+        return new FileListItem
+        {
+            FileId = Guid.CreateVersion7(),
+            FileName = "rozhodnuti.pdf",
+            SizeBytes = 1024,
+            Created = DateTime.UtcNow,
+            Version = 1,
+            VersionCount = 1,
+        };
+    }
+
     private static CaseDetail Detail(Guid caseId)
     {
         return new CaseDetail

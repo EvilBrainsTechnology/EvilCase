@@ -25,6 +25,7 @@
     {
         <EcCard>
             <div class="ec-detail">
+                <a class="ec-page-back" href="/contacts"><EcIcon Paths="@AppIcons.ChevronLeft" /><span class="ec-page-back-text">Kontakty</span></a>
                 <nav class="ec-crumbs" aria-label="Drobečková navigace">
                     <a class="ec-crumb" href="/contacts">Kontakty</a>
                     <span class="ec-crumb-separator" aria-hidden="true">/</span>
@@ -40,8 +41,8 @@
                         <EcBadge Tone="ContactKindDisplay.Tone(this.contact.Kind)" Text="@ContactKindDisplay.Text(this.contact.Kind)" />
                     </div>
                     <div class="ec-page-actions">
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" id="contact-edit" OnClick="this.StartEditing">Upravit kontakt</EcButton>
-                        <EcMenu AriaLabel="Další akce s kontaktem" Items="this.ContactActions" />
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" id="contact-edit" OnClick="this.StartEditing">Upravit<span class="ec-text-wide"> kontakt</span></EcButton>
+                        <EcMenu AriaLabel="Další akce s kontaktem" Title="@this.contact.Name" Items="this.ContactActions" />
                     </div>
                 </div>
 

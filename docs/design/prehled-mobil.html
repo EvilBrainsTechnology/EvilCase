@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>prehled-mobil – EvilCase – EvilCase</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
+    a { color: #1C3A9F; text-decoration: none; } a:hover { color: #19338F; }
+    .dark-input::placeholder { color: #A0A6B1; }
+    .row:hover { background: #F2F3F6; }
+  </style>
+</head>
+<body>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; display: flex; flex-direction: column; overflow: hidden;">
+
+  <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 8px 0 12px; display: flex; align-items: center; gap: 8px; background: #14161B;">
+    <a href="prehled-mobil.html" aria-label="EvilCase – přehled" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;"><span style="width: 32px; height: 32px; border-radius: 9px; background: #1F3FAE; display: flex; align-items: center; justify-content: center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 20h10"></path><path d="M6 6l6-1 6 1"></path><path d="M12 3v17"></path><path d="M9 12L6 6l-3 6a3 3 0 0 0 6 0"></path><path d="M21 12l-3-6-3 6a3 3 0 0 0 6 0"></path></svg></span></a>
+    <label for="mp-global" style="flex-grow: 1; min-width: 0; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #2E323B; border-radius: 10px; background: #1F2229; color: #A0A6B1;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10" cy="10" r="7"></circle><path d="M21 21l-6-6"></path></svg>
+      <input id="mp-global" class="dark-input" placeholder="Hledat spisy, úkony, kontakty…" style="border: 0; outline: none; font: inherit; font-size: 16px; width: 100%; min-width: 0; background: transparent; color: #FFFFFF;">
+    </label>
+    <button type="button" aria-label="Uživatelské menu – Jan Příklad" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; border: 0; background: transparent;"><span style="width: 36px; height: 36px; border-radius: 50%; background: #1F3FAE; color: #FFFFFF; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px #14161B, 0 0 0 3px #9DB0F2;">JP</span></button>
+  </header>
+
+  <main style="flex-grow: 1; min-height: 0; overflow: hidden; box-sizing: border-box; padding: 0; display: flex; flex-direction: column; gap: 0;">
+    <div style="display: flex; align-items: center; gap: 10px; min-height: 60px; box-sizing: border-box; padding: 8px 16px; flex-shrink: 0;">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em;">Přehled</h1>
+      <div style="flex-grow: 1;"></div>
+      <a href="novy-spis.html" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border-radius: 10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Nový spis</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid #E1E4EA; flex-shrink: 0;">
+      <a href="spisy-mobil.html" style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 12px; color: #14161B;">
+        <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums;">6</span>
+        <span style="font-size: 13px; color: #5B6270;">Aktivní</span>
+      </a>
+      <a href="spisy-mobil.html" style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 12px; border-left: 1px solid #EDEFF3; color: #14161B;">
+        <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums;">2</span>
+        <span style="font-size: 13px; color: #5B6270;">Čeká na úřad</span>
+      </a>
+      <a href="spisy-mobil.html" style="display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 12px; border-left: 1px solid #EDEFF3; color: #14161B;">
+        <span style="font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums;">10</span>
+        <span style="font-size: 13px; color: #5B6270;">Uzavřené</span>
+      </a>
+    </div>
+
+    <section aria-label="Naposledy změněné spisy" style="border-top: 1px solid #E1E4EA; display: flex; flex-direction: column; flex-shrink: 0;">
+      <a href="spisy-mobil.html" style="display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 12px 0 16px; color: #14161B;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; flex-grow: 1;">Naposledy změněné spisy</h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B6270" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+      
+        <a href="detail-spisu-mobil.html" class="row" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Kasační stížnost proti rozsudku Krajského soudu ve Vzorově č. j. 10 A 1/2025-48</span>
+          <span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums;">15. 9. 2025</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span>Aktivní</span>
+            <span style="font-variant-numeric: tabular-nums;">dnes 9:00</span>
+          </span>
+          
+            <span style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;border-radius:5px;font-size:11px;font-weight:500;background:#FDEFD8;color:#8A5307;"><span style="width:5px;height:5px;border-radius:50%;background:#8A5307;"></span>Hlídat lhůtu</span><span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;border-radius:5px;font-size:11px;font-weight:500;background:#FCE3EC;color:#A3234F;"><span style="width:5px;height:5px;border-radius:50%;background:#A3234F;"></span>Kasační stížnost</span><span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;border-radius:5px;font-size:11px;font-weight:500;background:#FDE4E1;color:#9B2C1F;"><span style="width:5px;height:5px;border-radius:50%;background:#9B2C1F;"></span>Priorita</span><span style="display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 7px;border-radius:5px;font-size:11px;font-weight:500;background:#E5E4FA;color:#3B34A3;"><span style="width:5px;height:5px;border-radius:50%;background:#3B34A3;"></span>Soud</span>
+            </span>
+          
+        </a>
+      
+        <a href="detail-spisu-mobil.html" class="row" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Uplatnění pojištění právní ochrany</span>
+          <span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums;">2. 10. 2025</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span>Aktivní</span>
+            <span style="font-variant-numeric: tabular-nums;">dnes 8:58</span>
+          </span>
+          
+        </a>
+      
+        <a href="detail-spisu-mobil.html" class="row" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Stížnost k České advokátní komoře</span>
+          <span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums;">25. 9. 2025</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span>Aktivní</span>
+            <span style="font-variant-numeric: tabular-nums;">dnes 8:58</span>
+          </span>
+          
+        </a>
+      
+        <a href="detail-spisu-mobil.html" class="row" style="display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">Oznámení přestupku starosty</span>
+          <span style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums;">20. 9. 2025</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:500;background:#FDEFD8;color:#8A5307;"><span style="width:6px;height:6px;border-radius:50%;background:#D98A1B;"></span>Čeká na úřad</span>
+            <span style="font-variant-numeric: tabular-nums;">dnes 8:58</span>
+          </span>
+          
+        </a>
+      
+    </section>
+
+    <section aria-label="Naposledy změněné úkony" style="border-top: 1px solid #E1E4EA; display: flex; flex-direction: column; flex-shrink: 0;">
+      <a href="spisy-mobil.html" style="display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 12px 0 16px; color: #14161B;">
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; flex-grow: 1;">Naposledy změněné úkony</h2>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B6270" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+      </a>
+      
+        <a href="detail-ukonu.html" class="row" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doručenka k odvolání</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov – 121 km/h v úseku 110</span>
+          <span style="display: flex; align-items: center; gap: 10px; min-width: 0; margin-top: 2px; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums; flex-shrink: 0;">2. 4. 2025</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;flex-shrink:0;background:#E6EEFD;color:#2A48B8;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7l-10 10M16 17h-9v-9"></path></svg>Příchozí</span>
+            <span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Městský úřad Vzorov</span>
+            <span style="flex-shrink: 0; margin-left: auto; font-variant-numeric: tabular-nums;">dnes 9:00</span>
+          </span>
+        </a>
+      
+        <a href="detail-ukonu.html" class="row" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Konečné doplnění žaloby</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Překročení rychlosti Vzorov – 121 km/h v úseku 110</span>
+          <span style="display: flex; align-items: center; gap: 10px; min-width: 0; margin-top: 2px; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums; flex-shrink: 0;">13. 3. 2026</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;flex-shrink:0;background:#E3F4E8;color:#1D6B36;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17l10-10M8 7h9v9"></path></svg>Odchozí</span>
+            <span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Krajský soud ve Vzorově</span>
+            <span style="flex-shrink: 0; margin-left: auto; font-variant-numeric: tabular-nums;">dnes 8:58</span>
+          </span>
+        </a>
+      
+        <a href="detail-ukonu.html" class="row" style="display: flex; flex-direction: column; gap: 4px; padding: 12px 16px; border-top: 1px solid #EDEFF3; color: #14161B;">
+          <span style="font-size: 15px; font-weight: 500; line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpověď</span>
+          <span style="font-size: 12px; color: #5B6270; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stížnost k České advokátní komoře</span>
+          <span style="display: flex; align-items: center; gap: 10px; min-width: 0; margin-top: 2px; font-size: 13px; color: #5B6270;">
+            <span style="font-weight: 600; color: #14161B; font-variant-numeric: tabular-nums; flex-shrink: 0;">9. 10. 2025</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;flex-shrink:0;background:#E6EEFD;color:#2A48B8;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7l-10 10M16 17h-9v-9"></path></svg>Příchozí</span>
+            <span style="min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Česká advokátní komora</span>
+            <span style="flex-shrink: 0; margin-left: auto; font-variant-numeric: tabular-nums;">dnes 8:58</span>
+          </span>
+        </a>
+      
+    </section>
+  </main>
+
+  <nav aria-label="Hlavní menu" style="flex-shrink: 0; box-sizing: border-box; height: 90px; padding: 0 4px 34px; display: flex; align-items: stretch; background: #FFFFFF; border-top: 1px solid #E1E4EA;">
+    <a href="prehled-mobil.html" aria-current="page" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 600; color: #1F3FAE;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6" height="8" rx="1"></rect><rect x="4" y="16" width="6" height="4" rx="1"></rect><rect x="14" y="12" width="6" height="8" rx="1"></rect><rect x="14" y="4" width="6" height="4" rx="1"></rect></svg>Přehled</a>
+    <a href="spisy-mobil.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; color: #5B6270;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h3l2 2h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"></path><path d="M17 17v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2"></path></svg>Spisy</a>
+    <a href="detail-ukonu.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; color: #5B6270;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path><path d="M9 13h6"></path><path d="M9 17h4"></path></svg>Úkony</a>
+    <a href="kontakty.html" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; color: #5B6270;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="4"></circle><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path><path d="M21 21v-2a4 4 0 0 0-3-3.85"></path></svg>Kontakty</a>
+    <a href="#" style="flex: 1 1 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 11px; font-weight: 500; color: #5B6270;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>Nastavení</a>
+  </nav>
+</div>
+</body>
+</html>

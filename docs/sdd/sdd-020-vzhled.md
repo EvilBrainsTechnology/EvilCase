@@ -83,7 +83,7 @@ Nad obsahem je tmavá vodorovná lišta s logem, menu, hledáním napříč enti
 položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
 1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
-Drobečky drží na každé šířce jeden řádek; dlouhá položka se zkrátí a celý název ukáže po najetí
+Drobečky drží jeden řádek; dlouhá položka se zkrátí a celý název ukáže po najetí
 myší.
 
 Řádek seznamu má na desktopu ve všech seznamech stejnou výšku 48 px, ať nese jeden, nebo dva
@@ -137,15 +137,40 @@ se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 
 ### Mobil
 
-Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na mobilu. Menu se
-schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
-tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo
-16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce se řádek přeskládá na dva až tři
-řádky a řazení přebírá select v liště.
+Mobil je každá šířka pod `lg` (992 px), tablet včetně. Desktop je primární, každá denně
+používaná obrazovka je plnohodnotná i na mobilu. Menu je ve spodní liště (SDD-016); spodní
+panel i lepivá patička formuláře leží nad ní, okno, náhled a hledání ji překryjí. Boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
+tlačítka zůstávají u spodního okraje okna. Věta o čísle, které přidělí aplikace, stojí pod
+posledním polem, karta s ovládáním (nadřízený spis, spis) nad tlačítky a informační karta se
+na mobilu nekreslí. Výběr kontaktu a spisu je spodní panel s nadpisem, hledáním a Hotovo. Pole i celá lišta seznamu mají na mobilu písmo
+16 px. Seznam se nikdy neposouvá vodorovně: řádek nese název na nejvýše dva řádky, pod ním
+spis, do něhož patří, jednu řádku údajů (datum, stav nebo směr, zkrácený kontakt, změněno) a štítky
+pod ní; řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
+
+Na mobilu stránka karty nemá: sekce jsou bílé bloky přes celou šířku oddělené jednou linkou,
+bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznamu, údaj detailu,
+soubor i položka spodního panelu jsou řádky přes celou šířku s linkou od okraje k okraji.
+Zaoblení zůstává jen tam, kde nese význam: tlačítko, pole, chip, badge, přepínač, okno s okraji
+a horní rohy spodního panelu.
+
+Místo drobečků nese hlavička na mobilu jeden návrat na rodiče („‹ Spisy", u úkonu „‹ název
+spisu", u editace „‹ název záznamu") na jeden řádek se zkrácením. Hlavní akce seznamu zůstává
+v řádku názvu vpravo. Na detailu má název celý řádek, pod ním stav vlevo a Upravit s nabídkou
+⋯ vpravo; detail kontaktu nese monogram vedle jména na nejvýše dva řádky.
+Údaj detailu je na mobilu řádek: jméno vlevo ve sloupci 120 px, hodnota vedle, kopírování
+vpravo. Štítky jsou chipy jen pro čtení; tužka v řádku Štítky a pole Štítky ve formuláři otevřou
+spodní panel se všemi štítky, kde klepnutí štítek přidá nebo odebere a Hotovo panel zavře. Pod
+hlavičkou detailu je řádek kotev se sekcemi a jejich počty, který se posouvá vodorovně; klepnutí
+doscrolluje na sekci. Sekce jdou jednou pod druhou: na spisu Soubory, Podřízené spisy (tři řádky
+a tlačítko na zbytek), Úkony, Komentáře; na úkonu Soubory, Komentáře, Průběh spisu, Spis.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
-buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
-nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,
-Stáhnout, návrat na zprávu a Stáhnout přílohu tlačítka jen s ikonou.
+buňka vede na svůj seznam. Řádek souboru nese ikonu, název na až dva řádky, metadata na jednom
+řádku a tichou nabídku ⋯ (SDD-012). Nabídka akcí a výběr verze jsou spodní panel od okraje
+k okraji s řádkem názvu nahoře a položkami 48 px. Náhled souboru, porovnání verzí a editor
+zabírají celé okno bez okrajů a zaoblení. Hlavička je jeden řádek: ikona, název na jeden řádek,
+pod ním velikost, okamžik a „soubor 2 z 5“, vpravo zavření, v editoru Zrušit a Uložit. Lišta pod
+ní nese stránku, hledání, listování, Stáhnout a ⋯ jako tiché ikony (SDD-012). Návrat na zprávu
+a Stáhnout přílohu jsou tlačítka jen s ikonou.
 
 ### Bez cizí knihovny
 

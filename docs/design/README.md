@@ -1,9 +1,10 @@
 # Vizuální předloha
 
 Statické HTML předlohy obrazovek, ze kterých se implementuje vzhled podle
-[SDD-020](../sdd/sdd-020-vzhled.md). Jeden soubor je jedna obrazovka v šířce 1440 px.
+[SDD-020](../sdd/sdd-020-vzhled.md). Jeden soubor je jedna obrazovka v šířce 1440 px, předloha s příponou `-mobil` v šířce 390 px.
 Soubory jsou závazné na hodnoty: barvu, rozestup, rádius, velikost písma a ikonu čti odsud,
-nedomýšlej je. Stavy, které předloha neukazuje (prázdný seznam, chyba, načítání, mobil),
+nedomýšlej je. Stavy, které předloha neukazuje (prázdný seznam, chyba, načítání, mobil
+obrazovky bez mobilní předlohy),
 řídí SDD-020 a SDD dané agendy.
 
 Předlohy jsou statické: odkazy mezi nimi vedou na sousední předlohu, formuláře nic neodesílají,
@@ -15,12 +16,16 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`nacitani.html`](nacitani.html) | Načítání aplikace | start aplikace |
 | [`prihlaseni.html`](prihlaseni.html) | Přihlášení | `/login` |
 | [`prehled.html`](prehled.html) | Přehled | `/` |
+| [`prehled-mobil.html`](prehled-mobil.html) | Přehled na mobilu | `/` |
 | [`spisy.html`](spisy.html) | Seznam spisů | `/cases` |
+| [`spisy-mobil.html`](spisy-mobil.html) | Seznam spisů na mobilu, předloha lišty a řádků všech seznamů | `/cases` |
 | [`novy-spis.html`](novy-spis.html) | Založení spisu, předloha i pro editaci | `/cases/new`, `/cases/{id}/edit` |
 | [`detail-spisu.html`](detail-spisu.html) | Detail spisu | `/cases/{id}` |
+| [`detail-spisu-mobil.html`](detail-spisu-mobil.html) | Detail spisu na mobilu | `/cases/{id}` |
 | [`detail-ukonu.html`](detail-ukonu.html) | Detail úkonu | `/acts/{actId}` |
 | [`novy-ukon.html`](novy-ukon.html) | Založení úkonu, předloha i pro editaci | `/acts/new?case={id}`, `/acts/{actId}/edit` |
 | [`nahled-dokumentu.html`](nahled-dokumentu.html) | Náhled dokumentu Word v modalu souborů | detail spisu a úkonu |
+| [`nahled-dokumentu-mobil.html`](nahled-dokumentu-mobil.html) | Náhled souboru na mobilu, předloha hlavičky a lišty všech náhledů | detail spisu a úkonu |
 | [`soubory-verze.html`](soubory-verze.html) | Karta souborů s verzemi | detail spisu a úkonu |
 | [`verze-souboru.html`](verze-souboru.html) | Verze souboru | detail spisu a úkonu |
 | [`nahled-starsi-verze.html`](nahled-starsi-verze.html) | Náhled starší verze | detail spisu a úkonu |

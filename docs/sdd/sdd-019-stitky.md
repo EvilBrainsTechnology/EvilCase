@@ -28,7 +28,8 @@ ničem. Tutéž dvojici nese nejvýše jednou. Spis ani úkon nemá počet ští
 
 Nastavení nese sekce Štítky (`/settings/labels`), API tokeny (`/settings/api-tokens`) a Export
 (`/settings/export`), každou na vlastní stránce se společnou navigací sekcí. Na desktopu je
-navigace svislým panelem, na mobilu řadou pilulek. `/settings` přesměruje na Štítky.
+navigace svislým panelem, na mobilu přepínačem přes celou šířku bez nadpisu stránky. `/settings`
+přesměruje na Štítky.
 
 Sekce Štítky ukazuje štítky seřazené podle názvu, u každého počet spisů a počet úkonů, které ho
 nesou, a nechá štítek založit, přejmenovat, přebarvit a smazat. Název, který už nese jiný štítek,
@@ -40,7 +41,8 @@ Sekce API tokeny ukazuje tokeny přihlášeného uživatele (SDD-006), nejnověj
 oprávnění, kdy token vznikl, do kdy platí a kdy byl naposledy použit. Prošlý token nese
 „Vypršel“, dosud nepoužitý „Nepoužit“. „Nový token“ bere název (povinný), oprávnění (výchozí
 Jen čtení) a platnost 30, 90 nebo 365 dní (výchozí 90). Po založení se token ukáže jedinkrát,
-s tlačítkem pro zkopírování a upozorněním, že ho uživatel znovu neuvidí. „Zrušit“ token zruší po
+s tlačítkem pro zkopírování a upozorněním, že ho uživatel znovu neuvidí; na mobilu se token
+zalomí celý do bloku a tlačítko stojí pod ním. „Zrušit“ token zruší po
 potvrzení jako každé mazání; zrušený token ze seznamu zmizí.
 
 Sekce Export popíše, co archiv nese a co ne, a nese tlačítko Exportovat vše s názvem souboru,

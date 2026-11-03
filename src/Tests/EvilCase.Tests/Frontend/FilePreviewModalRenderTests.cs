@@ -294,6 +294,34 @@ public class FilePreviewModalRenderTests
         Assert.That(changed, Is.EqualTo(new int?[] { 2, null }));
     }
 
+    [Test]
+    public async Task TheToolbarMenuOffersTheVersionsAndTheCompareOnlyForAFileWithVersions()
+    {
+        await using var ctx = NewContext(out _);
+
+        var single = File("a.txt");
+        var versioned = Versioned("b.txt", 3, 3);
+        var component = Render(ctx, [single, versioned], single.FileId);
+
+        Assert.That(await MenuTexts(component), Does.Not.Contain("Verze (1)").And.Not.Contain("Porovnat"));
+
+        component.Render(parameters => parameters.Add(static modal => modal.FileId, versioned.FileId));
+
+        Assert.That(await MenuTexts(component), Does.Contain("Verze (3)").And.Contain("Porovnat").And.Contain("Nahrát novou verzi"));
+
+        await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Verze (3)", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(".ec-preview-versions"), Has.Count.EqualTo(1), "the menu's Verze opens the version bar as the header's button does");
+    }
+
+    private static async Task<string[]> MenuTexts(IRenderedComponent<FilePreviewModal> component)
+    {
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-toolbar-actions [aria-haspopup=menu]"), Has.Count.EqualTo(1)));
+        await component.Find(".ec-preview-toolbar-actions [aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+
+        return [.. component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim())];
+    }
+
     private static string Normalize(string text)
     {
         return string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));

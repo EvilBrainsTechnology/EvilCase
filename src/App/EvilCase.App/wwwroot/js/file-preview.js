@@ -1,6 +1,6 @@
 // Previews of the formats the browser cannot show itself. Each library under ../lib is loaded the first time
 // a file of its type opens; the bytes are parsed here and never leave the browser.
-import { loadStylesheet, stepZoom, wheelZoom } from './preview-shared.js';
+import { loadStylesheet, stepZoom, touchZoom, wheelZoom } from './preview-shared.js';
 import { debouncedFind, fold } from './text-search.js';
 
 const maxPixels = 64 * 1024 * 1024;
@@ -105,6 +105,8 @@ function openView(element, stage, content, root, view, page) {
     views.set(element, state);
 
     wheelZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y));
+    touchZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y),
+        page ? () => fitPage(state, 'opening') : null);
 
     return state;
 }
@@ -893,9 +895,15 @@ async function openPdf(host, source, view) {
     resize.observe(frame);
     signal.addEventListener('abort', () => resize.disconnect(), { once: true });
 
-    wheelZoom(host, signal, () => viewer.currentScale, (scale, x, y) => {
+    const scaleTo = (scale, x, y) => {
         pdf.opening = false;
         viewer.updateScale({ scaleFactor: scale / viewer.currentScale, origin: [x, y] });
+    };
+
+    wheelZoom(host, signal, () => viewer.currentScale, scaleTo);
+    touchZoom(host, signal, () => viewer.currentScale, scaleTo, () => {
+        pdf.opening = true;
+        fitOpening(viewer);
     });
 
     return count;

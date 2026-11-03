@@ -25,6 +25,17 @@
         </span>
     }
 
+    @if (!this.open)
+    {
+        @* Below lg the chips are read-only and this opens the sheet that toggles labels. *@
+        <button type="button" class="ec-label-edit" aria-label="Upravit štítky" @onclick="this.OpenSheet">
+            @if (this.Inline)
+            {
+                <EcIcon Paths="@AppIcons.Pencil" />
+            }
+        </button>
+    }
+
     @if (this.Inline && !this.open)
     {
         <button @ref="this.addButton" type="button" class="ec-label-add" aria-label="Přidat štítek" aria-haspopup="listbox" aria-expanded="false"
@@ -45,32 +56,59 @@
             {
                 <div class="ec-label-menu">
                     <div class="ec-label-sheet-head">
-                        <span class="ec-label-sheet-title">Přidat štítek</span>
-                        <button type="button" class="ec-label-sheet-done" @onclick="this.Close">Hotovo</button>
+                        <span class="ec-label-sheet-title">@(this.sheet ? this.SheetTitle : "Přidat štítek")</span>
+                        <button @ref="this.doneButton" type="button" class="ec-label-sheet-done" @onclick="this.Close">Hotovo</button>
                     </div>
                     <input @ref="this.sheetInput" id="@($"{this.InputId}-sheet")" type="text" class="ec-input ec-label-sheet-search" form="ec-label-no-form"
                            placeholder="Hledat nebo založit štítek" aria-label="Hledat nebo založit štítek" autocomplete="off"
                            value="@this.search" @oninput="this.OnInput" @onkeydown="this.OnKeyDown" />
 
-                    <div @ref="this.list" id="@this.ListId" class="ec-label-options" role="listbox" aria-label="Štítky k přidání">
-                        @for (var index = 0; index < this.rows.Count; index++)
-                        {
-                            var row = this.rows[index];
+                    @if (this.sheet)
+                    {
+                        var sheetRows = this.SheetRows;
 
-                            <button type="button" id="@this.OptionId(index)" role="option" aria-selected="@(index == this.active ? "true" : "false")"
-                                    class="@(index == this.active ? "ec-label-option ec-label-option-active" : "ec-label-option")"
-                                    @onclick="() => this.Add(row)">
-                                <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(row.Color)}")">
-                                    <span class="ec-chip-dot" aria-hidden="true"></span>@row.Name
-                                </span>
-                            </button>
-                        }
+                        <div id="@this.ListId" class="ec-label-options" role="listbox" aria-multiselectable="true" aria-label="Štítky">
+                            @foreach (var label in sheetRows)
+                            {
+                                var chosen = this.IsSelected(label);
 
-                        @if (this.rows.Count == 0 && !this.CanCreate)
-                        {
-                            <span class="ec-label-empty">@this.EmptyText</span>
-                        }
-                    </div>
+                                <button type="button" role="option" aria-selected="@(chosen ? "true" : "false")"
+                                        class="ec-label-option ec-label-toggle" @onclick="() => this.Toggle(label)">
+                                    <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(label.Color)}")">
+                                        <span class="ec-chip-dot" aria-hidden="true"></span>@label.Name
+                                    </span>
+                                    <EcIcon Paths="@AppIcons.Check" />
+                                </button>
+                            }
+
+                            @if (sheetRows.Count == 0 && !this.CanCreate)
+                            {
+                                <span class="ec-label-empty">@this.EmptyText</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div @ref="this.list" id="@this.ListId" class="ec-label-options" role="listbox" aria-label="Štítky k přidání">
+                            @for (var index = 0; index < this.rows.Count; index++)
+                            {
+                                var row = this.rows[index];
+
+                                <button type="button" id="@this.OptionId(index)" role="option" aria-selected="@(index == this.active ? "true" : "false")"
+                                        class="@(index == this.active ? "ec-label-option ec-label-option-active" : "ec-label-option")"
+                                        @onclick="() => this.Add(row)">
+                                    <span class="@($"ec-chip ec-chip-{LabelColorDisplay.Css(row.Color)}")">
+                                        <span class="ec-chip-dot" aria-hidden="true"></span>@row.Name
+                                    </span>
+                                </button>
+                            }
+
+                            @if (this.rows.Count == 0 && !this.CanCreate)
+                            {
+                                <span class="ec-label-empty">@this.EmptyText</span>
+                            }
+                        </div>
+                    }
 
                     @if (this.CanCreate)
                     {
@@ -126,6 +164,10 @@
     [Parameter]
     public bool AllowCreate { get; set; } = true;
 
+    /// <summary>The title of the sheet that toggles labels below lg, e.g. „Štítky spisu".</summary>
+    [Parameter]
+    public string SheetTitle { get; set; } = "Štítky";
+
     private readonly List<LabelItem> available = [];
 
     private IReadOnlyList<LabelItem> rows = [];
@@ -135,6 +177,8 @@
     private ElementReference input;
 
     private ElementReference sheetInput;
+
+    private ElementReference doneButton;
 
     private ElementReference list;
 
@@ -152,6 +196,9 @@
 
     private bool open;
 
+    /// <summary>Opened from the edit button below lg: every label is listed with its state and a tap toggles it.</summary>
+    private bool sheet;
+
     private bool loaded;
 
     private bool focusPending;
@@ -167,7 +214,14 @@
 
     private string ListId => $"{this.InputId}-list";
 
-    private string? ActiveOptionId => this.open && this.active < this.rows.Count ? this.OptionId(this.active) : null;
+    private string? ActiveOptionId => this.open && !this.sheet && this.active < this.rows.Count ? this.OptionId(this.active) : null;
+
+    private IReadOnlyList<LabelItem> SheetRows =>
+    [
+        .. this.available
+            .Where(label => SearchText.Matches(label.Name, this.search))
+            .OrderBy(static label => label.Name, LabelOrder),
+    ];
 
     private bool CanCreate
     {
@@ -223,12 +277,20 @@
         {
             this.focusPending = false;
 
-            // Below lg the sheet's input is the one on screen; above, the field's own.
-            await this.sheetInput.FocusAsync();
-            await this.input.FocusAsync();
+            if (this.sheet)
+            {
+                // The sheet toggles by tapping; a focused search would bring up the keyboard.
+                await this.doneButton.FocusAsync();
+            }
+            else
+            {
+                // Below lg the sheet's input is the one on screen; above, the field's own.
+                await this.sheetInput.FocusAsync();
+                await this.input.FocusAsync();
+            }
         }
 
-        if (this.open && this.scrollPending)
+        if (this.open && !this.sheet && this.scrollPending)
         {
             this.scrollPending = false;
 
@@ -311,9 +373,27 @@
         await this.LoadLabels();
     }
 
+    private async Task OpenSheet()
+    {
+        this.sheet = true;
+
+        await this.OpenPicker();
+    }
+
+    private bool IsSelected(LabelItem label)
+    {
+        return this.Selected.Any(selected => selected.LabelId == label.LabelId);
+    }
+
+    private Task Toggle(LabelItem label)
+    {
+        return this.IsSelected(label) ? this.Remove(label) : this.Add(label);
+    }
+
     private void Close()
     {
         this.open = false;
+        this.sheet = false;
         this.search = "";
         this.active = 0;
         this.createError = null;
@@ -389,10 +469,17 @@
 
     private async Task Add(LabelItem label)
     {
-        this.Close();
-        this.returnFocus = this.Inline;
+        if (this.sheet)
+        {
+            this.search = "";
+        }
+        else
+        {
+            this.Close();
+            this.returnFocus = this.Inline;
+        }
 
-        if (!this.Selected.Any(selected => selected.LabelId == label.LabelId))
+        if (!this.IsSelected(label))
             await this.SelectedChanged.InvokeAsync([.. this.Selected, label]);
 
         this.Refilter();

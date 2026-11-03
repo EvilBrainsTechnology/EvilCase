@@ -4,7 +4,7 @@
 @foreach (var item in Items)
 {
     <a class="ec-nav-link" href="@item.Href"
-       aria-current="@(this.IsCurrent(item.Href) ? "page" : null)" @onclick="this.OnNavigate">
+       aria-current="@(this.IsCurrent(item.Href) ? "page" : null)">
         <EcIcon Paths="@item.Icon" Size="EcIconSize.Large" />
         <span>@item.Text</span>
     </a>
@@ -19,9 +19,6 @@
         ("/contacts", "Kontakty", AppIcons.Users),
         ("/settings", "Nastavení", AppIcons.Settings),
     ];
-
-    [Parameter]
-    public EventCallback OnNavigate { get; set; }
 
     private bool IsCurrent(string href)
     {

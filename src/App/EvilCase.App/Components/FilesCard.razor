@@ -7,7 +7,7 @@
 @inject ILogger<FilesCard> Logger
 
 @* The card is itself the drop zone (files.js). *@
-<div class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")" @ref="this.card">
+<div class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")" id="@this.Id" @ref="this.card">
     <EcCard Title="@this.Title">
         <Header>
             @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null)
@@ -116,7 +116,9 @@
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                                   AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout"
                                                   OnClick="() => this.Download(file)" />
-                                        <EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file)" />
+                                        <span class="ec-file-menu-wide"><EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file, download: false)" /></span>
+                                        @* Below lg the row has no download button; its menu opens with the download. *@
+                                        <span class="ec-file-menu-narrow"><EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Title="@file.FileName" Items="this.FileActions(file, download: true)" /></span>
                                     </div>
                                 }
                             </div>
@@ -231,6 +233,10 @@
     [Parameter]
     public bool Compact { get; set; }
 
+    /// <summary>The target of a section anchor.</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
     private readonly Dictionary<Guid, ElementReference> nameButtons = [];
 
     private int uploadIndex;
@@ -297,9 +303,12 @@
             await button.FocusAsync();
     }
 
-    private IReadOnlyList<EcMenuItem> FileActions(FileListItem file)
+    private IReadOnlyList<EcMenuItem> FileActions(FileListItem file, bool download)
     {
         var actions = new List<EcMenuItem>();
+
+        if (download)
+            actions.Add(new EcMenuItem { Text = "Stáhnout", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.Download(file)) });
 
         if (FileTypeDisplay.Editable(file.FileName, file.SizeBytes))
             actions.Add(new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Factory.Create(this, () => this.Edit(file)) });

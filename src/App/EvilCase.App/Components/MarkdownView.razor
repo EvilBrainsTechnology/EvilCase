@@ -29,22 +29,25 @@ else
                               Disabled="@(this.disabled.Contains("redo"))" OnClick="@(() => this.Run("redo"))" />
                     <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
                     <MarkdownModeSwitch Editing Source="false" OnSwitch="this.Switch" />
-                    @foreach (var group in Groups)
-                    {
-                        <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
-                        @foreach (var (command, label, icon, text) in group)
+                    @* Below lg the formatting is a row of its own that scrolls sideways. *@
+                    <div class="ec-markdown-toolbar-format">
+                        @foreach (var group in Groups)
                         {
-                            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
-                                      Disabled="@(this.disabled.Contains(command) || this.Comparing)"
-                                      aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
-                                      OnClick="@(() => this.Run(command))">
-                                @if (text is not null)
-                                {
-                                    <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
-                                }
-                            </EcButton>
+                            <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
+                            @foreach (var (command, label, icon, text) in group)
+                            {
+                                <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
+                                          Disabled="@(this.disabled.Contains(command) || this.Comparing)"
+                                          aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
+                                          OnClick="@(() => this.Run(command))">
+                                    @if (text is not null)
+                                    {
+                                        <span class="ec-markdown-toolbar-text" aria-hidden="true">@text</span>
+                                    }
+                                </EcButton>
+                            }
                         }
-                    }
+                    </div>
                     @if (this.Changes is { } changes)
                     {
                         <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
@@ -56,7 +59,7 @@ else
                         <div class="ec-toolbar-notes">@this.Notes</div>
                     }
                 </div>
-                <ToolbarSearch @ref="this.search" Label="Hledat v textu" OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
+                <ToolbarSearch @ref="this.search" Label="Hledat v textu" Collapsible OnSearch="this.SearchEdit" OnEscape="this.FocusText" />
             </div>
             @if (this.Changes is { Shown: true } shownChanges)
             {

@@ -167,6 +167,7 @@
     --ec-weight-semibold: 600;
     --ec-weight-bold: 700;
     --ec-leading-tight: 1.2;
+    --ec-leading-title: 1.3;
     --ec-leading-body: 1.55;
 
     /* Rozestupy */
@@ -221,7 +222,8 @@
     --ec-nav-pad: 14px;
     --ec-control-bar: 38px;
     --ec-search-width: 300px;
-    --ec-drawer-width: 300px;
+    --ec-tabbar-height: 56px;
+    --ec-tabbar-icon: 22px;
     --ec-crumb-min: 2.5em;
     --ec-crumb-max: 24em;
     --ec-list-search-width: 340px;
@@ -238,6 +240,8 @@
     --ec-list-badge-pad: 10px;
     --ec-cell-stack-gap: 2px;
     --ec-cell-title-min: 8em;
+    --ec-list-title-mobile: 15px;
+    --ec-chip-mobile-height: 20px;
 
     /* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html) */
     --ec-monogram-sm: 30px;
@@ -246,11 +250,16 @@
     --ec-monogram-radius-lg: 14px;
     --ec-monogram-text-sm: 11px;
     --ec-monogram-text-lg: 17px;
+    --ec-monogram-mobile: 40px;
+    --ec-monogram-text-mobile: 13px;
 
     /* Detail úkonu (docs/design/detail-ukonu.html) */
     --ec-act-pager-text: 92px;
     --ec-copy-size: 26px;
     --ec-fact-line: 20px;
+    --ec-fact-name-mobile: 120px;
+    --ec-file-row-mobile: 64px;
+    --ec-anchor-height: 36px;
     /* Less than the top padding by what the value line keeps under its baseline. */
     --ec-fact-pad-end: 10px;
     --ec-label-search-width: 160px;
@@ -315,6 +324,7 @@
     --ec-preview-toolbar-search-width: 260px;
     --ec-preview-toolbar-matches: 72px;
     --ec-preview-toolbar-search-mobile: 96px;
+    --ec-compare-version-label-mobile: 72px;
     --ec-toolbar-notes-min: 96px;
     --ec-preview-hit: rgba(255, 196, 0, 0.35);
     --ec-preview-hit-current: rgba(255, 112, 0, 0.45);
@@ -392,6 +402,7 @@
     --ec-stat-glyph: 22px;
     --ec-stat-pad-x: 22px;
     --ec-stat-pad-y: 18px;
+    --ec-stat-pad-mobile: 14px var(--ec-space-5) var(--ec-space-4);
     --ec-stat-gap: 4px;
     --ec-recent-col-date: 100px;
     --ec-recent-col-direction: 110px;
@@ -422,6 +433,7 @@
     --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);
     --ec-shadow-page: 0 2px 10px rgba(20, 22, 27, 0.12);
     --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
+    --ec-shadow-sheet: 0 -8px 32px rgba(20, 22, 27, 0.18);
     --ec-focus-ring: 0 0 0 3px rgba(31, 63, 174, 0.35);
     --ec-focus-ring-danger: 0 0 0 3px rgba(155, 44, 31, 0.25);
     --ec-overlay: rgba(20, 22, 27, 0.4);
@@ -461,4 +473,12 @@
     --ec-sr-hit-bg: #FFE58F;
     --ec-sr-hit-radius: 3px;
     --ec-sr-hit-pad: 1px;
+}
+
+/* On a phone the visible window is shorter than 100vh. */
+@supports (height: 100dvh) {
+    :root,
+    .ec {
+        --ec-viewport-height: 100dvh;
+    }
 }

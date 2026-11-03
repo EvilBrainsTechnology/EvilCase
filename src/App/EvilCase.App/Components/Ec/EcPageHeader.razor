@@ -1,4 +1,9 @@
 <header class="ec-page-header">
+    @if (this.Parent is { } parent)
+    {
+        @* Below lg one link back to the parent stands in for the crumbs. *@
+        <a class="ec-page-back" href="@parent.Href" title="@parent.Text"><EcIcon Paths="@AppIcons.ChevronLeft" /><span class="ec-page-back-text">@parent.Text</span></a>
+    }
     @if (this.Breadcrumbs.Count > 0)
     {
         <nav class="ec-crumbs" aria-label="Drobečková navigace">
@@ -44,4 +49,6 @@
 
     [Parameter]
     public RenderFragment? Actions { get; set; }
+
+    private EcCrumb? Parent => this.Breadcrumbs.LastOrDefault(static crumb => crumb.Href is not null);
 }
