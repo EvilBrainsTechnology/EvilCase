@@ -247,6 +247,16 @@ html {
     color: var(--ec-text-muted);
 }
 
+/* The link back to the parent replaces the crumbs only below lg. */
+.ec-page-back {
+    display: none;
+}
+
+/* Text a button drops below lg; from lg up it is part of the button's text. */
+.ec-text-wide {
+    display: contents;
+}
+
 .ec-page-header-row {
     display: flex;
     align-items: center;
@@ -4932,15 +4942,75 @@ html.ec-scroll-locked {
         font-size: var(--ec-title-mobile);
     }
 
-    .ec-page-actions {
-        flex: 1 1 100%;
-        margin-left: 0;
+    /* The primary action stays at the right of the title row. */
+    .ec-page-header-row {
+        gap: var(--ec-space-3);
     }
 
-    /* The current page gives way last. */
-    .ec-crumb[aria-current="page"] {
-        flex-shrink: 0;
-        max-width: 50%;
+    .ec-page-actions {
+        flex: none;
+        margin-left: auto;
+    }
+
+    /* One link back to the parent replaces the crumbs. */
+    .ec-crumbs {
+        display: none;
+    }
+
+    .ec-page-back {
+        display: flex;
+        align-items: center;
+        gap: var(--ec-space-1);
+        box-sizing: border-box;
+        width: fit-content;
+        max-width: calc(100% + var(--ec-space-3));
+        height: var(--ec-touch-min);
+        margin-left: calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-accent-text);
+    }
+
+    .ec-page-back .ec-icon {
+        flex: none;
+    }
+
+    .ec-page-back-text {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-page > .ec-page-header:has(> .ec-page-back) {
+        gap: 0;
+        padding-top: var(--ec-space-1);
+    }
+
+    .ec-card-body:has(> .ec-detail) {
+        padding-top: var(--ec-space-1);
+    }
+
+    /* On a detail the title has the whole row; the status and the actions go below it. */
+    .ec-detail .ec-page-header-row > .ec-page-title {
+        flex: 1 0 100%;
+    }
+
+    .ec-detail .ec-page-title {
+        line-height: var(--ec-leading-title);
+    }
+
+    .ec-detail .ec-page-header {
+        gap: var(--ec-space-2);
+    }
+
+    .ec-detail .ec-page-header-row {
+        row-gap: var(--ec-space-3);
+    }
+
+    .ec-text-wide {
+        display: none;
     }
 
     .ec-form-layout,
@@ -7674,6 +7744,38 @@ html:has(.ec-gate) {
 
     .ec-file-name:focus-visible::after {
         border-radius: 0;
+    }
+
+    /* The contact header: the monogram beside the name, below them the kind, Upravit and ⋯. */
+    .ec-contact-header {
+        display: grid;
+        grid-template-columns: var(--ec-monogram-mobile) minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-contact-header-name {
+        display: contents;
+    }
+
+    .ec-contact-header .ec-contact-monogram-lg {
+        width: var(--ec-monogram-mobile);
+        height: var(--ec-monogram-mobile);
+        border-radius: var(--ec-radius-pill);
+        font-size: var(--ec-monogram-text-mobile);
+    }
+
+    .ec-contact-header .ec-page-title {
+        grid-column: 2 / -1;
+    }
+
+    .ec-contact-header .ec-badge {
+        grid-column: 1 / 3;
+        justify-self: start;
+    }
+
+    .ec-contact-header .ec-page-actions {
+        grid-column: 3;
     }
 
     /* A sheet's items are full-width rows. */

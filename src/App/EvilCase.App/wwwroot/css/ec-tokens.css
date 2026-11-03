@@ -167,6 +167,7 @@
     --ec-weight-semibold: 600;
     --ec-weight-bold: 700;
     --ec-leading-tight: 1.2;
+    --ec-leading-title: 1.3;
     --ec-leading-body: 1.55;
 
     /* Rozestupy */
@@ -247,6 +248,8 @@
     --ec-monogram-radius-lg: 14px;
     --ec-monogram-text-sm: 11px;
     --ec-monogram-text-lg: 17px;
+    --ec-monogram-mobile: 40px;
+    --ec-monogram-text-mobile: 13px;
 
     /* Detail úkonu (docs/design/detail-ukonu.html) */
     --ec-act-pager-text: 92px;

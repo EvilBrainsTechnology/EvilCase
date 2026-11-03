@@ -83,7 +83,7 @@ Nad obsahem je tmavá vodorovná lišta s logem, menu, hledáním napříč enti
 položka menu je zvýrazněná po celé výšce lišty. Obsah leží na
 šedém podkladu v bílých kartách; karta nikdy neleží v jiné kartě. Obsah stránky je nejvýše
 1680 px široký a zbytek okna zůstane prázdný; roste přitom hlavní sloupec, boční zůstává 380 px.
-Drobečky drží na každé šířce jeden řádek; dlouhá položka se zkrátí a celý název ukáže po najetí
+Drobečky drží jeden řádek; dlouhá položka se zkrátí a celý název ukáže po najetí
 myší.
 
 Řádek seznamu má na desktopu ve všech seznamech stejnou výšku 48 px, ať nese jeden, nebo dva
@@ -149,6 +149,11 @@ bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznam
 soubor i položka spodního panelu jsou řádky přes celou šířku s linkou od okraje k okraji.
 Zaoblení zůstává jen tam, kde nese význam: tlačítko, pole, chip, badge, přepínač, okno s okraji
 a horní rohy spodního panelu.
+
+Místo drobečků nese hlavička na mobilu jeden návrat na rodiče („‹ Spisy", u úkonu „‹ název
+spisu", u editace „‹ název záznamu") na jeden řádek se zkrácením. Hlavní akce seznamu zůstává
+v řádku názvu vpravo. Na detailu má název celý řádek, pod ním stav vlevo a Upravit s nabídkou
+⋯ vpravo; detail kontaktu nese monogram vedle jména na nejvýše dva řádky.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
 nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,
