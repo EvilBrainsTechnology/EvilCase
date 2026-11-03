@@ -462,3 +462,11 @@
     --ec-sr-hit-radius: 3px;
     --ec-sr-hit-pad: 1px;
 }
+
+/* On a phone the visible window is shorter than 100vh. */
+@supports (height: 100dvh) {
+    :root,
+    .ec {
+        --ec-viewport-height: 100dvh;
+    }
+}

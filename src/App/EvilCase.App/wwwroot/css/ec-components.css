@@ -5174,7 +5174,7 @@ html.ec-scroll-locked {
 
     .ec-modal-large {
         width: calc(100vw - 2 * var(--ec-space-4));
-        height: calc(100vh - 2 * var(--ec-space-4));
+        height: calc(var(--ec-viewport-height) - 2 * var(--ec-space-4));
     }
 
     .ec-modal-large .ec-modal-header {
@@ -5249,7 +5249,7 @@ html.ec-scroll-locked {
     .ec-modal-sheet {
         width: auto;
         max-width: none;
-        max-height: calc(100vh - var(--ec-space-8));
+        max-height: calc(var(--ec-viewport-height) - var(--ec-space-8));
         margin: auto 0 0;
         border-bottom: 0;
         border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
@@ -7495,9 +7495,65 @@ html:has(.ec-gate) {
         display: none;
     }
 
-    /* Pole má na mobilu písmo 16 px. */
-    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input) {
+    /* Fields have 16 px text below lg, in the preview and the editor too. */
+    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input,
+        .ec-preview-toolbar-page-input, .ec-preview-toolbar-search-input),
+    .ec-preview-markdown[contenteditable="true"],
+    .ec-preview-markdown [contenteditable="true"],
+    .ec-text-editor .cm-editor .cm-content {
         font-size: var(--ec-text-lg);
+    }
+
+    /* A quiet action has a 44 px touch area without growing its line. */
+    .ec-comment-action {
+        min-height: var(--ec-touch-min);
+        margin-block: calc((var(--ec-comment-action-height) - var(--ec-touch-min)) / 2);
+    }
+
+    .ec-detail-fact-link {
+        display: inline-block;
+        padding-block: var(--ec-space-4);
+        margin-block: calc(-1 * var(--ec-space-4));
+    }
+
+    .ec-timeline-item,
+    .ec-segment {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-combobox-option,
+    .ec-combobox-create {
+        min-height: var(--ec-touch-row);
+    }
+
+    .ec-topsearch-clear {
+        position: relative;
+    }
+
+    .ec-topsearch-clear::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
+    }
+
+    /* A contact's name in a list row takes the width beside the monogram and is clamped. */
+    .ec-table-cell-primary .ec-contact-name-text {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* A search result's labels take a line of their own below its details. */
+    .ec-sr-line {
+        display: contents;
+    }
+
+    .ec-sr-body > .ec-chips {
+        order: 1;
+        max-width: none;
     }
 }
 
