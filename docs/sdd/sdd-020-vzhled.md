@@ -141,8 +141,9 @@ Mobil je každá šířka pod `lg` (992 px), tablet včetně. Desktop je primár
 používaná obrazovka je plnohodnotná i na mobilu. Menu je ve spodní liště (SDD-016); spodní
 panel i lepivá patička formuláře leží nad ní, okno, náhled a hledání ji překryjí. Boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
 tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo
-16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce se řádek přeskládá na dva až tři
-řádky a řazení přebírá select v liště.
+16 px. Seznam se nikdy neposouvá vodorovně: řádek nese název na nejvýše dva řádky, pod ním
+spis, do něhož patří, jednu řádku údajů (datum, stav nebo směr, zkrácený kontakt, změněno) a štítky
+pod ní; řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
 
 Na mobilu stránka karty nemá: sekce jsou bílé bloky přes celou šířku oddělené jednou linkou,
 bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznamu, údaj detailu,

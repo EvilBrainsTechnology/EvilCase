@@ -240,6 +240,8 @@
     --ec-list-badge-pad: 10px;
     --ec-cell-stack-gap: 2px;
     --ec-cell-title-min: 8em;
+    --ec-list-title-mobile: 15px;
+    --ec-chip-mobile-height: 20px;
 
     /* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html) */
     --ec-monogram-sm: 30px;

@@ -7965,6 +7965,52 @@ html:has(.ec-gate) {
     }
 }
 
+/* A list row below lg (SDD-016): the title, the case below it, one line of details and the labels under it. */
+@media (max-width: 991.98px) {
+    .ec-table-row {
+        column-gap: var(--ec-space-3);
+    }
+
+    .ec-table-cell-primary:has(> .ec-chips, > .ec-cell-line),
+    .ec-table-cell-primary > .ec-cell-line {
+        display: contents;
+    }
+
+    .ec-table-cell-primary > .ec-cell-text:not(.ec-cell-sub),
+    .ec-table-cell-primary > .ec-cell-line > .ec-cell-text {
+        order: -2;
+        font-size: var(--ec-list-title-mobile);
+    }
+
+    .ec-table-cell-primary > .ec-cell-sub {
+        flex: 1 0 100%;
+        order: -1;
+    }
+
+    .ec-table-cell-primary > .ec-chips,
+    .ec-table-cell-primary > .ec-cell-line > .ec-chips {
+        flex: 1 0 100%;
+        order: 1;
+        padding-top: var(--ec-space-1);
+    }
+
+    .ec-table-row .ec-chip-sm {
+        height: var(--ec-chip-mobile-height);
+    }
+
+    /* The contact fits the line of details truncated. */
+    .ec-table-row > .ec-cell-contact {
+        flex: 1 1 0;
+    }
+
+    .ec-recent-cases .ec-card-header-actions .ec-button {
+        justify-content: center;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+}
+
 @keyframes ec-spin {
     to {
         transform: rotate(360deg);
