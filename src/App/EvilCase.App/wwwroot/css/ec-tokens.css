@@ -221,7 +221,8 @@
     --ec-nav-pad: 14px;
     --ec-control-bar: 38px;
     --ec-search-width: 300px;
-    --ec-drawer-width: 300px;
+    --ec-tabbar-height: 56px;
+    --ec-tabbar-icon: 22px;
     --ec-crumb-min: 2.5em;
     --ec-crumb-max: 24em;
     --ec-list-search-width: 340px;

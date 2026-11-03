@@ -1,9 +1,4 @@
 <header class="ec-topbar">
-    <button type="button" class="ec-topbar-burger" aria-label="Otevřít menu"
-            aria-expanded="@(this.drawerOpen ? "true" : "false")" @onclick="this.OpenDrawer">
-        <EcIcon Paths="@AppIcons.Menu" Size="EcIconSize.Large" />
-    </button>
-
     <a class="ec-brand ec-topbar-brand" href="/">
         <span class="ec-brand-mark ec-topbar-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
         <span class="ec-topbar-brand-text">EvilCase</span>
@@ -18,34 +13,7 @@
     <UserMenu />
 </header>
 
-@if (this.drawerOpen)
-{
-    <div class="ec-drawer-backdrop" @onclick="this.CloseDrawer"></div>
-    <div class="ec-drawer">
-        <div class="ec-drawer-head">
-            <span class="ec-brand ec-topbar-brand">
-                <span class="ec-brand-mark ec-topbar-mark"><EcIcon Paths="@AppIcons.Scale" /></span>
-                <span class="ec-topbar-brand-text">EvilCase</span>
-            </span>
-            <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.X"
-                      AriaLabel="Zavřít menu" OnClick="this.CloseDrawer" />
-        </div>
-        <nav class="ec-drawer-nav" aria-label="Menu">
-            <NavLinks OnNavigate="this.CloseDrawer" />
-        </nav>
-    </div>
-}
-
-@code {
-    private bool drawerOpen;
-
-    private void OpenDrawer()
-    {
-        this.drawerOpen = true;
-    }
-
-    private void CloseDrawer()
-    {
-        this.drawerOpen = false;
-    }
-}
+@* Below lg the menu leaves the bar for the bottom edge; one of the two navs is always hidden. *@
+<nav class="ec-tabbar" aria-label="Hlavní menu">
+    <NavLinks />
+</nav>

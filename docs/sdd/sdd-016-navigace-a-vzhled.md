@@ -40,7 +40,9 @@ s tím, který záznam chybí.
 ### Menu a vzhled
 
 Menu nese Přehled, Spisy, Úkony, Kontakty a Nastavení a zvýrazňuje položku i na podřízených
-routách; menu je ve vodorovné liště nad obsahem. Vizuální jazyk drží [SDD-020](sdd-020-vzhled.md):
+routách; menu je ve vodorovné liště nad obsahem. Na mobilu je menu ve spodní liště: pět
+položek s ikonou nad popiskem, aktivní v barvě akcentu, a horní lišta nese jen značku,
+hledání a uživatelské menu. Vizuální jazyk drží [SDD-020](sdd-020-vzhled.md):
 tokeny, primitiva `Ec*` a předlohy obrazovek v [`docs/design/`](../design/README.md).
 Desktop je primární, každá denně používaná obrazovka je plnohodnotná
 i na mobilu a seznam se na mobilu nikdy neposouvá vodorovně. Datum se všude píše `d. M. yyyy`,
@@ -71,6 +73,7 @@ Každá stránka kromě `/login` vyžaduje přihlášení; nepřihlášeného ap
 
 - Identifikátor v URL: `CaseNumber` / UUID. Platí UUID.
 - Umístění menu: levý sloupec / vodorovná lišta. Platí vodorovná lišta.
+- Menu na mobilu: zásuvka / spodní lišta. Platí spodní lišta.
 
 ## Dopady
 

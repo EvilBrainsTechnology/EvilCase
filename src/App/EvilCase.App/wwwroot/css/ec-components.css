@@ -782,13 +782,11 @@ html.ec-scroll-locked {
 }
 
 /* Zavírací křížek je tichý, nečte se jako akce (docs/design/nastaveni.html). */
-.ec-modal-header .ec-button-ghost,
-.ec-drawer-head .ec-button-ghost {
+.ec-modal-header .ec-button-ghost {
     color: var(--ec-text-soft);
 }
 
-.ec-modal-header .ec-button-ghost:hover:enabled,
-.ec-drawer-head .ec-button-ghost:hover:enabled {
+.ec-modal-header .ec-button-ghost:hover:enabled {
     background: var(--ec-surface-sunken);
     color: var(--ec-text);
 }
@@ -4510,12 +4508,11 @@ html.ec-scroll-locked {
         position: fixed;
         top: auto;
         right: 0;
-        bottom: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         left: 0;
         z-index: 52;
         width: auto;
-        max-height: calc(var(--ec-viewport-height) * 0.8);
-        padding-bottom: env(safe-area-inset-bottom);
+        max-height: calc(var(--ec-viewport-height) * 0.85 - var(--ec-tabbar-height) - env(safe-area-inset-bottom));
         border-width: 1px 0 0;
         border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
     }
@@ -4550,6 +4547,12 @@ html.ec-scroll-locked {
         height: var(--ec-touch-min);
         margin: var(--ec-space-3) var(--ec-space-5);
         font-size: var(--ec-text-lg);
+    }
+
+    .ec-label-options {
+        flex: 0 1 auto;
+        min-height: 0;
+        max-height: none;
     }
 
     .ec-label-option {
@@ -5010,9 +5013,8 @@ html.ec-scroll-locked {
     /* Akce formuláře zůstávají na mobilu u spodního okraje okna. */
     .ec-form-layout .ec-card-footer {
         position: sticky;
-        bottom: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         z-index: 1;
-        padding-bottom: calc(var(--ec-space-4) + env(safe-area-inset-bottom));
         border-radius: 0 0 var(--ec-radius-card) var(--ec-radius-card);
         background: var(--ec-surface);
     }
@@ -6566,83 +6568,57 @@ html:has(.ec-gate) {
     border-top: 1px solid var(--ec-border-subtle);
 }
 
-.ec-topbar-burger {
+/* The bottom tab bar exists only below lg (SDD-016). */
+.ec-tabbar {
     display: none;
-    align-items: center;
-    justify-content: center;
-    width: var(--ec-touch-min);
-    height: var(--ec-touch-min);
-    padding: 0;
-    border: 0;
-    border-radius: var(--ec-radius-lg);
-    background: transparent;
-    cursor: pointer;
-}
-
-.ec-topbar-burger:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-topbar-focus-ring);
-}
-
-.ec-drawer-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    background: var(--ec-overlay);
-}
-
-.ec-drawer {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 40;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-5);
-    box-sizing: border-box;
-    width: var(--ec-drawer-width);
-    padding: var(--ec-space-5);
-    background: var(--ec-surface);
-}
-
-.ec-drawer-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ec-space-4);
-}
-
-.ec-drawer .ec-topbar-brand {
-    color: var(--ec-text);
-}
-
-.ec-drawer-nav {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ec-space-1);
-}
-
-.ec-drawer-nav .ec-nav-link {
-    height: var(--ec-touch-min);
-    border-radius: var(--ec-radius-lg);
-}
-
-.ec-drawer-nav .ec-nav-link[aria-current="page"] {
-    background: var(--ec-accent-soft);
-    font-weight: var(--ec-weight-semibold);
-    color: var(--ec-accent-text);
 }
 
 @media (max-width: 991.98px) {
     .ec-topbar {
-        gap: var(--ec-space-4);
-        padding: 0 var(--ec-space-5);
+        gap: var(--ec-space-3);
+        padding: 0 var(--ec-space-3) 0 var(--ec-space-4);
     }
 
-    .ec-topbar-burger {
-        display: flex;
-        flex: none;
+    .ec-shell-body {
+        padding-bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+    }
+
+    .ec-tabbar {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        border-top: 1px solid var(--ec-border);
+        background: var(--ec-surface);
+    }
+
+    .ec-tabbar .ec-nav-link {
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--ec-space-1);
+        min-width: 0;
+        height: var(--ec-tabbar-height);
+        padding: 0;
+        font-size: var(--ec-text-2xs);
+        color: var(--ec-text-muted);
+    }
+
+    .ec-tabbar .ec-nav-link .ec-icon {
+        width: var(--ec-tabbar-icon);
+        height: var(--ec-tabbar-icon);
+    }
+
+    .ec-tabbar .ec-nav-link[aria-current="page"] {
+        font-weight: var(--ec-weight-semibold);
+        color: var(--ec-accent);
+    }
+
+    .ec-tabbar .ec-nav-link:focus-visible {
+        box-shadow: inset var(--ec-focus-ring);
     }
 
     /* Značka zůstane malá; její dotyková plocha doroste na minimum. */
@@ -6686,7 +6662,7 @@ html:has(.ec-gate) {
         position: fixed;
         top: auto;
         right: var(--ec-space-5);
-        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        bottom: calc(var(--ec-space-5) + var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         left: var(--ec-space-5);
         min-width: 0;
     }
@@ -6695,10 +6671,15 @@ html:has(.ec-gate) {
         position: fixed;
         top: auto;
         right: var(--ec-space-5);
-        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+        bottom: calc(var(--ec-space-5) + var(--ec-tabbar-height) + env(safe-area-inset-bottom));
         left: var(--ec-space-5);
         width: auto;
         max-width: none;
+    }
+
+    /* An open dialog covers the tab bar. */
+    .ec-modal :is(.ec-popover, .ec-menu.ec-menu-popup) {
+        bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
     }
 
     .ec-popover-trigger {
