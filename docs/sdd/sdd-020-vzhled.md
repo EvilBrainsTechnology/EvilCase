@@ -172,6 +172,12 @@ pod ním velikost, okamžik a „soubor 2 z 5“, vpravo zavření, v editoru Zr
 ní nese stránku, hledání, listování, Stáhnout a ⋯ jako tiché ikony (SDD-012). Návrat na zprávu
 a Stáhnout přílohu jsou tlačítka jen s ikonou.
 
+### Aplikace na ploše
+
+Ikona aplikace i ikona záložky jsou značka z přihlášení: bílé váhy na poli v barvě akcentu,
+váhy přes 62 % šířky pole. Ikona záložky a ikona na počítači mají zaoblené rohy jako značka;
+ikona na ploše telefonu vyplní celé pole a rohy jí dá telefon.
+
 ### Bez cizí knihovny
 
 Vzhled se nestaví přebarvením cizího CSS. Aplikace nenese knihovnu komponent ani cizí stylopis
