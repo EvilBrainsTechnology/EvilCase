@@ -10,6 +10,11 @@
         <div class="ec-menu-backdrop" @onclick="this.Close"></div>
         <div class="ec-menu ec-menu-popup" role="menu" aria-label="@this.AriaLabel"
              @onkeydown="this.OnKeyDown" @onkeydown:preventDefault>
+            @if (this.Title is not null)
+            {
+                @* Below lg the sheet names what its actions act on. *@
+                <div class="ec-menu-title" aria-hidden="true">@this.Title</div>
+            }
             @for (var index = 0; index < this.Items.Count; index++)
             {
                 var position = index;
@@ -39,6 +44,10 @@
 
     [Parameter]
     public string Icon { get; set; } = AppIcons.DotsVertical;
+
+    /// <summary>The sheet's first line below lg, e.g. the case title.</summary>
+    [Parameter]
+    public string? Title { get; set; }
 
     private ElementReference trigger;
 

@@ -32,7 +32,7 @@
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditAct">Upravit<span class="ec-text-wide"> úkon</span></EcButton>
-                        <EcMenu AriaLabel="Další akce s úkonem" Items="this.ActActions" />
+                        <EcMenu AriaLabel="Další akce s úkonem" Title="@this.Detail.Title" Items="this.ActActions" />
                     </Actions>
                 </EcPageHeader>
 

@@ -258,6 +258,7 @@
     --ec-copy-size: 26px;
     --ec-fact-line: 20px;
     --ec-fact-name-mobile: 120px;
+    --ec-file-row-mobile: 64px;
     --ec-anchor-height: 36px;
     /* Less than the top padding by what the value line keeps under its baseline. */
     --ec-fact-pad-end: 10px;

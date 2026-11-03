@@ -164,7 +164,9 @@ hlavičkou detailu je řádek kotev se sekcemi a jejich počty, který se posouv
 doscrolluje na sekci. Sekce jdou jednou pod druhou: na spisu Soubory, Podřízené spisy (tři řádky
 a tlačítko na zbytek), Úkony, Komentáře; na úkonu Soubory, Komentáře, Průběh spisu, Spis.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
-buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
+buňka vede na svůj seznam. Řádek souboru nese ikonu, název na až dva řádky, metadata na jednom
+řádku a tichou nabídku ⋯ (SDD-012). Nabídka akcí a výběr verze jsou spodní panel od okraje
+k okraji s řádkem názvu nahoře a položkami 48 px. Hlavička náhledu souboru
 nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,
 Stáhnout, návrat na zprávu a Stáhnout přílohu tlačítka jen s ikonou.
 

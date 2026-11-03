@@ -116,7 +116,9 @@
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                                   AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout"
                                                   OnClick="() => this.Download(file)" />
-                                        <EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file)" />
+                                        <span class="ec-file-menu-wide"><EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file, download: false)" /></span>
+                                        @* Below lg the row has no download button; its menu opens with the download. *@
+                                        <span class="ec-file-menu-narrow"><EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Title="@file.FileName" Items="this.FileActions(file, download: true)" /></span>
                                     </div>
                                 }
                             </div>
@@ -301,9 +303,12 @@
             await button.FocusAsync();
     }
 
-    private IReadOnlyList<EcMenuItem> FileActions(FileListItem file)
+    private IReadOnlyList<EcMenuItem> FileActions(FileListItem file, bool download)
     {
         var actions = new List<EcMenuItem>();
+
+        if (download)
+            actions.Add(new EcMenuItem { Text = "Stáhnout", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.Download(file)) });
 
         if (FileTypeDisplay.Editable(file.FileName, file.SizeBytes))
             actions.Add(new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Factory.Create(this, () => this.Edit(file)) });

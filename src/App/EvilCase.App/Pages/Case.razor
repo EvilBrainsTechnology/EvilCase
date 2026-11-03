@@ -30,7 +30,7 @@
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditCase">Upravit<span class="ec-text-wide"> spis</span></EcButton>
-                        <EcMenu AriaLabel="Další akce se spisem" Items="this.CaseActions" />
+                        <EcMenu AriaLabel="Další akce se spisem" Title="@this.Detail.Title" Items="this.CaseActions" />
                     </Actions>
                 </EcPageHeader>
 

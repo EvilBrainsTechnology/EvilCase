@@ -1113,6 +1113,15 @@ html.ec-scroll-locked {
     height: var(--ec-control-md);
 }
 
+/* The row's menu from lg up; below lg the one that opens with the download. */
+.ec-file-menu-wide {
+    display: contents;
+}
+
+.ec-file-menu-narrow {
+    display: none;
+}
+
 .ec-file-upload {
     cursor: pointer;
 }
@@ -6556,6 +6565,11 @@ html:has(.ec-gate) {
     color: var(--ec-danger-text);
 }
 
+/* Only below lg: the line naming what the items act on. */
+.ec-menu-title {
+    display: none;
+}
+
 .ec-menu .ec-menu-item-danger:hover {
     background: var(--ec-danger-bg);
 }
@@ -8354,6 +8368,96 @@ html:has(.ec-gate) {
 
     .ec-combobox-option-meta {
         white-space: nowrap;
+    }
+}
+
+/* The file row and the menus below lg (SDD-020): a file carries only a quiet ⋯ with Stáhnout on top; a menu
+   and the version picker are edge-to-edge sheets. */
+@media (max-width: 991.98px) {
+    .ec-file-row,
+    .ec-file-row:first-child,
+    .ec-file-row:last-child {
+        min-height: var(--ec-file-row-mobile);
+    }
+
+    .ec-file-actions > .ec-button,
+    .ec-file-menu-wide {
+        display: none;
+    }
+
+    .ec-file-menu-narrow {
+        display: contents;
+    }
+
+    .ec-file-actions .ec-menu-anchor > .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        border-color: transparent;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .ec-file-meta {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-file-meta .ec-sep {
+        display: inline;
+    }
+
+    .ec-file-meta .ec-badge {
+        margin-right: var(--ec-space-2);
+    }
+
+    .ec-menu-backdrop:has(+ .ec-menu-popup),
+    .ec-popover-backdrop {
+        z-index: 50;
+        background: var(--ec-overlay);
+    }
+
+    .ec-menu.ec-menu-popup,
+    .ec-popover {
+        right: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        left: 0;
+        z-index: 51;
+        max-height: calc(var(--ec-viewport-height) * 0.8);
+        overflow-y: auto;
+        padding: var(--ec-space-3) 0;
+        border-width: 1px 0 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+        box-shadow: var(--ec-shadow-sheet);
+    }
+
+    .ec-modal :is(.ec-popover, .ec-menu.ec-menu-popup) {
+        bottom: 0;
+        padding-bottom: calc(var(--ec-space-3) + env(safe-area-inset-bottom));
+    }
+
+    .ec-menu-title {
+        display: block;
+        overflow: hidden;
+        padding: var(--ec-space-1) var(--ec-space-5) var(--ec-space-3);
+        font-size: var(--ec-text-xs);
+        color: var(--ec-text-muted);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-menu-popup .ec-menu-item {
+        flex: none;
+        gap: var(--ec-space-4);
+        height: var(--ec-touch-row);
+        padding: 0 var(--ec-space-5);
+        border-radius: 0;
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-menu-popup .ec-menu-divider {
+        margin-inline: 0;
     }
 }
 

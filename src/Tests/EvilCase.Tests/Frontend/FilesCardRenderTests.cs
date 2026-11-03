@@ -163,7 +163,7 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[2].ClickAsync(new MouseEventArgs());
+        await MenuItem(component, "Přejmenovat").ClickAsync(new MouseEventArgs());
         await component.Find("input.ec-file-rename-input").InputAsync(new ChangeEventArgs { Value = "Nový název" });
         await component.FindAll(".ec-file-rename .ec-button")[0].ClickAsync(new MouseEventArgs());
 
@@ -267,7 +267,7 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]")[0].ClickAsync(new MouseEventArgs());
+        await MenuItem(component, "Nahrát novou verzi").ClickAsync(new MouseEventArgs());
 
         VersionInput(component).UploadFiles(InputFileContent.CreateFromText("x", "návrh.docx"));
 
@@ -297,12 +297,38 @@ public class FilesCardRenderTests
             .Render(ctx);
 
         await OpenMenu(component);
-        await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Verze (3)", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
+        await MenuItem(component, "Verze (3)").ClickAsync(new MouseEventArgs());
         await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1)));
 
         Assert.That(loaded, Is.EqualTo(new int?[] { 2 }));
+    }
+
+    [Test]
+    public async Task TheFileMenuOpensWithTheDownloadThatTheRowCarriesOnlyAboveLg()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var file = PdfFile();
+        var component = new Card { Files = [file] }.Render(ctx);
+
+        await component.Find(".ec-file-menu-narrow button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+
+        var first = component.FindAll("[role=menuitem]")[0];
+
+        Assert.That(first.TextContent.Trim(), Is.EqualTo("Stáhnout"), "below lg the menu is the row's only way to download");
+
+        await first.ClickAsync(new MouseEventArgs());
+
+        var browserFiles = (StubBrowserFiles)ctx.Services.GetRequiredService<IBrowserFiles>();
+
+        Assert.That(browserFiles.Downloaded, Is.EqualTo([(file.FileId, (int?)null, file.FileName)]));
+    }
+
+    private static AngleSharp.Dom.IElement MenuItem(IRenderedComponent<FilesCard> component, string text)
+    {
+        return component.FindAll("[role=menuitem]").Single(item => string.Equals(item.TextContent.Trim(), text, StringComparison.Ordinal));
     }
 
     private static IRenderedComponent<InputFile> VersionInput(IRenderedComponent<FilesCard> component)
@@ -312,7 +338,7 @@ public class FilesCardRenderTests
 
     private static async Task OpenMenu(IRenderedComponent<FilesCard> component)
     {
-        await component.Find(".ec-file-actions button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+        await component.Find(".ec-file-menu-wide button[aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
     }
 
     private static InputFileChangeEventArgs Change(params string[] fileNames)

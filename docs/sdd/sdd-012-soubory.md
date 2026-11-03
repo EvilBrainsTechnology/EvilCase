@@ -107,7 +107,8 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
 i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
-Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat. Upravit nese jen soubor, který
+Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat; na mobilu řádek nese jen nabídku
+a Stáhnout je její první položka. Upravit nese jen soubor, který
 náhled podle přípony upravuje (Úpravy textu) a který má nejvýše 1 MB; otevře náhled rovnou
 v úpravách, Markdown formátovaně. Soubor, který po načtení upravit nejde, zůstane v náhledu ke
 čtení s jeho poznámkou. Potvrzení smazání souboru s více verzemi řekne, kolik verzí se smaže.

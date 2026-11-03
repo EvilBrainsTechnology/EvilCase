@@ -42,7 +42,7 @@
                     </div>
                     <div class="ec-page-actions">
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" id="contact-edit" OnClick="this.StartEditing">Upravit<span class="ec-text-wide"> kontakt</span></EcButton>
-                        <EcMenu AriaLabel="Další akce s kontaktem" Items="this.ContactActions" />
+                        <EcMenu AriaLabel="Další akce s kontaktem" Title="@this.contact.Name" Items="this.ContactActions" />
                     </div>
                 </div>
 
