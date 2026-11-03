@@ -92,7 +92,7 @@
     }
 }
 
-<EcTable TItem="ActListItem"
+<EcTable TItem="ActListItem" Id="@this.Id"
          Title="@this.Title" Actions="this.Actions"
          ShowToolbar="this.ToolbarShown"
          Columns="columns" Items="this.items" RowHref="RowHref"
@@ -191,6 +191,10 @@
 
     [Parameter]
     public string? Title { get; set; }
+
+    /// <summary>The target of a section anchor.</summary>
+    [Parameter]
+    public string? Id { get; set; }
 
     [Parameter]
     public RenderFragment? Actions { get; set; }

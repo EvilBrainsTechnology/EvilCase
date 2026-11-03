@@ -16,6 +16,11 @@ public sealed class FilesCardState(Func<CancellationToken, Task<IReadOnlyList<Fi
 
     public event EventHandler? Placed;
 
+    /// <summary>
+    /// The list was loaded again.
+    /// </summary>
+    public event EventHandler? Changed;
+
     public IReadOnlyList<FileListItem> Items { get; private set; } = [];
 
     public bool Loaded { get; private set; }
@@ -63,6 +68,7 @@ public sealed class FilesCardState(Func<CancellationToken, Task<IReadOnlyList<Fi
         }
 
         this.Loaded = true;
+        this.Changed?.Invoke(this, EventArgs.Empty);
         this.Place();
     }
 

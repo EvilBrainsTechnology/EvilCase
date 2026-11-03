@@ -7,7 +7,7 @@
 @inject ILogger<FilesCard> Logger
 
 @* The card is itself the drop zone (files.js). *@
-<div class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")" @ref="this.card">
+<div class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")" id="@this.Id" @ref="this.card">
     <EcCard Title="@this.Title">
         <Header>
             @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null)
@@ -230,6 +230,10 @@
     /// </summary>
     [Parameter]
     public bool Compact { get; set; }
+
+    /// <summary>The target of a section anchor.</summary>
+    [Parameter]
+    public string? Id { get; set; }
 
     private readonly Dictionary<Guid, ElementReference> nameButtons = [];
 

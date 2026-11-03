@@ -4934,6 +4934,13 @@ html.ec-scroll-locked {
     text-decoration: underline;
 }
 
+/* Only below lg: the section anchors, the button showing all child cases and the label edit button. */
+.ec-anchors,
+.ec-child-all,
+.ec-label-edit {
+    display: none;
+}
+
 .ec-child-toggle:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
@@ -8008,6 +8015,209 @@ html:has(.ec-gate) {
         width: var(--ec-touch-min);
         height: var(--ec-touch-min);
         padding: 0;
+    }
+}
+
+/* A detail below lg (SDD-020): the facts as name | value rows, read-only labels, the section anchors and
+   the section order in one column. */
+@media (max-width: 991.98px) {
+    .ec-detail-fact {
+        display: grid;
+        grid-template-columns: var(--ec-fact-name-mobile) minmax(0, 1fr);
+        align-items: center;
+        column-gap: var(--ec-space-4);
+        box-sizing: border-box;
+        min-height: var(--ec-touch-min);
+        padding-block: var(--ec-space-3);
+    }
+
+    .ec-detail-fact-name {
+        font-size: var(--ec-text-sm);
+    }
+
+    .ec-contact-facts {
+        max-width: none;
+    }
+
+    /* A value shows whole and wraps anywhere. */
+    .ec-detail-fact :is(.ec-detail-fact-value, .ec-detail-fact-mono, .ec-detail-fact-link) {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .ec-detail-fact-copy .ec-copy {
+        flex: none;
+        margin-left: auto;
+    }
+
+    .ec-detail-fact-labels {
+        align-items: start;
+    }
+
+    .ec-detail-fact-labels .ec-detail-fact-name {
+        line-height: calc(var(--ec-space-7) + var(--ec-space-1));
+    }
+
+    .ec-detail-fact-labels .ec-alert {
+        grid-column: 1 / -1;
+    }
+
+    /* Labels are chips without a remove button; one button opens the sheet that edits them. */
+    .ec-label-field .ec-chip-remove,
+    .ec-label-add {
+        display: none;
+    }
+
+    .ec-label-edit {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+        border: 0;
+        border-radius: var(--ec-radius-lg);
+        background: transparent;
+        color: var(--ec-text-muted);
+        cursor: pointer;
+    }
+
+    .ec-label-edit:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    .ec-label-field-inline {
+        position: relative;
+        min-height: calc(var(--ec-space-7) + var(--ec-space-1));
+        padding-right: var(--ec-touch-min);
+    }
+
+    .ec-label-field-inline .ec-label-edit {
+        position: absolute;
+        top: calc((var(--ec-space-7) + var(--ec-space-1) - var(--ec-touch-min)) / 2);
+        right: calc(-1 * var(--ec-space-4));
+    }
+
+    /* In a form the whole field is the button. */
+    .ec-label-field-box .ec-label-edit {
+        position: absolute;
+        inset: 0;
+        width: auto;
+        height: auto;
+    }
+
+    .ec-label-field-box .ec-label-edit:focus-visible {
+        box-shadow: none;
+    }
+
+    .ec-label-toggle {
+        justify-content: space-between;
+    }
+
+    .ec-label-toggle .ec-icon {
+        color: var(--ec-border-strong);
+    }
+
+    .ec-label-toggle[aria-selected="true"] .ec-icon {
+        color: var(--ec-accent);
+    }
+
+    /* The section anchors below the detail header; the row scrolls sideways. */
+    .ec-anchors {
+        display: flex;
+        gap: var(--ec-space-3);
+        overflow-x: auto;
+        padding: var(--ec-space-4) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border);
+        scrollbar-width: none;
+    }
+
+    .ec-anchor {
+        position: relative;
+        display: inline-flex;
+        flex: none;
+        align-items: center;
+        gap: var(--ec-space-2);
+        box-sizing: border-box;
+        height: var(--ec-anchor-height);
+        padding: 0 var(--ec-space-4);
+        border: 1px solid var(--ec-border-strong);
+        border-radius: var(--ec-radius-pill);
+        font-size: var(--ec-text-sm);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-text);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .ec-anchor::after {
+        content: "";
+        position: absolute;
+        inset: calc((var(--ec-anchor-height) - var(--ec-touch-min)) / 2) 0;
+    }
+
+    .ec-anchor:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    .ec-anchor-count {
+        font-weight: var(--ec-weight-regular);
+        color: var(--ec-text-muted);
+    }
+
+    /* The sections stack: a case has the files, the child cases, the acts and the comments; an act the files,
+       the comments, the case's timeline and the case. */
+    .ec-detail-main,
+    .ec-detail-aside {
+        display: contents;
+    }
+
+    .ec-detail-layout {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ec-detail-layout .ec-file-card {
+        order: -1;
+    }
+
+    .ec-case-acts > .ec-table,
+    .ec-detail-layout .ec-card:has(.ec-timeline) {
+        order: 1;
+    }
+
+    .ec-detail-layout:has(.ec-case-acts) .ec-card:has(.ec-card-stack),
+    .ec-detail-layout .ec-card:has(> .ec-card-body > .ec-case-link) {
+        order: 2;
+    }
+
+    /* The child cases show three rows; the button below them shows the rest. */
+    .ec-child-list-capped > .ec-child-row:nth-child(n + 4) {
+        display: none;
+    }
+
+    .ec-child-all {
+        display: flex;
+        align-items: center;
+        gap: var(--ec-space-1);
+        min-height: var(--ec-touch-min);
+        padding: 0;
+        border: 0;
+        border-top: 1px solid var(--ec-border-subtle);
+        background: transparent;
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-accent-text);
+        cursor: pointer;
+    }
+
+    .ec-child-all:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
     }
 }
 

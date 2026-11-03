@@ -109,6 +109,36 @@ public class LabelFieldRenderTests
         }
     }
 
+    [Test]
+    public async Task TheEditSheetShowsEveryLabelWithItsStateAndTogglesWithoutClosing()
+    {
+        await using var ctx = new BunitContext();
+
+        IReadOnlyList<LabelItem>? raised = null;
+
+        var component = Render(ctx, out _, selected: [Deadline], onChanged: labels => raised = labels, inline: true);
+
+        await component.Find(".ec-label-edit").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-label-toggle"), Has.Count.EqualTo(3)),
+            WaitTimeout);
+
+        var states = component.FindAll(".ec-label-toggle").Select(static option => (option.TextContent.Trim(), option.GetAttribute("aria-selected")));
+
+        (string, string?)[] expected = [("Hlídat lhůtu", "true"), ("Odvolání", "false"), ("Soud", "false")];
+
+        Assert.That(states, Is.EqualTo(expected), "the sheet lists the chosen labels too");
+
+        await component.FindAll(".ec-label-toggle")[0].ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(raised, Is.Empty, "a chosen label is taken off");
+            Assert.That(component.FindAll(".ec-label-menu"), Has.Count.EqualTo(1), "the sheet stays open for the next toggle");
+        }
+    }
+
     private static IRenderedComponent<LabelField> Render(
         BunitContext ctx,
         out ILabelsClient labelsClient,

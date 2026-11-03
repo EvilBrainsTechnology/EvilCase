@@ -1,4 +1,4 @@
-<section class="ec-card">
+<section class="ec-card" id="@this.Id">
     @if (!string.IsNullOrEmpty(this.Title) || this.Header is not null)
     {
         <div class="ec-card-header">
@@ -17,6 +17,10 @@
 </section>
 
 @code {
+    /// <summary>The target of a section anchor, e.g. „comments".</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
     [Parameter]
     public string? Title { get; set; }
 

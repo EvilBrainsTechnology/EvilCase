@@ -90,7 +90,7 @@
                     </div>
                     <div class="ec-detail-fact ec-detail-fact-labels">
                         <span class="ec-detail-fact-name">Štítky<kbd class="ec-kbd" aria-hidden="true">L</kbd></span>
-                        <LabelField Inline InputId="act-labels" Selected="this.Detail.Labels" SelectedChanged="this.SaveLabels" />
+                        <LabelField Inline InputId="act-labels" SheetTitle="Štítky úkonu" Selected="this.Detail.Labels" SelectedChanged="this.SaveLabels" />
                         @if (this.LabelsError is not null)
                         {
                             <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.LabelsError</div>
@@ -100,11 +100,15 @@
             </div>
         </EcCard>
 
+        <DetailAnchors Path="@this.LinkPath" Anchors="this.Anchors" Files="this.Files" />
+
         <div class="ec-detail-layout">
             <div class="ec-detail-main">
                 <FilesSlot State="this.Files" Wide Card="this.FilesCardContent" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.ActId)"
+                              Id="comments"
+                              CountChanged="count => this.commentCount = count"
                               Title="Komentáře úkonu"
                               Placeholder="Poznámka k tomuto úkonu…"
                               LoadComments="this.LoadComments"
@@ -114,7 +118,7 @@
             </div>
 
             <aside class="ec-detail-aside">
-                <EcCard Title="Spis">
+                <EcCard Id="case" Title="Spis">
                     <a class="ec-case-link" href="@($"/cases/{this.Detail.CaseId}")">
                         <span class="ec-case-link-title">@this.Detail.CaseTitle</span>
                         <span class="ec-case-link-number">@this.Detail.CaseNumber</span>
@@ -138,7 +142,7 @@
 
                 <FilesSlot State="this.Files" Card="this.FilesCardContent" />
 
-                <EcCard Title="Průběh spisu">
+                <EcCard Id="timeline" Title="Průběh spisu">
                     <Header>
                         <nav class="ec-card-header-actions ec-act-pager" aria-label="Úkony spisu">
                             @if (this.Previous is { } previous)
@@ -222,8 +226,13 @@
 
     private bool deleting;
 
+    private Guid countedActId;
+
+    private int? commentCount;
+
     private RenderFragment<bool> FilesCardContent => compact =>
         @<FilesCard @key="this.Files"
+                    Id="files"
                     State="this.Files"
                     Title="Soubory úkonu"
                     OwnerGoneError="úkon už neexistuje."
@@ -237,6 +246,14 @@
                     UploadTarget="k úkonu"
                     ArchiveUrl="@FileUrl.ActArchive(this.ActId)"
                     Compact="compact" />;
+
+    private IReadOnlyList<DetailAnchor> Anchors =>
+    [
+        new DetailAnchor("Soubory", "files", () => this.Files is { Loaded: true, ListFailure: null } ? this.Files.Items.Count : null),
+        new DetailAnchor("Komentáře", "comments", () => this.commentCount),
+        new DetailAnchor("Průběh spisu", "timeline", static () => null),
+        new DetailAnchor("Spis", "case", static () => null),
+    ];
 
     protected override string LoadFailedText => "Úkon se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
@@ -270,6 +287,16 @@
     private ActTimelineItem? Previous => this.Neighbour(-1);
 
     private ActTimelineItem? Next => this.Neighbour(1);
+
+    protected override void OnParametersSet()
+    {
+        // Another act starts without the count of the last one.
+        if (this.countedActId == this.ActId)
+            return;
+
+        this.countedActId = this.ActId;
+        this.commentCount = null;
+    }
 
     protected override Task<ActDetail> Fetch()
     {

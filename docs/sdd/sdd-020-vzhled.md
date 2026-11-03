@@ -155,6 +155,12 @@ Místo drobečků nese hlavička na mobilu jeden návrat na rodiče („‹ Spis
 spisu", u editace „‹ název záznamu") na jeden řádek se zkrácením. Hlavní akce seznamu zůstává
 v řádku názvu vpravo. Na detailu má název celý řádek, pod ním stav vlevo a Upravit s nabídkou
 ⋯ vpravo; detail kontaktu nese monogram vedle jména na nejvýše dva řádky.
+Údaj detailu je na mobilu řádek: jméno vlevo ve sloupci 120 px, hodnota vedle, kopírování
+vpravo. Štítky jsou chipy jen pro čtení; tužka v řádku Štítky a pole Štítky ve formuláři otevřou
+spodní panel se všemi štítky, kde klepnutí štítek přidá nebo odebere a Hotovo panel zavře. Pod
+hlavičkou detailu je řádek kotev se sekcemi a jejich počty, který se posouvá vodorovně; klepnutí
+doscrolluje na sekci. Sekce jdou jednou pod druhou: na spisu Soubory, Podřízené spisy (tři řádky
+a tlačítko na zbytek), Úkony, Komentáře; na úkonu Soubory, Komentáře, Průběh spisu, Spis.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
 nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,

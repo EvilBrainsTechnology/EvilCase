@@ -3,7 +3,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @inject ILogger<CommentsCard> Logger
 
-<EcCard Title="@this.Title">
+<EcCard Id="@this.Id" Title="@this.Title">
     <Header>
         @if (!this.loading && this.listFailure is null)
         {
@@ -139,6 +139,14 @@
     [Parameter]
     public bool Compact { get; set; }
 
+    /// <summary>The target of a section anchor.</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
+    /// <summary>The count of comments, raised after each successful load.</summary>
+    [Parameter]
+    public EventCallback<int> CountChanged { get; set; }
+
     private readonly CommentEditModel newModel = new();
 
     private readonly CommentEditModel editModel = new();
@@ -186,7 +194,11 @@
 
             this.items = [];
             this.listFailure = "Komentáře se nepodařilo načíst. Zkuste to za chvíli znovu.";
+
+            return;
         }
+
+        await this.CountChanged.InvokeAsync(this.items.Count);
     }
 
     private async Task AddNewComment()

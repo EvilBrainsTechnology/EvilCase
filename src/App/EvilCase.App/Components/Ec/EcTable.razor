@@ -1,6 +1,6 @@
 @typeparam TItem
 
-<div class="ec-card ec-table" style="--ec-table-columns: @this.Template">
+<div class="ec-card ec-table" id="@this.Id" style="--ec-table-columns: @this.Template">
     @if (this.Title is not null || this.Actions is not null)
     {
         <div class="ec-card-header">
@@ -95,6 +95,10 @@
 </div>
 
 @code {
+    /// <summary>The target of a section anchor, e.g. „acts".</summary>
+    [Parameter]
+    public string? Id { get; set; }
+
     [Parameter]
     public string? Title { get; set; }
 
