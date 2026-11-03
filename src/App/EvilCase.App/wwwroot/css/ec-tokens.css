@@ -392,6 +392,7 @@
     --ec-stat-glyph: 22px;
     --ec-stat-pad-x: 22px;
     --ec-stat-pad-y: 18px;
+    --ec-stat-pad-mobile: 14px var(--ec-space-5) var(--ec-space-4);
     --ec-stat-gap: 4px;
     --ec-recent-col-date: 100px;
     --ec-recent-col-direction: 110px;

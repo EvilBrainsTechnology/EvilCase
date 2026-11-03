@@ -137,11 +137,18 @@ se potvrzuje a věta potvrzení jmenuje, co kaskáda bere.
 
 ### Mobil
 
-Desktop je primární, každá denně používaná obrazovka je plnohodnotná i na mobilu. Menu se
+Mobil je každá šířka pod `lg` (992 px), tablet včetně. Desktop je primární, každá denně
+používaná obrazovka je plnohodnotná i na mobilu. Menu se
 schová do zásuvky, boční sloupec se zařadí pod hlavní, formulář má jeden sloupec a jeho
 tlačítka zůstávají u spodního okraje okna. Pole i celá lišta seznamu mají na mobilu písmo
 16 px. Seznam se nikdy neposouvá vodorovně: na úzké šířce se řádek přeskládá na dva až tři
 řádky a řazení přebírá select v liště.
+
+Na mobilu stránka karty nemá: sekce jsou bílé bloky přes celou šířku oddělené jednou linkou,
+bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznamu, údaj detailu,
+soubor i položka spodního panelu jsou řádky přes celou šířku s linkou od okraje k okraji.
+Zaoblení zůstává jen tam, kde nese význam: tlačítko, pole, chip, badge, přepínač, okno s okraji
+a horní rohy spodního panelu.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Název souboru v kartě má až dva řádky. Hlavička náhledu souboru
 nese na prvním řádku název a zavření, akce pod nimi na jednom řádku; na mobilu jsou Verze, Nová verze, Přejmenovat,

@@ -7557,6 +7557,153 @@ html:has(.ec-gate) {
     }
 }
 
+/* Edge to edge below lg (SDD-020): sections are full-width white blocks divided by a line; only text is inset. */
+@media (max-width: 991.98px) {
+    .ec-shell,
+    .ec-page {
+        background: var(--ec-surface);
+    }
+
+    .ec-page {
+        gap: 0;
+        max-width: none;
+        padding: 0;
+    }
+
+    .ec-detail-layout,
+    .ec-detail-main,
+    .ec-detail-aside,
+    .ec-form-layout,
+    .ec-form-aside,
+    .ec-settings-layout,
+    .ec-contact-occurrences {
+        gap: 0;
+    }
+
+    .ec-card {
+        border: 0;
+        border-top: 1px solid var(--ec-border);
+        border-radius: 0;
+    }
+
+    /* A card right below the top bar or the title row has no line. */
+    .ec-page > .ec-card:first-child,
+    .ec-page > .ec-visually-hidden:first-child + .ec-card,
+    .ec-page-header + .ec-card,
+    .ec-page-header + :is(.ec-form-layout, .ec-detail-layout) > .ec-card:first-child,
+    .ec-page-header + .ec-form-layout > :first-child > .ec-card:first-child {
+        border-top: 0;
+    }
+
+    .ec-card-header {
+        min-height: calc(var(--ec-touch-min) + 2 * var(--ec-space-3));
+        box-sizing: border-box;
+        padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-card-body,
+    .ec-card-footer {
+        padding-inline: var(--ec-space-5);
+    }
+
+    .ec-page > .ec-page-header {
+        justify-content: center;
+        box-sizing: border-box;
+        min-height: calc(var(--ec-touch-min) + 2 * var(--ec-space-4));
+        padding: var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-table-bar,
+    .ec-contact-occurrences .ec-table-bar {
+        padding: 0 var(--ec-space-5) var(--ec-space-4);
+    }
+
+    .ec-table-row {
+        border-top: 1px solid var(--ec-border-subtle);
+        border-bottom: 0;
+        border-radius: 0;
+    }
+
+    /* The facts are one column of rows with full-width lines. */
+    .ec-detail-facts {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 0 calc(-1 * var(--ec-space-5));
+        border: 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .ec-detail-fact {
+        padding-inline: var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-right: 0;
+    }
+
+    .ec-detail-fact-copy .ec-copy {
+        margin-right: calc(-1 * var(--ec-space-4));
+    }
+
+    .ec-card-body:has(> .ec-detail) {
+        padding-bottom: 0;
+    }
+
+    .ec-tiles {
+        border: 0;
+        border-top: 1px solid var(--ec-border);
+        border-radius: 0;
+    }
+
+    .ec-stat {
+        padding: var(--ec-stat-pad-mobile);
+    }
+
+    /* The case link is a list row with a line, not an inset block. */
+    .ec-case-link {
+        margin: 0 calc(-1 * var(--ec-space-5));
+        padding: var(--ec-space-4) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+        background: none;
+    }
+
+    .ec-case-link:hover {
+        background: var(--ec-bg);
+    }
+
+    .ec-settings-nav {
+        padding: var(--ec-space-4) var(--ec-space-5) var(--ec-space-1);
+    }
+
+    .ec-file-list {
+        margin: 0 calc(-1 * var(--ec-space-5)) calc(-1 * var(--ec-space-5));
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-file-row,
+    .ec-file-row:first-child,
+    .ec-file-row:last-child {
+        padding: var(--ec-space-3) var(--ec-space-1) var(--ec-space-3) var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-bottom: 0;
+        border-radius: 0;
+    }
+
+    .ec-file-name:focus-visible::after {
+        border-radius: 0;
+    }
+
+    /* A sheet's items are full-width rows. */
+    .ec-label-option,
+    .ec-popover .ec-preview-versions-option {
+        padding-inline: var(--ec-space-5);
+        border-top: 1px solid var(--ec-border-subtle);
+        border-radius: 0;
+    }
+}
+
 @keyframes ec-spin {
     to {
         transform: rotate(360deg);
