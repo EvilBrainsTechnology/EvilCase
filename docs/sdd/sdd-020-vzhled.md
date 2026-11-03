@@ -172,6 +172,19 @@ pod ním velikost, okamžik a „soubor 2 z 5“, vpravo zavření, v editoru Zr
 ní nese stránku, hledání, listování, Stáhnout a ⋯ jako tiché ikony (SDD-012). Návrat na zprávu
 a Stáhnout přílohu jsou tlačítka jen s ikonou.
 
+### Aplikace na ploše
+
+Aplikace jde přidat na plochu telefonu z nabídky prohlížeče (Chrome na Androidu, Safari na iOS);
+sama instalaci nenabízí. Z plochy se otevře jako EvilCase na celou obrazovku bez lišty
+prohlížeče. Stavový řádek telefonu je černý a žádný ovládací prvek neleží pod výřezem displeje
+ani pod indikátorem domovské obrazovky. Aplikace nemá režim bez připojení:
+na zařízení si nedrží žádná data a bez připojení se neotevře. Na iOS se aplikace z plochy
+přihlašuje zvlášť, nezávisle na Safari.
+
+Ikona aplikace i ikona záložky jsou značka z přihlášení: bílé váhy na poli v barvě akcentu,
+váhy přes 62 % šířky pole. Ikona záložky a ikona na počítači mají zaoblené rohy jako značka;
+ikona na ploše telefonu vyplní celé pole a rohy jí dá telefon.
+
 ### Bez cizí knihovny
 
 Vzhled se nestaví přebarvením cizího CSS. Aplikace nenese knihovnu komponent ani cizí stylopis
@@ -192,6 +205,8 @@ komponenta ho schová za vlastní rozhraní, aby ho obrazovky neviděly.
 - Soubory a komentáře úkonu: samostatný panel / uvnitř úkonu. Platí uvnitř úkonu.
 - Smazání na detailu: tlačítko vedle hlavní akce / poslední položka nabídky. Platí položka
   nabídky.
+- Režim bez připojení: data uložená v zařízení / žádný. Platí žádný.
+- Nabídka instalace: tlačítko v aplikaci / jen nabídka prohlížeče. Platí nabídka prohlížeče.
 
 ## Dopady
 
