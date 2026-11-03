@@ -111,7 +111,7 @@ public class MarkdownDiffLibraryTests
     }
 
     [Test]
-    public async Task AChangeOfFormatAloneIsNamedOverTheTextItCoversAndOnceAfterItsBlock()
+    public async Task AChangeOfFormatIsNamedOverTheTextItCovers()
     {
         var lines = await this.Diff("""
             [
@@ -128,56 +128,49 @@ public class MarkdownDiffLibraryTests
         string[] expected =
         [
             "newer format \"14 dní\": nově tučně",
-            "newer named \"Splatnost je 14 dní.\": nově tučně",
             "newer format \"převodem\": dříve kurzívou",
-            "newer named \"Platba převodem.\": dříve kurzívou",
             "newer format \"ceníku\": adresa odkazu https://a.example → https://b.example",
-            "newer named \"Podle ceníku.\": adresa odkazu https://a.example → https://b.example",
             "newer format \"ABC\": nově přeškrtnuto, nově jako kód",
-            "newer named \"Kód ABC a text.\": nově přeškrtnuto, nově jako kód",
             "newer format \"Záloha\": nově tučně",
             "newer format \"doplatek\": nově tučně",
-            "newer named \"Záloha a doplatek.\": nově tučně",
             "summary +5 −5 in 1",
         ];
 
-        Assert.That(lines, Is.EqualTo(expected), "a block names each change of format once on its label");
+        Assert.That(lines, Is.EqualTo(expected), "a change of format is named over each stretch it covers");
     }
 
     [Test]
-    public async Task AChangeOfBlockTypeNamesBothTypesOnTheBlocksLabel()
+    public async Task AChangeOfBlockTypeIsNamedOverTheTextNoChangeOfFormatCovers()
     {
         var lines = await this.Diff("""
             [
               [["h2", "Poznámka"], ["p", "Bod"], ["p", "Úkol", { "in": ["task"] }], ["p", "Citát", { "in": ["quote"] }],
-               ["code", "x = 1"], ["p", "Vnořený", { "in": ["bullet"] }], ["h3", "Termíny"]],
+               ["code", "x = 1"], ["p", "Vnořený", { "in": ["bullet"] }], ["h3", "Termíny plnění díla"], ["h4", "Lhůta"],
+               ["h4", ""]],
               [["p", "Poznámka"], ["p", "Bod", { "in": ["bullet"] }], ["p", "Úkol", { "in": ["done"] }], ["p", "Citát"],
                ["p", "x = 1"], ["p", "Vnořený", { "in": ["bullet", "bullet"] }],
-               ["p", "Termíny", { "marks": [[0, 7, { "strong": true }]] }]]
+               ["p", "Termíny plnění díla", { "marks": [[8, 14, { "strong": true }]] }], ["p", "Lhůta běží"], ["p", ""]]
             ]
             """);
 
         string[] expected =
         [
-            "newer restyled \"Poznámka\"",
-            "newer named \"Poznámka\": nadpis 2 → odstavec",
-            "newer restyled \"Bod\"",
-            "newer named \"Bod\": odstavec → odrážka",
-            "newer restyled \"Úkol\"",
-            "newer named \"Úkol\": úkol → splněný úkol",
-            "newer restyled \"Citát\"",
-            "newer named \"Citát\": citace → odstavec",
-            "newer restyled \"x = 1\"",
-            "newer named \"x = 1\": blok kódu → odstavec",
-            "newer restyled \"Vnořený\"",
-            "newer named \"Vnořený\": odrážka → odrážka 2. úrovně",
-            "newer restyled \"Termíny\"",
-            "newer format \"Termíny\": nově tučně",
-            "newer named \"Termíny\": nadpis 3 → odstavec; nově tučně",
-            "summary +7 −7 in 1",
+            "newer restyled \"Poznámka\": nadpis 2 → odstavec",
+            "newer restyled \"Bod\": odstavec → odrážka",
+            "newer restyled \"Úkol\": úkol → splněný úkol",
+            "newer restyled \"Citát\": citace → odstavec",
+            "newer restyled \"x = 1\": blok kódu → odstavec",
+            "newer restyled \"Vnořený\": odrážka → odrážka 2. úrovně",
+            "newer restyled \"Termíny \": nadpis 3 → odstavec",
+            "newer restyled \" díla\": nadpis 3 → odstavec",
+            "newer format \"plnění\": nadpis 3 → odstavec; nově tučně",
+            "newer inserted \" běží\"",
+            "newer restyled \"Lhůta běží\": nadpis 4 → odstavec",
+            "newer restyled \"\": nadpis 4 → odstavec",
+            "summary +9 −9 in 1",
         ];
 
-        Assert.That(lines, Is.EqualTo(expected), "a block of another type and format names both changes on one label");
+        Assert.That(lines, Is.EqualTo(expected), "a stretch of another format in a block of another type names both changes, the rest of the block and an empty block the type alone");
     }
 
     [Test]

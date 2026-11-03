@@ -343,9 +343,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   zdrojovém kódu.
 - Formátované porovnání ukáže obě verze jako náhled Markdownu, které nejdou měnit. Vložený text je
   zelený a podtržený, smazaný červený a přeškrtnutý. Text, kterému se změnil jen formát, a blok
-  jiného typu jsou fialové s čárkovaným rámečkem. Blok, kterému se změnil typ nebo formát, nese za
-  textem štítek, který změny pojmenuje („nadpis 2 → odstavec; nově tučně“, „adresa odkazu A → B“);
-  změnu formátu pojmenuje i tooltip nad textem. Přidaný blok je celý zelený, odebraný celý
+  jiného typu jsou fialové s čárkovaným rámečkem. Změnu typu a formátu pojmenuje tooltip nad
+  zvýrazněním („nadpis 2 → odstavec; nově tučně“, „adresa odkazu A → B“), který otevře najetí myší
+  nebo klepnutí a klepnutí jinam zavře. Přidaný blok je celý zelený, odebraný celý
   červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
   se první buňky v každé z tabulek liší. Pod porovnáním stojí legenda barev.
 - Vedle sebe stojí protější bloky na stejné výšce. V jednom sloupci stojí odebraný obsah tam, kde

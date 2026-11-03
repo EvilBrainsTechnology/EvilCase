@@ -634,23 +634,16 @@ function element(name, className, text) {
     return dom;
 }
 
-// The decorations of the differences of one document. A block names its changes of type and format on a label after its
-// text; a stretch in another format also on a tooltip.
-function differenceMarks(doc, marks) {
+// The decorations of the differences of one document. A stretch or block in another format or of another type names the
+// change on a tooltip, which a tap opens as it takes the focus.
+function differenceMarks(marks) {
     const decorations = [];
     for (const mark of marks) {
         if (mark.type === 'deleted' || mark.type === 'inserted') {
             decorations.push(Decoration.inline(mark.from, mark.to, { nodeName: mark.type === 'deleted' ? 'del' : 'ins', class: 'ec-markdown-compare-' + mark.type }));
-        } else if (mark.type === 'format') {
-            decorations.push(Decoration.inline(mark.from, mark.to, { class: 'ec-markdown-compare-format', 'data-format': mark.title }));
-        } else if (mark.type === 'restyled') {
-            const node = doc.nodeAt(mark.node);
-            decorations.push(node.isTextblock && node.content.size > 0
-                ? Decoration.inline(mark.node + 1, mark.end - 1, { class: 'ec-markdown-compare-format' })
-                : Decoration.node(mark.node, mark.end, { class: 'ec-markdown-compare-format' }));
-        } else if (mark.type === 'named') {
-            const at = doc.nodeAt(mark.node).isTextblock ? mark.end - 1 : mark.end;
-            decorations.push(Decoration.widget(at, () => element('span', 'ec-markdown-compare-chip', mark.title), { side: 1, ignoreSelection: true }));
+        } else if (mark.type === 'format' || mark.type === 'restyled') {
+            const attrs = { class: 'ec-markdown-compare-format', 'data-format': mark.title, tabindex: '-1' };
+            decorations.push(mark.from !== undefined ? Decoration.inline(mark.from, mark.to, attrs) : Decoration.node(mark.node, mark.end, attrs));
         } else {
             decorations.push(Decoration.node(mark.node, mark.end, { class: 'ec-markdown-compare-' + mark.type }));
         }
@@ -713,10 +706,10 @@ export async function createMarkdownCompare(parent, scroller, older, newer, unif
     const result = differences(blocksOf(olderDoc), blocksOf(newerView.state.doc));
 
     if (unified) {
-        setMarks(newerView, differencesKey, [...differenceMarks(newerView.state.doc, result.newer), ...deletionMarks(olderDoc, result.deletions)]);
+        setMarks(newerView, differencesKey, [...differenceMarks(result.newer), ...deletionMarks(olderDoc, result.deletions)]);
     } else {
-        setMarks(views[0], differencesKey, differenceMarks(views[0].state.doc, result.older));
-        setMarks(views[1], differencesKey, differenceMarks(views[1].state.doc, result.newer));
+        setMarks(views[0], differencesKey, differenceMarks(result.older));
+        setMarks(views[1], differencesKey, differenceMarks(result.newer));
     }
 
     // Side by side a spacer stands at the start of each block that faces one on the other side; its height brings the two
