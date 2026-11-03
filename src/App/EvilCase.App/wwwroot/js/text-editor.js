@@ -1,6 +1,6 @@
 // The editor and the read-only view of a text file. CodeMirror is loaded from ../lib the first time either opens; the
 // text leaves the browser only as what a save reads.
-import { stepZoom, wheelZoom } from './preview-shared.js';
+import { stepZoom, touchZoom, wheelZoom } from './preview-shared.js';
 import { debouncedFind, findMatches, foldText } from './text-search.js';
 
 const editors = new Map();
@@ -91,6 +91,7 @@ export async function openViewer(host, text, language, format, label, view) {
         () => view.invokeMethodAsync('FocusSearch').catch(() => {}));
 
     wheelZoom(host.parentElement ?? host, stop.signal, () => entry.zoom, (zoom) => setZoom(host, entry, zoom));
+    touchZoom(host.parentElement ?? host, stop.signal, () => entry.zoom, (zoom) => setZoom(host, entry, zoom));
 
     return { formatted: entry.formatted !== null, invalid: answer.invalid === true };
 }

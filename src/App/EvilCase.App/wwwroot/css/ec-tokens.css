@@ -324,6 +324,7 @@
     --ec-preview-toolbar-search-width: 260px;
     --ec-preview-toolbar-matches: 72px;
     --ec-preview-toolbar-search-mobile: 96px;
+    --ec-compare-version-label-mobile: 72px;
     --ec-toolbar-notes-min: 96px;
     --ec-preview-hit: rgba(255, 196, 0, 0.35);
     --ec-preview-hit-current: rgba(255, 112, 0, 0.45);

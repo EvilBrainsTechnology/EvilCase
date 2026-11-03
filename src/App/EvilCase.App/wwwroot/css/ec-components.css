@@ -257,6 +257,11 @@ html {
     display: contents;
 }
 
+/* Text a button carries only below lg. */
+.ec-text-narrow {
+    display: none;
+}
+
 .ec-page-header-row {
     display: flex;
     align-items: center;
@@ -1391,6 +1396,13 @@ html.ec-scroll-locked {
 /* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
 .ec-preview-actions {
     display: contents;
+}
+
+/* Below lg the file actions sit in the preview's toolbar and the file's position in the meta line. */
+.ec-preview-compact,
+.ec-preview-toolbar-actions,
+.ec-preview-meta-position {
+    display: none;
 }
 
 .ec-preview-nav {
@@ -2632,8 +2644,13 @@ html.ec-scroll-locked {
     overflow-x: auto;
 }
 
-.ec-markdown-toolbar-buttons > * {
+.ec-markdown-toolbar-buttons > *,
+.ec-markdown-toolbar-format > * {
     flex: 0 0 auto;
+}
+
+.ec-markdown-toolbar-format {
+    display: contents;
 }
 
 .ec-markdown-toolbar-buttons > .ec-toolbar-notes {
@@ -5277,13 +5294,72 @@ html.ec-scroll-locked {
     }
 
     .ec-modal-large {
-        width: calc(100vw - 2 * var(--ec-space-4));
-        height: calc(var(--ec-viewport-height) - 2 * var(--ec-space-4));
+        width: 100vw;
+        max-width: none;
+        height: var(--ec-viewport-height);
+        margin: 0;
+        border: 0;
+        border-radius: 0;
     }
 
     .ec-modal-large .ec-modal-header {
         flex-wrap: wrap;
-        padding: var(--ec-space-3) var(--ec-space-4);
+        gap: var(--ec-space-3);
+        min-height: 0;
+        padding: var(--ec-space-2) var(--ec-space-2) var(--ec-space-2) var(--ec-space-4);
+    }
+
+    .ec-preview-meta-position {
+        display: inline;
+    }
+
+    /* The header keeps the name and the close; the file actions are the toolbar's, or a row of their own. */
+    .ec-preview-actions:has(+ .ec-preview-compact) {
+        display: none;
+    }
+
+    .ec-preview-compact,
+    .ec-preview-toolbar-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ec-preview-compact:has(> :nth-child(3)) {
+        flex: 1 1 100%;
+        order: 1;
+        justify-content: flex-end;
+    }
+
+    .ec-modal-large:has(.ec-preview-toolbar-actions) .ec-modal-header .ec-preview-compact {
+        display: none;
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-compact .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-modal-large .ec-modal-header > .ec-button-ghost {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+
+    /* The editor's header holds Zrušit and Uložit; Zrušit closes it. */
+    .ec-modal-large .ec-modal-header:has(> .ec-preview-edit-actions) > .ec-button-ghost {
+        display: none;
+    }
+
+    /* Beside them the file name gets two lines. */
+    .ec-modal-header:has(> .ec-preview-edit-actions) .ec-preview-name {
+        display: -webkit-box;
+        overflow-wrap: anywhere;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
     }
 
     .ec-modal-large .ec-modal-header > :is(.ec-preview-title, .ec-file-rename) {
@@ -5330,11 +5406,9 @@ html.ec-scroll-locked {
     }
 
     .ec-preview-edit-actions {
-        display: grid;
-        flex: 1 1 100%;
-        order: 1;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: var(--ec-space-3);
+        display: flex;
+        flex: 0 0 auto;
+        gap: var(--ec-space-2);
     }
 
     .ec-modal-large .ec-modal-header .ec-preview-edit-actions .ec-button {
@@ -5397,8 +5471,29 @@ html.ec-scroll-locked {
         flex-direction: column;
     }
 
+    /* One row: the version picker and the way back to the current version. */
     .ec-preview-versions {
-        padding: var(--ec-space-3) var(--ec-space-4);
+        flex-wrap: nowrap;
+        gap: var(--ec-space-2);
+        padding: var(--ec-space-2) var(--ec-space-3);
+    }
+
+    .ec-preview-versions-label,
+    .ec-preview-versions-note {
+        display: none;
+    }
+
+    .ec-preview-versions .ec-preview-versions-trigger {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-versions > .ec-button {
+        min-height: var(--ec-touch-min);
+        margin-left: auto;
+    }
+
+    .ec-text-narrow {
+        display: contents;
     }
 
     .ec-preview-versions-option,
@@ -5484,11 +5579,10 @@ html.ec-scroll-locked {
     .ec-preview-sheet-tabs {
         padding-inline: var(--ec-space-4);
     }
-
-    /* Na mobilu zůstane lupa, stránka a ikona hledání; pole hledání se otevře na vlastním řádku. */
+    /* The toolbar keeps the page, the view switches, the search icon and the file actions; the search field opens on a row of its own. */
     .ec-preview-toolbar {
-        gap: var(--ec-space-2) var(--ec-space-3);
-        padding: var(--ec-space-2) var(--ec-space-4);
+        gap: var(--ec-space-2) var(--ec-space-1);
+        padding: var(--ec-space-2) var(--ec-space-3);
     }
 
     .ec-preview-toolbar .ec-button {
@@ -5502,17 +5596,30 @@ html.ec-scroll-locked {
         height: var(--ec-touch-min);
     }
 
+    /* Two fingers zoom the preview; a double tap fits it to the width. */
     .ec-preview-toolbar-page-word,
-    .ec-preview-toolbar-zoom-value,
-    .ec-preview-toolbar-fit-page,
-    .ec-preview-toolbar-fit-actual,
+    .ec-preview-toolbar-zoom,
+    .ec-preview-toolbar > .ec-preview-toolbar-separator,
     .ec-preview-toolbar-label {
         display: none;
+    }
+
+    .ec-preview-stage,
+    .ec-preview-pdf {
+        touch-action: pan-x pan-y;
     }
 
     .ec-preview-toolbar-search-toggle {
         display: block;
         margin-left: auto;
+    }
+
+    .ec-preview-toolbar-actions .ec-button-secondary,
+    .ec-preview-compact .ec-button-secondary,
+    .ec-preview-toolbar-search-toggle .ec-button-secondary {
+        border-color: transparent;
+        background: transparent;
+        color: var(--ec-text-soft);
     }
 
     .ec-preview-toolbar-search-collapsible {
@@ -5536,9 +5643,13 @@ html.ec-scroll-locked {
         min-width: 0;
     }
 
-    /* The editor's toolbar stays one row: what does not fit scrolls sideways. */
+    /* The editor's toolbar stays one row: what does not fit scrolls sideways. An open search takes a row of its own. */
     .ec-text-editor-toolbar {
         overflow-x: auto;
+    }
+
+    .ec-text-editor-toolbar:has(> .ec-preview-toolbar-search-open) {
+        flex-wrap: wrap;
     }
 
     .ec-text-editor-toolbar > * {
@@ -5549,17 +5660,39 @@ html.ec-scroll-locked {
         flex: 1 1 0;
     }
 
-    .ec-text-editor-toolbar > .ec-preview-toolbar-search {
-        flex: 1 1 auto;
-        min-width: 0;
+    .ec-text-editor-toolbar > .ec-preview-toolbar-search-open,
+    .ec-markdown-toolbar > .ec-preview-toolbar-search-open {
+        flex: 1 1 100%;
     }
 
-    .ec-text-editor-toolbar .ec-preview-toolbar-search-box {
-        min-width: var(--ec-preview-toolbar-search-mobile);
-    }
-
+    /* The Markdown editor: the history, the view and the search on the first row, the formatting scrolls on the second. */
     .ec-markdown-toolbar {
         flex-wrap: wrap;
+    }
+
+    .ec-markdown-toolbar-buttons {
+        display: contents;
+    }
+
+    .ec-markdown-toolbar-format {
+        display: flex;
+        flex: 1 1 100%;
+        order: 2;
+        align-items: center;
+        gap: var(--ec-space-1);
+        margin: 0 calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+    }
+
+    .ec-markdown-toolbar-format > .ec-preview-toolbar-separator:first-child {
+        display: none;
+    }
+
+    .ec-markdown-toolbar-format > .ec-button {
+        scroll-snap-align: start;
     }
 
     /* The version, the steps and the summary on one row, the legend on a short row below. */
@@ -5647,6 +5780,40 @@ html.ec-scroll-locked {
     .ec-text-compare-version .ec-preview-versions-trigger {
         justify-content: space-between;
         min-height: var(--ec-touch-min);
+    }
+
+    /* Starší and Novější stand inside their pickers. */
+    .ec-text-compare-versions .ec-text-compare-version {
+        display: grid;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version > * {
+        grid-area: 1 / 1;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-title {
+        margin-right: auto;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-label {
+        align-self: center;
+        position: relative;
+        z-index: 1;
+        padding-left: var(--ec-space-4);
+        font-size: var(--ec-text-xs);
+        font-weight: var(--ec-weight-regular);
+        color: var(--ec-text-muted);
+        pointer-events: none;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version .ec-preview-versions-trigger {
+        padding-left: var(--ec-compare-version-label-mobile);
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-meta {
+        display: none;
     }
 
     .ec-text-compare .cm-editor .cm-line,
@@ -7595,9 +7762,12 @@ html:has(.ec-gate) {
     .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input,
         .ec-preview-toolbar-page-input, .ec-preview-toolbar-search-input),
     .ec-preview-markdown[contenteditable="true"],
-    .ec-preview-markdown [contenteditable="true"],
-    .ec-text-editor .cm-editor .cm-content {
+    .ec-preview-markdown [contenteditable="true"] {
         font-size: var(--ec-text-lg);
+    }
+
+    .ec-text-editor .cm-editor .cm-content {
+        font-size: calc(var(--ec-text-lg) * var(--ec-preview-zoom, 1));
     }
 
     /* A quiet action has a 44 px touch area without growing its line. */

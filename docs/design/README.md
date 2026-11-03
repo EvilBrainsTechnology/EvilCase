@@ -25,6 +25,7 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`detail-ukonu.html`](detail-ukonu.html) | Detail úkonu | `/acts/{actId}` |
 | [`novy-ukon.html`](novy-ukon.html) | Založení úkonu, předloha i pro editaci | `/acts/new?case={id}`, `/acts/{actId}/edit` |
 | [`nahled-dokumentu.html`](nahled-dokumentu.html) | Náhled dokumentu Word v modalu souborů | detail spisu a úkonu |
+| [`nahled-dokumentu-mobil.html`](nahled-dokumentu-mobil.html) | Náhled souboru na mobilu, předloha hlavičky a lišty všech náhledů | detail spisu a úkonu |
 | [`soubory-verze.html`](soubory-verze.html) | Karta souborů s verzemi | detail spisu a úkonu |
 | [`verze-souboru.html`](verze-souboru.html) | Verze souboru | detail spisu a úkonu |
 | [`nahled-starsi-verze.html`](nahled-starsi-verze.html) | Náhled starší verze | detail spisu a úkonu |

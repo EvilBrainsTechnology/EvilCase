@@ -59,6 +59,16 @@
 
     private int active;
 
+    protected override void OnParametersSet()
+    {
+        // The items may change while the menu is open.
+        if (this.itemElements.Length == this.Items.Count)
+            return;
+
+        this.itemElements = new ElementReference[this.Items.Count];
+        this.active = Math.Min(this.active, this.Items.Count - 1);
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!this.focusFirst)
@@ -71,7 +81,6 @@
 
     private void Open()
     {
-        this.itemElements = new ElementReference[this.Items.Count];
         this.active = 0;
         this.focusFirst = true;
         this.open = true;
