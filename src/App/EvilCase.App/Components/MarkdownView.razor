@@ -36,7 +36,7 @@ else
                             <span class="ec-preview-toolbar-separator" aria-hidden="true"></span>
                             @foreach (var (command, label, icon, text) in group)
                             {
-                                <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" title="@label"
+                                <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@icon" AriaLabel="@label" data-tooltip="@label"
                                           Disabled="@(this.disabled.Contains(command) || this.Comparing)"
                                           aria-pressed="@(command == "table" ? null : this.active.Contains(command) ? "true" : "false")"
                                           OnClick="@(() => this.Run(command))">

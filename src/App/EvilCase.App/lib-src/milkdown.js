@@ -642,7 +642,7 @@ function differenceMarks(marks) {
         if (mark.type === 'deleted' || mark.type === 'inserted') {
             decorations.push(Decoration.inline(mark.from, mark.to, { nodeName: mark.type === 'deleted' ? 'del' : 'ins', class: 'ec-markdown-compare-' + mark.type }));
         } else if (mark.type === 'format' || mark.type === 'restyled') {
-            const attrs = { class: 'ec-markdown-compare-format', 'data-format': mark.title, tabindex: '-1' };
+            const attrs = { class: 'ec-markdown-compare-format', 'data-tooltip': mark.title, 'data-tooltip-tap': '', tabindex: '-1' };
             decorations.push(mark.from !== undefined ? Decoration.inline(mark.from, mark.to, attrs) : Decoration.node(mark.node, mark.end, attrs));
         } else {
             decorations.push(Decoration.node(mark.node, mark.end, { class: 'ec-markdown-compare-' + mark.type }));

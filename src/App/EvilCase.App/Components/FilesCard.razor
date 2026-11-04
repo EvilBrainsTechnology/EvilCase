@@ -108,14 +108,14 @@
                                 {
                                     <div class="ec-file-main">
                                         <button type="button" class="ec-file-name" @ref="this.nameButtons[file.FileId]"
-                                                title="@(this.Compact ? file.FileName : "Otevřít náhled")"
+                                                data-tooltip="@(this.Compact ? null : "Otevřít náhled")" data-tooltip-overflow="@this.Compact"
                                                 @onclick="() => this.Open(file)">@file.FileName</button>
                                         <span class="ec-file-meta">@if (stored is { } freshOutcome && this.Compact) { <EcBadge Text="@FreshText(freshOutcome)" Tone="EcBadgeTone.Fresh" /> }@if (file.VersionCount > 1 && this.Compact) { <span class="ec-file-version">verze @file.Version</span>@(" ")<span class="ec-sep" aria-hidden="true">·</span>@(" ") }@if (file.VersionCount > 1 && !this.Compact) { <EcBadge Text="@($"verze {file.Version}")" Tone="EcBadgeTone.FileVersion" /> }@if (stored is { } wideOutcome && !this.Compact) { <EcBadge Text="@FreshText(wideOutcome)" Tone="EcBadgeTone.Fresh" /> }@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> <span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
                                     </div>
                                     <div class="ec-file-actions">
                                         <MainFileStar IsMain="file.IsMain" FileName="@file.FileName" OnChange="main => this.ChangeMainFromRow(file, main)" />
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                                  AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout"
+                                                  AriaLabel="@($"Stáhnout {file.FileName}")" data-tooltip="Stáhnout"
                                                   OnClick="() => this.Download(file)" />
                                         <span class="ec-file-menu-wide"><EcMenu AriaLabel="@($"Další akce se souborem {file.FileName}")" Items="this.FileActions(file, download: false)" /></span>
                                         @* Below lg the row has no download button; its menu opens with the download. *@

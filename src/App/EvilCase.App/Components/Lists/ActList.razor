@@ -20,7 +20,7 @@
                 Width = "var(--ec-list-col-moment)",
                 SortKey = nameof(ActSortKey.Changed),
                 CellClass = "ec-cell-num",
-                Cell = item =>@<span title="@MomentDisplay.Text(item.Changed)">@MomentDisplay.Relative(item.Changed, DateTime.Now)</span>,
+                Cell = item =>@<span data-tooltip="@MomentDisplay.Text(item.Changed)">@MomentDisplay.Relative(item.Changed, DateTime.Now)</span>,
             },
             ActColumn.Date => new EcColumn<ActListItem>
             {
@@ -83,7 +83,7 @@
                 SortKey = nameof(ActSortKey.Title),
                 Primary = true,
                 Cell = item =>@<text>
-                    <span class="ec-cell-text" title="@item.Title">@item.Title</span>
+                    <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
                     <LabelChips Labels="item.Labels" />
                 </text>,
             },
@@ -96,10 +96,10 @@
                 CellClass = "ec-cell-stack",
                 Cell = item =>@<text>
                     <span class="ec-cell-line">
-                        <span class="ec-cell-text" title="@item.Title">@item.Title</span>
+                        <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
                         <LabelChips Labels="item.Labels" />
                     </span>
-                    <span class="ec-cell-text ec-cell-sub" title="@item.CaseTitle">@item.CaseTitle</span>
+                    <span class="ec-cell-text ec-cell-sub" data-tooltip-overflow>@item.CaseTitle</span>
                 </text>,
             },
             ActColumn.MainFile => new EcColumn<ActListItem>
@@ -111,7 +111,7 @@
                     @if (item.MainFile is { } main)
                     {
                         @* Inside the row's link: the click opens the preview and never follows the row. *@
-                        <button type="button" class="ec-main-file ec-tooltip" aria-label="@main.FileName" data-tooltip="@main.FileName"
+                        <button type="button" class="ec-main-file" aria-label="@main.FileName" data-tooltip="@main.FileName"
                                 @onclick="() => this.OpenMainFile(item.ActId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
                             <EcFileIcon FileName="@main.FileName" Size="EcFileIconSize.Compact" />
                         </button>

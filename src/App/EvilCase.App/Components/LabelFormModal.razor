@@ -31,7 +31,7 @@
                             @foreach (var color in LabelColorDisplay.Palette)
                             {
                                 <button type="button" class="@($"ec-swatch ec-chip-{LabelColorDisplay.Css(color)}")"
-                                        title="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
+                                        data-tooltip="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
                                         aria-pressed="@(this.model.Color == color ? "true" : "false")"
                                         @onclick="() => this.model.Color = color"></button>
                             }

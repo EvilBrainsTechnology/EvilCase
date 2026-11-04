@@ -1,6 +1,6 @@
 @* Filled on the main file, empty on the others; a click sets or unsets the mark. *@
 <button type="button" class="@(this.IsMain ? "ec-button ec-button-icon ec-main-star ec-main-star-on" : "ec-button ec-button-icon ec-main-star")"
-        aria-label="@this.Label" title="@this.Text" @onclick="() => this.OnChange.InvokeAsync(!this.IsMain)">
+        aria-label="@this.Label" data-tooltip="@this.Text" @onclick="() => this.OnChange.InvokeAsync(!this.IsMain)">
     <EcIcon Paths="@AppIcons.Star" />
 </button>
 

@@ -53,11 +53,11 @@
 
                             <li class="ec-preview-data-message-attachment">
                                 <EcFileIcon FileName="@item.Name" Size="EcFileIconSize.Compact" />
-                                <button type="button" class="ec-preview-data-message-attachment-open" title="Otevřít náhled"
+                                <button type="button" class="ec-preview-data-message-attachment-open" data-tooltip="Otevřít náhled"
                                         @onclick="() => this.OnOpenAttachment.InvokeAsync((message, attachmentIndex))">@item.Name</button>
                                 <span class="ec-preview-data-message-attachment-size">@FileSizeDisplay.Text(item.Content.Length)</span>
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
-                                          AriaLabel="@($"Stáhnout {item.Name}")" title="Stáhnout" OnClick="() => this.DownloadAttachment(item)" />
+                                          AriaLabel="@($"Stáhnout {item.Name}")" data-tooltip="Stáhnout" OnClick="() => this.DownloadAttachment(item)" />
                             </li>
                         }
                     </ul>
