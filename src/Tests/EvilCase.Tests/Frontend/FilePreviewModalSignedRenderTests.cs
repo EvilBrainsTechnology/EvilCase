@@ -147,7 +147,7 @@ public class FilePreviewModalSignedRenderTests
 
         await component.WaitForAssertionAsync(() => Assert.That(editors.OpenedReadOnly, Is.EqualTo([true])));
 
-        Assert.That(await FilePreviewHeaderMenu.Texts(component), Is.EqualTo(["Stáhnout .p7m", "Nahrát novou verzi", "Přejmenovat"]), "the content of a signed document is not edited and the header's Stáhnout downloads the document");
+        Assert.That(await FilePreviewHeaderMenu.Texts(component), Is.EqualTo(["Nahrát novou verzi", "Přejmenovat", "Stáhnout .p7m"]), "the content of a signed document is not edited and the menu downloads the signed file whole");
     }
 
     [Test]

@@ -134,15 +134,8 @@
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Compare" AriaLabel="Porovnat" OnClick="() => this.StartCompare(file)"><span class="ec-preview-action-label">Porovnat</span></EcButton>
                     }
-                    @if (this.signedContentName is not null)
-                    {
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout dokument" OnClick="this.DownloadSignedContent"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
-                    }
-                    else
-                    {
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
-                    }
-                    <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.HeaderMenuActions(file)" />
+                    @this.DownloadButton(file, labelled: true)
+                    <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.MoreActions(file, compact: false)" />
                     @this.FileSteps()
                 </div>
                 @* Below lg the preview's toolbar carries these; a preview without one, an image's included, keeps them here. *@
@@ -1281,6 +1274,15 @@
         await this.UploadNewVersion(file, args.File);
     }
 
+    // The version shown, or the document a signed file carries; below lg without its label.
+    private RenderFragment DownloadButton(FileListItem file, bool labelled)
+    {
+        RenderFragment? label = labelled ? @<span class="ec-preview-action-label">Stáhnout</span> : null;
+
+        return @<EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="@(this.signedContentName is null ? "Stáhnout" : "Stáhnout dokument")"
+                          OnClick="() => this.DownloadShown(file)" ChildContent="label" />;
+    }
+
     // Below lg: the steps without the position, the download and a menu with the header's other actions.
     private RenderFragment CompactActions(FileListItem file)
     {
@@ -1290,19 +1292,13 @@
                 <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronLeft" AriaLabel="Předchozí soubor" OnClick="() => this.Step(-1)" />
                 <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronRight" AriaLabel="Další soubor" OnClick="() => this.Step(1)" />
             }
-            @if (this.signedContentName is not null)
-            {
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout dokument" OnClick="this.DownloadSignedContent" />
-            }
-            else
-            {
-                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)" />
-            }
-            <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.MoreActions(file)" />
+            @this.DownloadButton(file, labelled: false)
+            <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.MoreActions(file, compact: true)" />
         </text>;
     }
 
-    private List<EcMenuItem> MoreActions(FileListItem file)
+    // The file's menu: in the toolbar below lg with Verze and Porovnat, which the header carries as buttons above lg.
+    private List<EcMenuItem> MoreActions(FileListItem file, bool compact)
     {
         var actions = new List<EcMenuItem>();
 
@@ -1312,10 +1308,10 @@
         if (!this.uploadingVersion)
             actions.Add(new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, this.PickVersion) });
 
-        if (file.VersionCount > 1 && this.OlderVersion is null)
+        if (compact && file.VersionCount > 1 && this.OlderVersion is null)
             actions.Add(new EcMenuItem { Text = $"Verze ({file.VersionCount})", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, this.ToggleVersions) });
 
-        if (file.VersionCount > 1 && FileTypeDisplay.Compares(file.FileName))
+        if (compact && file.VersionCount > 1 && FileTypeDisplay.Compares(file.FileName))
             actions.Add(new EcMenuItem { Text = "Porovnat", Icon = AppIcons.Compare, OnSelect = EventCallback.Factory.Create(this, () => this.StartCompare(file)) });
 
         actions.Add(new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, this.StartRename) });
@@ -1326,37 +1322,6 @@
 
             actions.Add(new EcMenuItem { Text = $"Stáhnout {extension}", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
         }
-
-        return [.. actions, .. this.FileMenuActions(file)];
-    }
-
-    // The header's menu above lg.
-    private List<EcMenuItem> HeaderMenuActions(FileListItem file)
-    {
-        var actions = new List<EcMenuItem>();
-
-        if (this.CanEdit)
-            actions.Add(new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Factory.Create(this, this.StartEdit) });
-
-        if (this.signedContentName is not null)
-        {
-            var extension = Path.GetExtension(file.FileName);
-
-            actions.Add(new EcMenuItem { Text = $"Stáhnout {extension}", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
-        }
-
-        if (!this.uploadingVersion)
-            actions.Add(new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, this.PickVersion) });
-
-        actions.Add(new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, this.StartRename) });
-
-        return [.. actions, .. this.FileMenuActions(file)];
-    }
-
-    // Closes the header's menu above lg and the toolbar's below it.
-    private List<EcMenuItem> FileMenuActions(FileListItem file)
-    {
-        var actions = new List<EcMenuItem>();
 
         if (this.OnDelete.HasDelegate)
         {
