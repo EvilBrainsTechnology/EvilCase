@@ -38,7 +38,7 @@ a edituje existující.
   (zkopírování odkazu na kontakt, smazání kontaktu). ID datové schránky a adresa mají každá
   tlačítko pro zkopírování, je-li hodnota vyplněná. Seznam spisů se dá hledat a filtrovat podle
   stavu, výchozí jsou všechny stavy včetně uzavřených; seznam úkonů se dá hledat a filtrovat podle
-  směru. Seznam spisů ukazuje datum spisu, název, stav a změnu, seznam úkonů datum úkonu, název, směr,
+  směru. Seznam spisů ukazuje datum spisu, název, stav, změnu a hlavní soubor (SDD-009), seznam úkonů datum úkonu, název, směr,
   stav, změnu a hlavní soubor (SDD-010). Úkon v seznamu nese v jedné buňce název se štítky a pod ním šedě název spisu, jako na
   přehledu (SDD-015). Kontakt bez výskytů ukazuje dvě prázdné karty bez filtrů.
 

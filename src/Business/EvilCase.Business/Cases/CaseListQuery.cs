@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Api.Contract.Lists;
 using EvilBrains.EvilCase.Business.Entities;
@@ -116,6 +117,10 @@ internal static class CaseListQuery
                     Color = assignment.Label!.Color,
                 })
                 .ToList(),
+            MainFile = @case.Files
+                .Where(static file => file.IsMain)
+                .Select(static file => new MainFile { FileId = file.Id, FileName = file.FileName })
+                .SingleOrDefault(),
         });
     }
 }

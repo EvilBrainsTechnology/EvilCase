@@ -52,8 +52,8 @@ a otevírá se na nové kartě nebo v novém okně jako kterýkoli jiný odkaz. 
 pojmenovává entitu, které sloupec patří. Buňka nese odkaz jen tam, kde vede jinam než řádek.
 
 Každý seznam vypadá stejně; stránka volí jen sloupce, jejich pořadí a nabízené ovládání.
-Seznam spisů má poslední sloupec Změněno, seznam úkonů za ním úzký sloupec
-Soubor s hlavním souborem úkonu (SDD-010); datum spisu a úkonu je v každém seznamu tučné. Žádný seznam nezobrazuje číslo jednací ani spisovou značku.
+Seznam spisů i úkonů má za sloupcem Změněno poslední úzký sloupec Soubor s hlavním souborem
+(SDD-009, SDD-010); datum spisu a úkonu je v každém seznamu tučné. Žádný seznam nezobrazuje číslo jednací ani spisovou značku.
 Drobečky nad stránkou vedou přes všechny nadřízené spisy od kořenového a pojmenují spis, úkon
 i kontakt názvem, nikdy číslem jednacím ani spisovou značkou.
 Řaditelné záhlaví sloupce je tlačítko, na mobilu řadí select v liště. Lišta seznamu na mobilu

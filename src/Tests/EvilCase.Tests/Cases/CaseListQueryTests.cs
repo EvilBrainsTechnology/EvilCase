@@ -398,6 +398,27 @@ public class CaseListQueryTests : TenantFixture
         }
     }
 
+    [Test]
+    public async Task AListItemNamesTheCasesMainFileAlone()
+    {
+        var withMain = await this.Tenant.AddCase(Day, "Odvolání");
+        var withoutMain = await this.Tenant.AddCase(Day, "Přestupek");
+        await this.Tenant.AddCaseFile(withMain, "priloha.pdf");
+        var main = await this.Tenant.AddCaseFile(withMain, "rozhodnuti.pdf", isMain: true);
+        await this.Tenant.AddCaseFile(withoutMain, "vyzva.pdf");
+        var act = await this.Tenant.AddAct(withoutMain, Day, "Výzva");
+        await this.Tenant.AddActFile(act, "ukon.pdf", isMain: true);
+
+        var items = await this.Tenant.Context.Cases.AsListItems().ToDictionaryAsync(static item => item.CaseId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(items[withMain.Id].MainFile?.FileId, Is.EqualTo(main.Id), "the case's main file, not its other file");
+            Assert.That(items[withMain.Id].MainFile?.FileName, Is.EqualTo("rozhodnuti.pdf"));
+            Assert.That(items[withoutMain.Id].MainFile, Is.Null, "a case whose files carry no main mark has no main file, and never its act's");
+        }
+    }
+
     private async Task<List<Guid>> InSortOrder(CaseSortKey sort, ListSortDirection direction)
     {
         return await this.Tenant.Context.Cases

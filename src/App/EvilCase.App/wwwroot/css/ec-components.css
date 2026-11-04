@@ -4977,14 +4977,26 @@ html.ec-scroll-locked {
 }
 
 .ec-child-row {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: var(--ec-space-1);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    column-gap: var(--ec-space-4);
+    row-gap: var(--ec-space-1);
     min-height: var(--ec-list-row-height);
     border-top: 1px solid var(--ec-border-subtle);
     color: var(--ec-text);
     text-decoration: none;
+}
+
+/* A child case's main file stands on the right across both lines. */
+.ec-child-row:has(> .ec-main-file) {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ec-child-row > .ec-main-file {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
 }
 
 .ec-child-row:hover .ec-child-title {
@@ -7251,7 +7263,7 @@ html:has(.ec-gate) {
     color: var(--ec-text-subtle);
 }
 
-/* Hlavní soubor úkonu: barevná ikona typu jako v kartě souborů, tlačítko, které v odkazu řádku otevře náhled. */
+/* The main file of a case or an act: the files card's coloured type tile as a button, framed in the type's colour, opening the preview inside the row's link. */
 .ec-cell-main-file {
     justify-content: center;
 }
@@ -7405,7 +7417,7 @@ html:has(.ec-gate) {
         display: none;
     }
 
-    /* Hlavní soubor stojí vpravo na řádku názvu mimo tok a místo si bere jen z názvu, takže údaje zůstanou na jednom řádku; úkon bez něj buňku nenese. */
+    /* The main file stands right of the title out of flow and takes its room from the title alone, so the details stay on one line; a row without one carries no cell. */
     .ec-table-row:has(> .ec-cell-main-file .ec-main-file) {
         position: relative;
     }
@@ -7425,7 +7437,7 @@ html:has(.ec-gate) {
         display: none;
     }
 
-    .ec-table-row .ec-main-file {
+    .ec-main-file {
         position: relative;
         width: var(--ec-control-sm);
         height: var(--ec-control-sm);

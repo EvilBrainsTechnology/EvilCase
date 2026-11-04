@@ -52,6 +52,22 @@
                 Width = "var(--ec-list-col-status)",
                 Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" />,
             },
+            CaseColumn.MainFile => new EcColumn<CaseListItem>
+            {
+                Header = "Soubor",
+                Width = "var(--ec-list-col-main-file)",
+                CellClass = "ec-cell-main-file",
+                Cell = item =>@<text>
+                    @if (item.MainFile is { } main)
+                    {
+                        @* Inside the row's link: the click opens the preview and never follows the row. *@
+                        <button type="button" class="ec-main-file" aria-label="@main.FileName" data-tooltip="@main.FileName"
+                                @onclick="() => this.OpenMainFile(item.CaseId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
+                            <EcFileIcon FileName="@main.FileName" Size="EcFileIconSize.Compact" />
+                        </button>
+                    }
+                </text>,
+            },
             _ => throw new UnreachableException(),
         });
     }
@@ -143,6 +159,11 @@
     </Empty>
 </EcTable>
 
+@if (this.previewed is { } previewed)
+{
+    <MainFilePreview @key="previewed" Owner="FileOwnerKind.Case" OwnerId="previewed.CaseId" FileId="previewed.FileId" OnChanged="this.ReloadPage" OnClosed="this.CloseMainFile" />
+}
+
 @code {
     private const string FilteredEmptyText = "Filtru neodpovídá žádný spis.";
 
@@ -232,6 +253,8 @@
     private CaseListScope scope;
 
     private CaseListRequest? seeded;
+
+    private (Guid CaseId, Guid FileId)? previewed;
 
     protected override int PageSize => this.Filter.Take;
 
@@ -329,6 +352,16 @@
         }
 
         return this.ReloadFirstPage();
+    }
+
+    private void OpenMainFile(Guid caseId, Guid fileId)
+    {
+        this.previewed = (caseId, fileId);
+    }
+
+    private void CloseMainFile()
+    {
+        this.previewed = null;
     }
 
     private static string RowHref(CaseListItem item)

@@ -147,7 +147,7 @@ posledním polem, karta s ovládáním (nadřízený spis, spis) nad tlačítky 
 na mobilu nekreslí. Výběr kontaktu a spisu je spodní panel s nadpisem, hledáním a Hotovo. Pole i celá lišta seznamu mají na mobilu písmo
 16 px. Seznam se nikdy neposouvá vodorovně: řádek nese název na nejvýše dva řádky, pod ním
 spis, do něhož patří, jednu řádku údajů (datum, stav nebo směr, zkrácený kontakt, změněno) a štítky
-pod ní; úkon nese vpravo vedle názvu ikonu hlavního souboru. Řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
+pod ní; spis i úkon nese vpravo vedle názvu ikonu hlavního souboru. Řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
 
 Na mobilu stránka karty nemá: sekce jsou bílé bloky přes celou šířku oddělené jednou linkou,
 bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznamu, údaj detailu,
