@@ -22,5 +22,6 @@ rules the look, `docs/design/` is binding on values.
 - Data lists never scroll horizontally: below `lg` a row reflows onto two or three lines and
   sorting moves into a select in the toolbar.
 - Touch targets ≥ 44 px below `lg`. Form action buttons sticky at the bottom,
-  `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip never carries information alone.
+  `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip never carries information alone,
+  except the names of format and block-type changes in the version compare.
 - Unavoidable JS goes through an `IJSObjectReference` disposed in `IAsyncDisposable`.
