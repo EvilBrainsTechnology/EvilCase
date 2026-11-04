@@ -107,7 +107,7 @@ a dělené tlačítko Stáhnout vše se šipkou nabídky, v bočním sloupci jen
 drží jeden řádek i na mobilu. Na mobilu záhlaví výzvu nenese a Nahrát soubory i Stáhnout vše
 široké karty nesou jen ikonu. Velikost a okamžik nahrání se zalomí jen mezi sebou. Pod seznamem
 žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; před
-stažením stojí neohraničená hvězda hlavního souboru, u hlavního souboru plná v barvě akcentu,
+stažením stojí neohraničená hvězda hlavního souboru, u hlavního souboru plná v barvě textu,
 u ostatních prázdná a šedá. Stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je
 Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více verzemi
 nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“ nebo

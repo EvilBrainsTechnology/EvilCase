@@ -1127,13 +1127,12 @@ html.ec-scroll-locked {
 }
 
 .ec-main-star:hover:enabled {
-    background: var(--ec-accent-soft);
-    color: var(--ec-accent-text);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
 }
 
-.ec-main-star-on,
-.ec-main-star-on:hover:enabled {
-    color: var(--ec-accent);
+.ec-main-star-on {
+    color: var(--ec-text);
 }
 
 .ec-main-star-on .ec-icon {
