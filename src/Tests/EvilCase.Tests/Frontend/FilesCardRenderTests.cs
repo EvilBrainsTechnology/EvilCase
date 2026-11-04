@@ -371,7 +371,19 @@ public class FilesCardRenderTests
     {
         await using var ctx = FrontendContext.Create();
 
-        var component = new Card { Files = [Versioned("a.txt", 3, 3)], LoadFileVersions = static (_, _) => Task.FromResult(VersionItems()) }.Render(ctx);
+        IReadOnlyList<FileListItem> files = [Versioned("a.txt", 3, 3)];
+        var component = new Card
+        {
+            LoadFiles = _ => Task.FromResult(files),
+            LoadFileVersions = static (_, _) => Task.FromResult(VersionItems()),
+            DeleteFile = (_, _) =>
+            {
+                files = [];
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
 
         await OpenMenu(component);
         await MenuItem(component, "Verze (3)").ClickAsync(new MouseEventArgs());
@@ -509,6 +521,8 @@ public class FilesCardRenderTests
 
         public Func<FileListItem, bool, CancellationToken, Task> ChangeMainFile { get; init; } = static (_, _, _) => Task.CompletedTask;
 
+        public Func<FileListItem, CancellationToken, Task> DeleteFile { get; init; } = static (_, _) => Task.CompletedTask;
+
         public IRenderedComponent<FilesCard> Render(BunitContext ctx)
         {
             var files = this.Files;
@@ -523,7 +537,7 @@ public class FilesCardRenderTests
                 .Add(static card => card.LoadFileVersions, this.LoadFileVersions)
                 .Add(static card => card.DeleteFileVersion, this.DeleteFileVersion)
                 .Add(static card => card.RenameFile, this.RenameFile)
-                .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+                .Add(static card => card.DeleteFile, this.DeleteFile)
                 .Add(static card => card.ChangeMainFile, this.ChangeMainFile)
                 .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
                 .Add(static card => card.UploadTarget, this.UploadTarget)
