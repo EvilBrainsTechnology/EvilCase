@@ -15,7 +15,7 @@ public class FileArchiveDownloadTests
     {
         var caseId = Guid.CreateVersion7();
         var archives = Substitute.For<IFileArchiveReader>();
-        archives.ReadCaseFileArchive(caseId, includeVersions: true, Arg.Any<CancellationToken>()).Returns(Archive("Přestupek Novák (včetně verzí).zip"));
+        archives.ReadCaseFileArchive(caseId, includeVersions: true, Arg.Any<CancellationToken>()).Returns(Archive("Přestupek Novák (with versions).zip"));
         archives
             .WriteFileArchive(Arg.Any<FileArchive>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(static async call => await call.Arg<Stream>().WriteAsync("PK"u8.ToArray()));
@@ -33,7 +33,7 @@ public class FileArchiveDownloadTests
             Assert.That(result, Is.InstanceOf<EmptyResult>(), "the action has written the body itself");
             Assert.That(context.Response.ContentType, Is.EqualTo("application/zip"));
             Assert.That(disposition.DispositionType.Value, Is.EqualTo("attachment"));
-            Assert.That(disposition.FileNameStar.Value, Is.EqualTo("Přestupek Novák (včetně verzí).zip"), "the Czech name travels as RFC 5987");
+            Assert.That(disposition.FileNameStar.Value, Is.EqualTo("Přestupek Novák (with versions).zip"), "the Czech name travels as RFC 5987");
             Assert.That(body.ToArray(), Is.EqualTo("PK"u8.ToArray()));
         }
     }

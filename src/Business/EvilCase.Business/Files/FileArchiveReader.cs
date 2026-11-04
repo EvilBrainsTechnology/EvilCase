@@ -30,7 +30,7 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
         return new FileArchive
         {
             OwnerId = caseId,
-            FileName = FileArchiveLayout.ArchiveName(title, "Soubory spisu", includeVersions),
+            FileName = FileArchiveLayout.ArchiveName(title, "case files", includeVersions),
             Entries = FileArchiveLayout.Entries(versions, includeVersions),
         };
     }
@@ -56,7 +56,7 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
         return new FileArchive
         {
             OwnerId = actId,
-            FileName = FileArchiveLayout.ArchiveName(title, "Soubory úkonu", includeVersions),
+            FileName = FileArchiveLayout.ArchiveName(title, "act files", includeVersions),
             Entries = FileArchiveLayout.Entries(versions, includeVersions),
         };
     }

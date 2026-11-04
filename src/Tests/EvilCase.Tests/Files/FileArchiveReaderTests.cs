@@ -69,8 +69,8 @@ public class FileArchiveReaderTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(archive!.FileName, Is.EqualTo("Přestupek (včetně verzí).zip"));
-            Assert.That(zip.Entries.Select(static entry => entry.FullName), Is.EqualTo(["Smlouva (verze 1).pdf", "Smlouva.pdf"]));
+            Assert.That(archive!.FileName, Is.EqualTo("Přestupek (with versions).zip"));
+            Assert.That(zip.Entries.Select(static entry => entry.FullName), Is.EqualTo(["Smlouva (version 1).pdf", "Smlouva.pdf"]));
             Assert.That(zip.Entries[0].LastWriteTime.DateTime, Is.EqualTo(PragueTime(uploads[0])).Within(TimeSpan.FromSeconds(2)), "an entry carries its version's upload moment in Prague time");
             Assert.That(zip.Entries[1].LastWriteTime.DateTime, Is.EqualTo(PragueTime(uploads[1])).Within(TimeSpan.FromSeconds(2)));
         }

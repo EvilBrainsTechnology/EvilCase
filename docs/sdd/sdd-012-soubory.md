@@ -92,11 +92,12 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 
 - Archiv nese jen soubory spisu nebo úkonu samého, ne podřízených spisů ani úkonů spisu. Spis
   nebo úkon bez souborů vydá prázdný archiv; neznámý nebo cizí je 404.
-- Archiv se jmenuje podle názvu spisu nebo úkonu, „Přestupek.zip“, s verzemi „Přestupek (včetně
-  verzí).zip“. Název ztratí znaky, které jméno souboru nesmí obsahovat, jako příloha datové
-  zprávy; prázdný nahradí „Soubory spisu“ nebo „Soubory úkonu“.
+- Archiv se jmenuje podle názvu spisu nebo úkonu, „Přestupek.zip“, s verzemi „Přestupek (with
+  versions).zip“. Název ztratí znaky, které jméno souboru nesmí obsahovat, jako příloha datové
+  zprávy; prázdný nahradí `case files` nebo `act files`.
 - Archiv je plochý: aktuální verze souboru leží pod jeho jménem, starší verze vedle něj jako
-  „Smlouva (verze 2).pdf“, jméno bez přípony dostane číslo verze na konec. Jméno položky nenese
+  „Smlouva (version 2).pdf“, jméno bez přípony dostane číslo verze na konec. Jméno, ze kterého
+  nic nezbude, nahradí `file`. Jméno položky nenese
   cestu ani dvě tečky za sebou. Položky jdou v pořadí seznamu, verze souboru podle čísla; každá
   nese okamžik nahrání své verze v pražském čase platném v tom okamžiku.
 - Jméno, které už v archivu je (bez ohledu na velikost písmen), dostane před příponou „ (2)“,

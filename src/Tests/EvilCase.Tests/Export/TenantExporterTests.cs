@@ -53,7 +53,7 @@ public class TenantExporterTests : TenantFixture
         [
             .. EmptyTenantEntries,
             $"{Root}/case.json",
-            $"{Root}/files/Smlouva (verze 1).pdf",
+            $"{Root}/files/Smlouva (version 1).pdf",
             $"{Root}/files/Smlouva.pdf",
             $"{appeal}/case.json",
             $"{cassation}/case.json",
@@ -67,7 +67,7 @@ public class TenantExporterTests : TenantFixture
         {
             Assert.That(entries.Keys, Is.EquivalentTo(expected));
             Assert.That(entries[$"{Root}/files/Smlouva.pdf"], Is.EqualTo("smlouva 2"), "the current version goes under the file's name");
-            Assert.That(entries[$"{Root}/files/Smlouva (verze 1).pdf"], Is.EqualTo("smlouva 1"));
+            Assert.That(entries[$"{Root}/files/Smlouva (version 1).pdf"], Is.EqualTo("smlouva 1"));
         }
 
         var root = Document(entries, $"{Root}/case.json");
@@ -81,7 +81,7 @@ public class TenantExporterTests : TenantFixture
             Assert.That(root.GetProperty("contact").GetProperty("name").GetString(), Is.EqualTo("Krajský úřad"));
             Assert.That(root.GetProperty("labels")[0].GetProperty("name").GetString(), Is.EqualTo("InfZ"));
             Assert.That(root.GetProperty("comments")[0].GetProperty("authorEmail").GetString(), Is.EqualTo(tree.UserEmail));
-            Assert.That(versions.EnumerateArray().Select(static version => version.GetProperty("path").GetString()), Is.EqualTo([$"{Root}/files/Smlouva (verze 1).pdf", $"{Root}/files/Smlouva.pdf"]));
+            Assert.That(versions.EnumerateArray().Select(static version => version.GetProperty("path").GetString()), Is.EqualTo([$"{Root}/files/Smlouva (version 1).pdf", $"{Root}/files/Smlouva.pdf"]));
             Assert.That(cassationCase.GetProperty("parentCaseId").GetGuid(), Is.EqualTo(tree.AppealId), "a sub-case names the case above it");
             Assert.That(act.GetProperty("caseId").GetGuid(), Is.EqualTo(tree.CassationId));
             Assert.That(act.GetProperty("direction").GetString(), Is.EqualTo("Outgoing"));
@@ -183,7 +183,7 @@ public class TenantExporterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(entries.Keys, Does.Contain($"{Root}/files/Smlouva (verze 1).pdf"));
+            Assert.That(entries.Keys, Does.Contain($"{Root}/files/Smlouva (version 1).pdf"));
             Assert.That(entries.Keys, Does.Not.Contain($"{Root}/files/Smlouva.pdf"), "a missing blob has no entry");
             Assert.That(versions[1].GetProperty("missing").GetBoolean(), Is.True);
             Assert.That(versions[1].GetProperty("path").ValueKind, Is.EqualTo(JsonValueKind.Null));
