@@ -33,7 +33,7 @@ cases/
   2026-08-21 Přestupek/
     case.json
     files/
-      Smlouva (verze 1).pdf
+      Smlouva (version 1).pdf
       Smlouva.pdf
     cases/
       2026-09-01 Odvolání/
@@ -59,7 +59,7 @@ labels/
   které jméno souboru nesmí obsahovat, jako ve Stáhnout vše, a zkrátí se na 80 znaků. Název, ze
   kterého nic nezbude, nahradí `case` nebo `act`.
 - Soubory leží jako ve Stáhnout vše včetně verzí: aktuální verze pod jménem souboru, starší vedle
-  ní jako „Smlouva (verze 2).pdf“.
+  ní jako „Smlouva (version 2).pdf“.
 - `contacts/<jméno>.json` je jeden kontakt; jméno se upraví jako název spisu, prázdné nahradí
   `contact`.
 - `labels/labels.json` nese všechny štítky tenanta; tenant bez štítků ho nemá.

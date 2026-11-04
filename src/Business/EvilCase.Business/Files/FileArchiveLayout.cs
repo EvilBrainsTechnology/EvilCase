@@ -9,7 +9,7 @@ namespace EvilBrains.EvilCase.Business.Files;
 /// </summary>
 internal static partial class FileArchiveLayout
 {
-    private const string EntryFallback = "soubor";
+    private const string EntryFallback = "file";
 
     /// <summary>
     /// The zone an entry's time is written in: a zip entry's time carries no zone, and an archive is unpacked in Czechia.
@@ -28,14 +28,13 @@ internal static partial class FileArchiveLayout
     {
         var name = FileNameRules.SafeFileName(title, fallback);
 
-        return includeVersions ? $"{name} (včetně verzí).zip" : $"{name}.zip";
+        return includeVersions ? $"{name} (with versions).zip" : $"{name}.zip";
     }
 
     /// <summary>
-    /// Each file under its name, its older versions beside it as "Name (verze N).ext" where they are included. The
+    /// Each file under its name, its older versions beside it as "Name (version N).ext" where they are included. The
     /// versions come in file order, those of each file by number. The current versions claim their names first, in
-    /// file order, then the older ones; a name already claimed gets " (2)", " (3)" and on before
-    /// its extension.
+    /// file order, then the older ones; a name already claimed gets " (2)", " (3)" and on before its extension.
     /// </summary>
     public static List<FileArchiveEntry> Entries(IReadOnlyList<ArchivedVersion> versions, bool includeVersions)
     {
@@ -58,7 +57,7 @@ internal static partial class FileArchiveLayout
             {
                 var number = older.Number.ToString(CultureInfo.InvariantCulture);
 
-                entries.Add(Entry(older, ClaimFileName(claimed, Suffixed(names[index], $" (verze {number})"))));
+                entries.Add(Entry(older, ClaimFileName(claimed, Suffixed(names[index], $" (version {number})"))));
             }
 
             entries.Add(Entry(file[^1], currentNames[index]));

@@ -34,7 +34,7 @@ public class FileArchiveLayoutTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(entries.Select(static entry => entry.EntryName), Is.EqualTo(["Smlouva (verze 1).pdf", "Smlouva (verze 3).pdf", "Smlouva.pdf", "Poznámky (verze 1)", "Poznámky"]));
+            Assert.That(entries.Select(static entry => entry.EntryName), Is.EqualTo(["Smlouva (version 1).pdf", "Smlouva (version 3).pdf", "Smlouva.pdf", "Poznámky (version 1)", "Poznámky"]));
             Assert.That(entries.Select(static entry => entry.StoragePath), Is.EqualTo([StoragePathOf(smlouva, 1), StoragePathOf(smlouva, 3), StoragePathOf(smlouva, 4), StoragePathOf(poznamky, 1), StoragePathOf(poznamky, 2)]));
         }
     }
@@ -47,12 +47,12 @@ public class FileArchiveLayoutTests
         var other = Guid.NewGuid();
 
         var entries = FileArchiveLayout.Entries(
-            [Version(smlouva, "Smlouva.pdf", 1), Version(smlouva, "Smlouva.pdf", 2), Version(named, "smlouva (verze 1).PDF", 1), Version(other, "Smlouva (verze 1) (2).pdf", 1)],
+            [Version(smlouva, "Smlouva.pdf", 1), Version(smlouva, "Smlouva.pdf", 2), Version(named, "smlouva (version 1).PDF", 1), Version(other, "Smlouva (version 1) (2).pdf", 1)],
             includeVersions: true);
 
         Assert.That(
             entries.Select(static entry => entry.EntryName),
-            Is.EqualTo(["Smlouva (verze 1) (3).pdf", "Smlouva.pdf", "smlouva (verze 1).PDF", "Smlouva (verze 1) (2).pdf"]),
+            Is.EqualTo(["Smlouva (version 1) (3).pdf", "Smlouva.pdf", "smlouva (version 1).PDF", "Smlouva (version 1) (2).pdf"]),
             "real files claim their names first; a taken name, ignoring case, gets the next free number");
     }
 
@@ -68,7 +68,7 @@ public class FileArchiveLayoutTests
     [TestCase("..\\..\\evil.txt", "_._evil.txt")]
     [TestCase("a/b.pdf", "a_b.pdf")]
     [TestCase("Zpráva...pdf", "Zpráva.pdf")]
-    [TestCase(" .. ", "soubor")]
+    [TestCase(" .. ", "file")]
     [TestCase("faktura‮fdp.exe", "faktura_fdp.exe")]
     public void AnEntryNameCarriesNoPathStep(string fileName, string expected)
     {
@@ -79,13 +79,13 @@ public class FileArchiveLayoutTests
 
     [Test]
     [TestCase("Přestupek Novák", false, "Přestupek Novák.zip")]
-    [TestCase("Přestupek Novák", true, "Přestupek Novák (včetně verzí).zip")]
+    [TestCase("Přestupek Novák", true, "Přestupek Novák (with versions).zip")]
     [TestCase("Odvolání: 1/2026?", false, "Odvolání_ 1_2026_.zip")]
     [TestCase(" ?. ", false, "_.zip")]
-    [TestCase(" . ", true, "Soubory spisu (včetně verzí).zip")]
+    [TestCase(" . ", true, "case files (with versions).zip")]
     public void TheArchiveIsNamedAfterItsOwner(string title, bool includeVersions, string expected)
     {
-        Assert.That(FileArchiveLayout.ArchiveName(title, "Soubory spisu", includeVersions), Is.EqualTo(expected));
+        Assert.That(FileArchiveLayout.ArchiveName(title, "case files", includeVersions), Is.EqualTo(expected));
     }
 
     [Test]
