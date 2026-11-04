@@ -5686,7 +5686,7 @@ html.ec-scroll-locked {
         height: var(--ec-touch-min);
     }
 
-    /* Two fingers zoom the preview; a double tap fits it to the width. An image's toolbar holds only the zoom. */
+    /* Two fingers zoom the preview; a double tap fits it to the width, an image whole. An image's toolbar holds only the zoom. */
     .ec-preview-toolbar-page-word,
     .ec-preview-toolbar-zoom,
     .ec-preview-toolbar > .ec-preview-toolbar-separator,
