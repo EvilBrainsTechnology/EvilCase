@@ -58,7 +58,8 @@ export function openModal(dialog, owner) {
     return {
         release: () => {
             unlockScroll(dialog);
-            // Blazor releases before it removes the dialog.
+            // A dialog that closed has handed the focus back already. Blazor releases before it removes the dialog.
+            if (!dialog.open) return;
             setTimeout(() => {
                 if (!dialog.isConnected && opener?.isConnected) opener.focus();
             });
