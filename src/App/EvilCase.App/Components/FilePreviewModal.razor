@@ -548,10 +548,11 @@
 
     private (Guid, int, int)? versionsKey;
 
-    // The file and the version the compare opened for; null while the preview does not compare.
-    private (Guid FileId, int Number)? compareStart;
+    // The file and the version the compare opened for, and whether it opened against the current version; null while
+    // the preview does not compare.
+    private (Guid FileId, int Number, bool WithCurrent)? compareStart;
 
-    // The versions chosen in the compare; until then the one it opened for and the one before it.
+    // The versions chosen in the compare; until then the pair it opened with.
     private (int Older, int Newer)? comparePair;
 
     private bool versionsOpen;
@@ -670,7 +671,24 @@
 
     private FileVersionItem? ShownVersionItem => this.OlderVersion is { } number ? this.versions?.FirstOrDefault(version => version.Number == number) : null;
 
-    private (int Older, int Newer)? ComparedPair => this.comparePair ?? (this.compareStart is { } start && this.versions is { } list ? DefaultPair(list, start.Number) : null);
+    // Until a pick, the version opened for against the current one when asked, else against the one before it; the
+    // oldest against the current one. The current one is read each time, so a new version takes its place.
+    private (int Older, int Newer)? ComparedPair
+    {
+        get
+        {
+            if (this.comparePair is { } picked)
+                return picked;
+
+            if (this.compareStart is not { } start || this.versions is not { } list || this.Current is not { } file)
+                return null;
+
+            if ((!start.WithCurrent || start.Number == file.Version) && list.FirstOrDefault(version => version.Number < start.Number) is { } previous)
+                return (previous.Number, start.Number);
+
+            return (start.Number, file.Version);
+        }
+    }
 
     private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
 
@@ -706,7 +724,7 @@
         this.editOnLoad = this.EditOnOpen;
 
         if (this.CompareOnOpen && this.Current is { } file)
-            this.compareStart = (file.FileId, this.Version ?? file.Version);
+            this.compareStart = (file.FileId, this.Version ?? file.Version, WithCurrent: false);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -727,7 +745,7 @@
             else if (this.versions is { } list)
             {
                 if (!Listed(list, opened.Number))
-                    this.compareStart = (file.FileId, file.Version);
+                    this.compareStart = (file.FileId, file.Version, WithCurrent: false);
 
                 if (this.comparePair is { } picked && !(Listed(list, picked.Older) && Listed(list, picked.Newer)))
                     this.comparePair = null;
@@ -1371,8 +1389,8 @@
         this.renaming = false;
         this.versionsOpen = false;
         this.versionFailure = null;
-        this.compareStart = (file.FileId, this.OlderVersion ?? file.Version);
-        this.comparePair = this.OlderVersion is { } older ? (older, file.Version) : null;
+        this.compareStart = (file.FileId, this.OlderVersion ?? file.Version, WithCurrent: this.OlderVersion is not null);
+        this.comparePair = null;
     }
 
     private void CloseCompare()
@@ -1395,15 +1413,6 @@
     private static bool Listed(IReadOnlyList<FileVersionItem> versions, int number)
     {
         return versions.Any(version => version.Number == number);
-    }
-
-    // The version against the one before it; the oldest against the one after it.
-    private static (int Older, int Newer)? DefaultPair(IReadOnlyList<FileVersionItem> versions, int number)
-    {
-        if (versions.FirstOrDefault(version => version.Number < number) is { } previous)
-            return (previous.Number, number);
-
-        return versions.LastOrDefault(version => version.Number > number) is { } next ? (number, next.Number) : null;
     }
 
     private RenderFragment FileSteps()

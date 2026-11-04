@@ -65,7 +65,7 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
-    public void TheOldestVersionComparesWithTheNextOne()
+    public void TheOldestVersionComparesWithTheCurrentOne()
     {
         using var ctx = NewContext(out var compares, out _);
 
@@ -74,9 +74,27 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 2"));
-            Assert.That(compares.Opened, Is.EqualTo([("{}", "[]", (CodeLanguage?)CodeLanguage.Json, true)]), "code compares formatted");
+            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 3"));
+            Assert.That(compares.Opened, Is.EqualTo([("{}", "1", (CodeLanguage?)CodeLanguage.Json, true)]), "code compares formatted");
         }
+    }
+
+    [Test]
+    public async Task ANewVersionTakesTheCurrentSideOfACompareFromAnOlderVersion()
+    {
+        await using var ctx = NewContext(out _, out _);
+
+        var file = File("a.txt", 3);
+        var component = Render(ctx, file, Texts("a\n", "b\n", "c\n", "d\n"), version: 1);
+
+        await component.Find(".ec-preview-actions button[aria-label='Porovnat']").ClickAsync(new MouseEventArgs());
+
+        IReadOnlyList<FileVersionItem> four = [.. Enumerable.Range(1, 4).Reverse().Select(static number => Version(number, 2))];
+        component.Render(parameters => parameters
+            .Add(static modal => modal.Files, [file with { Version = 4, VersionCount = 4 }])
+            .Add(static modal => modal.LoadVersions, (_, _) => Task.FromResult(four)));
+
+        Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 4"), "the compare against the current version follows a new one");
     }
 
     [Test]
