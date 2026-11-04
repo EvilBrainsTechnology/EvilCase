@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Acts;
 
@@ -32,4 +33,6 @@ public sealed record ActListItem
     public string? ContactName { get; init; }
 
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
+
+    public MainFile? MainFile { get; init; }
 }
