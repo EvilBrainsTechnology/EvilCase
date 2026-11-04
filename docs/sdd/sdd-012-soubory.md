@@ -370,8 +370,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   zdrojovém kódu.
 - Formátované porovnání ukáže obě verze jako náhled Markdownu, které nejdou měnit. Vložený text je
   zelený a podtržený, smazaný červený a přeškrtnutý. Text, kterému se změnil jen formát, a blok
-  jiného typu jsou fialové s čárkovaným rámečkem. Změnu typu a formátu pojmenuje tooltip nad
-  zvýrazněním („nadpis 2 → odstavec; nově tučně“, „adresa odkazu A → B“), který otevře najetí myší
+  jiného typu jsou fialové s čárkovaným rámečkem. Změnu typu a formátu pojmenuje tooltip pod
+  zvýrazněním, nebo tam, kde je místo („nadpis 2 → odstavec; nově tučně“, „adresa odkazu A → B“), který otevře najetí myší
   nebo klepnutí a klepnutí jinam zavře. Přidaný blok je celý zelený, odebraný celý
   červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
   se první buňky v každé z tabulek liší. Pod porovnáním stojí legenda barev.
