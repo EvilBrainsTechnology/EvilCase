@@ -1,7 +1,9 @@
 using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Components.Lists;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Components;
@@ -139,6 +141,104 @@ public class CaseListRenderTests
             Assert.That(filtered, Is.EqualTo(1));
             Assert.That(component.FindAll(".ec-filter-clear"), Is.Empty, "the cleared filters take the action with them");
         }
+    }
+
+    [Test]
+    public async Task TheMainFileButtonPreviewsThatFileAlone()
+    {
+        await using var ctx = FrontendContext.Create();
+        var (_, mainFile, withMain) = ServeMainFile(ctx);
+
+        var component = Render(ctx, [CaseColumn.Case, CaseColumn.MainFile]);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-table-row"), Has.Count.EqualTo(2)));
+
+        var rows = component.FindAll(".ec-table-row");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(rows[0].QuerySelector("button.ec-main-file")?.GetAttribute("aria-label"), Is.EqualTo("rozhodnuti.pdf"), "the button names the main file");
+            Assert.That(rows[1].QuerySelector("button.ec-main-file"), Is.Null, "a case without a main file has an empty cell");
+        }
+
+        await rows[0].QuerySelector("button.ec-main-file")!.ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindComponents<FilePreviewModal>(), Has.Count.EqualTo(1)));
+
+        var preview = component.FindComponent<FilePreviewModal>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(preview.Instance.FileId, Is.EqualTo(mainFile.FileId));
+            Assert.That(preview.Instance.Files.Select(static file => file.FileId), Is.EqualTo([mainFile.FileId]), "the preview pages over no other file of the case");
+            Assert.That(component.FindComponent<MainFilePreview>().Instance.OwnerId, Is.EqualTo(withMain));
+        }
+    }
+
+    [Test]
+    public async Task UnsettingTheMainFileInThePreviewReloadsTheList()
+    {
+        await using var ctx = FrontendContext.Create();
+        var (casesClient, mainFile, _) = ServeMainFile(ctx);
+        var mainFiles = ctx.Services.GetRequiredService<IMainFileClient>();
+
+        var component = Render(ctx, [CaseColumn.Case, CaseColumn.MainFile]);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("button.ec-main-file"), Has.Count.EqualTo(1)));
+        await component.Find("button.ec-main-file").ClickAsync(new MouseEventArgs());
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-name-row .ec-main-star"), Has.Count.EqualTo(1)));
+
+        await component.Find(".ec-preview-name-row .ec-main-star").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(
+            casesClient.ReceivedCalls().Count(static call => string.Equals(call.GetMethodInfo().Name, nameof(ICasesClient.ListCases), StringComparison.Ordinal)),
+            Is.EqualTo(2),
+            "the list reloads after the change"));
+
+        await mainFiles.Received(1).UnsetMainFile(mainFile.FileId, Arg.Any<CancellationToken>());
+    }
+
+    private static (ICasesClient CasesClient, FileListItem MainFile, Guid WithMain) ServeMainFile(BunitContext ctx)
+    {
+        var mainFile = CaseFile("rozhodnuti.pdf") with { IsMain = true };
+        var withMain = Guid.NewGuid();
+        var cases = new CaseListResponse
+        {
+            Items =
+            [
+                Row with { CaseId = withMain, MainFile = new MainFile { FileId = mainFile.FileId, FileName = mainFile.FileName } },
+                Row with { CaseId = Guid.NewGuid(), Title = "Odvolání" },
+            ],
+            TotalCount = 2,
+        };
+
+        var casesClient = Substitute.For<ICasesClient>();
+        casesClient.ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(cases));
+
+        var caseFilesClient = Substitute.For<ICaseFilesClient>();
+        caseFilesClient.ListCaseFiles(withMain, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new FileListResponse { Items = [mainFile, CaseFile("priloha.pdf")] }));
+
+        ctx.Services.AddSingleton(casesClient);
+        ctx.Services.AddSingleton(caseFilesClient);
+        ctx.Services.AddSingleton(Substitute.For<IActFilesClient>());
+        ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
+        ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
+
+        return (casesClient, mainFile, withMain);
+    }
+
+    private static FileListItem CaseFile(string fileName)
+    {
+        return new FileListItem
+        {
+            FileId = Guid.NewGuid(),
+            FileName = fileName,
+            SizeBytes = 1024,
+            Created = new DateTime(2026, 11, 4, 10, 0, 0, DateTimeKind.Utc),
+            Version = 1,
+            VersionCount = 1,
+        };
     }
 
     private static readonly CaseListItem Row = new()

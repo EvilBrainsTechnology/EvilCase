@@ -218,7 +218,7 @@
 
 @if (this.previewed is { } previewed)
 {
-    <ActFilePreview @key="previewed" ActId="previewed.ActId" FileId="previewed.FileId" OnChanged="this.ReloadPage" OnClosed="this.CloseMainFile" />
+    <MainFilePreview @key="previewed" Owner="FileOwnerKind.Act" OwnerId="previewed.ActId" FileId="previewed.FileId" OnChanged="this.ReloadPage" OnClosed="this.CloseMainFile" />
 }
 
 @code {

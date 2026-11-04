@@ -142,6 +142,7 @@
     --ec-file-row-fresh-bg: #F1F5FE;
     --ec-file-other-bg: var(--ec-bg);
     --ec-file-other-text: var(--ec-text-muted);
+    --ec-main-file-hover-shade: rgba(20, 22, 27, 0.07);
     --ec-file-icon-size: 40px;
     --ec-file-icon-glyph: 20px;
     --ec-file-icon-compact-size: 36px;

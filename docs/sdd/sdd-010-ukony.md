@@ -62,8 +62,8 @@ kontakt. Zadává se na editaci úkonu.
   stav, kontakt, okamžik poslední změny, štítky (SDD-019) a hlavní soubor; podobu v detailu
   spisu řídí SDD-009.
 - Každý seznam úkonů nese za Změněno úzký sloupec Soubor s hlavním souborem úkonu (SDD-012):
-  tlačítko s barevnou ikonou typu souboru jako v kartě souborů, jehož popisek a tooltip
-  jmenují soubor; tooltip je bublina jako u porovnání verzí. Klik otevře náhled
+  tlačítko v podobě barevné dlaždice typu souboru jako v kartě souborů, orámované barvou typu,
+  které najetí myší ztmaví; jeho popisek a tooltip jmenují soubor; tooltip je bublina jako u porovnání verzí. Klik otevře náhled
   hlavního souboru se všemi jeho akcemi, bez listování ostatními soubory úkonu, a do detailu
   úkonu nevede. Změna v náhledu (přejmenování, nová verze, zrušení hlavního souboru, smazání) se
   v seznamu hned projeví. Úkon bez hlavního souboru má buňku prázdnou. Na mobilu stojí ikona

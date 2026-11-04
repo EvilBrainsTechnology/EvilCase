@@ -50,6 +50,14 @@
                             <span class="ec-child-status">
                                 <span class="@($"ec-status-dot {CaseStatusDisplay.Dot(item.Status)}")" aria-hidden="true"></span>@CaseStatusDisplay.Text(item.Status) <span class="ec-sep" aria-hidden="true">·</span> @DateDisplay.Text(item.Date)
                             </span>
+                            @if (item.MainFile is { } main)
+                            {
+                                @* Inside the row's link: the click opens the preview and never follows the row. *@
+                                <button type="button" class="ec-main-file" aria-label="@main.FileName" data-tooltip="@main.FileName"
+                                        @onclick="() => this.OpenMainFile(item.CaseId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
+                                    <EcFileIcon FileName="@main.FileName" Size="EcFileIconSize.Compact" />
+                                </button>
+                            }
                         </a>
                     }
                 </div>
@@ -68,6 +76,11 @@
         }
     </ChildContent>
 </EcCard>
+
+@if (this.previewed is { } previewed)
+{
+    <MainFilePreview @key="previewed" Owner="FileOwnerKind.Case" OwnerId="previewed.CaseId" FileId="previewed.FileId" OnChanged="this.ReloadChildren" OnClosed="this.CloseMainFile" />
+}
 
 @code {
     // "6 otevřených · 9 uzavřených".
@@ -110,6 +123,8 @@
 
     private Guid loaded;
 
+    private (Guid CaseId, Guid FileId)? previewed;
+
     protected override Task OnParametersSetAsync()
     {
         if (this.loaded == this.ParentCaseId)
@@ -130,9 +145,26 @@
         this.expanded = true;
     }
 
+    private void OpenMainFile(Guid caseId, Guid fileId)
+    {
+        this.previewed = (caseId, fileId);
+    }
+
+    private void CloseMainFile()
+    {
+        this.previewed = null;
+    }
+
     private async Task LoadChildren()
     {
         this.children = null;
+
+        await this.ReloadChildren();
+    }
+
+    // Keeps the rows shown while the list is read again.
+    private async Task ReloadChildren()
+    {
         this.failure = null;
 
         var request = new CaseListRequest
