@@ -1,11 +1,15 @@
 @page "/acts/{ActId:guid}"
+@using System.Net
+@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Comments
 @using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
+@using EvilBrains.EvilCase.Domain.Acts
 @inherits DetailPage<ActDetail>
 @inject IActsClient ActsClient
+@inject ILogger<Act> Logger
 @inject IActLabelsClient ActLabelsClient
 @inject IActCommentsClient ActCommentsClient
 @inject IActFilesClient ActFilesClient
@@ -29,12 +33,21 @@
                         {
                             <EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" Icon="@ActDirectionDisplay.Icon(direction)" />
                         }
+                        @if (this.Detail.Status is { } status)
+                        {
+                            <EcBadge Text="@ActStatusDisplay.Text(status)" Tone="ActStatusDisplay.Tone(status)" ShowDot="true" />
+                        }
                     </Status>
                     <Actions>
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditAct">Upravit<span class="ec-text-wide"> úkon</span></EcButton>
                         <EcMenu AriaLabel="Další akce s úkonem" Title="@this.Detail.Title" Items="this.ActActions" />
                     </Actions>
                 </EcPageHeader>
+
+                @if (this.statusError is not null)
+                {
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.statusError</div>
+                }
 
                 @if (!string.IsNullOrWhiteSpace(this.Detail.Description))
                 {
@@ -226,6 +239,8 @@
 
     private bool deleting;
 
+    private string? statusError;
+
     private Guid countedActId;
 
     private int? commentCount;
@@ -275,12 +290,16 @@
     {
         get
         {
-            return
-            [
-                new EcMenuItem { Text = "Nový úkon ve spisu", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewAct) },
-                new EcMenuItem { Text = "Zkopírovat odkaz na úkon", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyLink) },
-                new EcMenuItem { Text = "Smazat úkon", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true },
-            ];
+            var actions = new List<EcMenuItem>();
+
+            if (this.Detail?.Status != ActStatus.Sent)
+                actions.Add(new EcMenuItem { Text = "Označit jako odesláno", Icon = AppIcons.Send, OnSelect = EventCallback.Factory.Create(this, this.MarkSent) });
+
+            actions.Add(new EcMenuItem { Text = "Nový úkon ve spisu", Icon = AppIcons.Plus, OnSelect = EventCallback.Factory.Create(this, this.OpenNewAct) });
+            actions.Add(new EcMenuItem { Text = "Zkopírovat odkaz na úkon", Icon = AppIcons.Link, OnSelect = EventCallback.Factory.Create(this, this.CopyLink) });
+            actions.Add(new EcMenuItem { Text = "Smazat úkon", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, this.StartDeleting), Danger = true, DividerBefore = true });
+
+            return actions;
         }
     }
 
@@ -290,12 +309,13 @@
 
     protected override void OnParametersSet()
     {
-        // Another act starts without the count of the last one.
+        // Another act starts without the count and the status error of the last one.
         if (this.countedActId == this.ActId)
             return;
 
         this.countedActId = this.ActId;
         this.commentCount = null;
+        this.statusError = null;
     }
 
     protected override Task<ActDetail> Fetch()
@@ -324,6 +344,30 @@
         var text = NumberDisplay.Text(count);
 
         return Plural.Form(count, "Všechny úkony spisu", $"Všechny {text} úkony spisu", $"Všech {text} úkonů spisu");
+    }
+
+    private async Task MarkSent()
+    {
+        var detail = this.Detail!;
+
+        this.statusError = null;
+
+        try
+        {
+            await this.ActsClient.SetActStatus(detail.ActId, new ActStatusRequest { Status = ActStatus.Sent }, CancellationToken.None);
+
+            this.Detail = detail with { Status = ActStatus.Sent };
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.statusError = this.GoneText;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Marking the act as sent failed");
+
+            this.statusError = "Stav se nepodařilo uložit. Zkuste to za chvíli znovu.";
+        }
     }
 
     private void OpenNewAct()

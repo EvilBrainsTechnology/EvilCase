@@ -15,6 +15,7 @@ internal sealed class ActEditModel : IValidatableObject
             ActNumber = detail.ActNumber,
             ExternalActNumber = detail.ExternalActNumber,
             Direction = detail.Direction,
+            Status = detail.Status,
             Date = detail.Date,
             Title = detail.Title,
             Description = detail.Description,
@@ -31,6 +32,8 @@ internal sealed class ActEditModel : IValidatableObject
     public string? ExternalActNumber { get; set; }
 
     public ActDirection? Direction { get; set; }
+
+    public ActStatus? Status { get; set; }
 
     public DateOnly Date { get; set; }
 

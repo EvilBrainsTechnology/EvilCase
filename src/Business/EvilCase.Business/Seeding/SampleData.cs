@@ -319,6 +319,7 @@ internal static class SampleData
         {
             Direction = ActDirection.Outgoing,
             Title = "Odpor proti příkazu",
+            Status = ActStatus.Sent,
             Date = new DateOnly(2025, 8, 4),
             CounterpartyKey = "first-instance",
             Description = "Odpor ruší příkaz v plném rozsahu.",
@@ -354,6 +355,7 @@ internal static class SampleData
         {
             Direction = ActDirection.Outgoing,
             Title = "Odvolání proti rozhodnutí v plném rozsahu",
+            Status = ActStatus.Sent,
             Date = new DateOnly(2025, 9, 15),
             CounterpartyKey = "first-instance",
             ExternalActNumber = "MUVZ/2025/93547",
@@ -371,6 +373,7 @@ internal static class SampleData
         {
             Direction = ActDirection.Outgoing,
             Title = "Žaloba proti rozhodnutí správního orgánu s návrhem na přiznání odkladného účinku",
+            Status = ActStatus.Sent,
             Date = new DateOnly(2025, 10, 1),
             CounterpartyKey = "court",
             Description = "Žaloba směřuje proti rozhodnutí o odvolání.",
@@ -469,6 +472,7 @@ internal static class SampleData
         {
             Direction = ActDirection.Outgoing,
             Title = "Druhá žádost o prodloužení lhůty",
+            Status = ActStatus.Sent,
             Date = new DateOnly(2025, 11, 25),
             CounterpartyKey = "court",
             ExternalActNumber = "10 A 1/2025",
@@ -487,6 +491,7 @@ internal static class SampleData
         {
             Direction = ActDirection.Outgoing,
             Title = "Konečné doplnění žaloby",
+            Status = ActStatus.InProgress,
             Date = new DateOnly(2026, 3, 13),
             CounterpartyKey = "court",
             Description = "Konečné doplnění s přiloženou sadou důkazů.",

@@ -98,6 +98,12 @@
                                 }
                             </div>
 
+                            <EcField Label="Stav" Hint="Klik na vybraný stav ho zruší.">
+                                <ChildContent>
+                                    <ActStatusField InputId="act-status" Selected="this.model.Status" SelectedChanged="this.OnStatusChanged" />
+                                </ChildContent>
+                            </EcField>
+
                             <EcField Label="Popis" ControlId="act-description" Hint="Nejvýše 4000 znaků">
                                 <ChildContent>
                                     <InputTextArea id="act-description" class="ec-textarea" rows="5" @bind-Value="this.model.Description" />
@@ -197,6 +203,12 @@
     {
         this.model.Direction = direction;
         this.model.Contact = ActContactRules.Prefilled(this.model.Direction, this.model.Contact, this.act?.CaseContact);
+        this.model.Status = ActStatusRules.Prefilled(this.model.Direction, this.model.Status);
+    }
+
+    private void OnStatusChanged(ActStatus? status)
+    {
+        this.model.Status = status;
     }
 
     private void OnContactChanged(ContactListItem? contact)
@@ -229,6 +241,7 @@
                 ActNumber = this.model.ActNumber,
                 ExternalActNumber = this.model.ExternalActNumber,
                 Direction = this.model.Direction,
+                Status = this.model.Status,
                 Date = this.model.Date,
                 Title = this.model.Title,
                 Description = this.model.Description,

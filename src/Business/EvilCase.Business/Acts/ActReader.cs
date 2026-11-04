@@ -18,6 +18,7 @@ internal sealed class ActReader(IDbSession dbSession) : IActReader
             .OfCaseWithStatus(request.CaseStatus)
             .WithContact(request.ContactId)
             .WithDirection(request.Direction)
+            .WithStatus(request.Status)
             .WithLabels(request.LabelIds)
             .WithinDates(request.From, request.To);
 

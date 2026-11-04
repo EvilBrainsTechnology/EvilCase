@@ -167,7 +167,8 @@ internal sealed class TestTenant : IAsyncDisposable
         Guid? actId = null,
         ActDirection? direction = null,
         string? description = null,
-        string? externalActNumber = null)
+        string? externalActNumber = null,
+        ActStatus? status = null)
     {
         var prefix = ActNumberFormat.Prefix(@case.CaseNumber, date);
 
@@ -180,6 +181,7 @@ internal sealed class TestTenant : IAsyncDisposable
             ActNumber = actNumber ?? ActNumberFormat.Compose(@case.CaseNumber, date, this.NextSequence(prefix)),
             ExternalActNumber = externalActNumber,
             Direction = contact is null ? null : direction ?? ActDirection.Incoming,
+            Status = status,
             ContactId = contact?.Id,
             Title = title,
             Date = date,

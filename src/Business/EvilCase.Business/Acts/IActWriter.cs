@@ -9,5 +9,7 @@ public interface IActWriter
 
     public Task<ActUpdateOutcome> UpdateAct(Guid actId, ActEditRequest request, CancellationToken token);
 
+    public Task<ActStatusOutcome> SetActStatus(Guid actId, ActStatusRequest request, CancellationToken token);
+
     public Task<DeleteOutcome> DeleteAct(Guid actId, CancellationToken token);
 }

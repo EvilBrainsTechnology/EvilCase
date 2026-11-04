@@ -36,7 +36,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     private string? filesPath;
 
-    protected TDetail? Detail { get; private set; }
+    protected TDetail? Detail { get; set; }
 
     protected bool NotFound { get; private set; }
 

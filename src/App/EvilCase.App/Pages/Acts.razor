@@ -16,7 +16,7 @@
     </EcPageHeader>
 
     <ActList @key="this.ListKey" Columns="Columns" Filter="Filter" DateHeader="Datum úkonu"
-             ShowSearch="true" ShowDirectionFilter="true" ShowDates="true" ShowLabelFilter="true"
+             ShowSearch="true" ShowDirectionFilter="true" ShowStatusFilter="true" ShowDates="true" ShowLabelFilter="true"
              ShowCaseStatusFilter="true" ShowPaging="true"
              TotalChanged="this.OnTotalChanged">
         <EmptyAction>
@@ -33,6 +33,7 @@
         ActColumn.Date,
         ActColumn.ActAndCase,
         ActColumn.Direction,
+        ActColumn.Status,
         ActColumn.Contact,
         ActColumn.Changed,
     ];
@@ -46,6 +47,10 @@
     public string? DirectionQuery { get; set; }
 
     [Parameter]
+    [SupplyParameterFromQuery(Name = "status")]
+    public string? StatusQuery { get; set; }
+
+    [Parameter]
     [SupplyParameterFromQuery(Name = "open")]
     public string? OpenQuery { get; set; }
 
@@ -57,6 +62,9 @@
         Direction = Enum.TryParse<ActDirection>(this.DirectionQuery, ignoreCase: true, out var direction) && Enum.IsDefined(direction)
             ? direction
             : null,
+        Status = Enum.TryParse<ActStatusFilter>(this.StatusQuery, ignoreCase: true, out var status) && Enum.IsDefined(status)
+            ? status
+            : ActStatusFilter.All,
         CaseStatus = bool.TryParse(this.OpenQuery, out var open) && !open ? CaseStatusFilter.All : CaseStatusFilter.Open,
         Search = string.IsNullOrWhiteSpace(this.Query) ? null : this.Query,
         SortDirection = ListSortDirection.Descending,

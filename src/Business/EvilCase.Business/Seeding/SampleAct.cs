@@ -6,6 +6,8 @@ internal sealed record SampleAct
 {
     public required ActDirection Direction { get; init; }
 
+    public ActStatus? Status { get; init; }
+
     public required string Title { get; init; }
 
     public string? Description { get; init; }

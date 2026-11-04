@@ -13,4 +13,6 @@ public enum ActColumn
     ActWithLabels = 9,
 
     ActAndCase = 11,
+
+    Status = 12,
 }

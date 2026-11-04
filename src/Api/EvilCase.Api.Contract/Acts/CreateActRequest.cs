@@ -9,6 +9,8 @@ public sealed record CreateActRequest : IValidatableObject
 
     public ActDirection? Direction { get; init; }
 
+    public ActStatus? Status { get; init; }
+
     /// <summary>
     /// The act number is issued from this date, not the write's.
     /// </summary>

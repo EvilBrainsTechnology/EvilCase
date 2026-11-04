@@ -81,6 +81,10 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
+                    b.Property<string>("Status")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 

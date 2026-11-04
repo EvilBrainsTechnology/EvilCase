@@ -19,6 +19,8 @@ public sealed record ActListItem
 
     public ActDirection? Direction { get; init; }
 
+    public ActStatus? Status { get; init; }
+
     public required string Title { get; init; }
 
     public required DateOnly Date { get; init; }

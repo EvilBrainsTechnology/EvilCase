@@ -22,6 +22,8 @@ public sealed record ActListRequest : SortableListRequest<ActSortKey>
 
     public ActDirection? Direction { get; init; }
 
+    public ActStatusFilter Status { get; init; } = ActStatusFilter.All;
+
     /// <summary>
     /// Narrows the list to acts of cases in this status; <see cref="CaseStatusFilter.All"/> leaves it unnarrowed.
     /// </summary>

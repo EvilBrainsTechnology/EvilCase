@@ -45,6 +45,21 @@
                     }
                 </text>,
             },
+            ActColumn.Status => new EcColumn<ActListItem>
+            {
+                Header = "Stav",
+                Width = "var(--ec-list-col-act-status)",
+                Cell = item =>@<text>
+                    @if (item.Status is { } status)
+                    {
+                        <EcBadge Text="@ActStatusDisplay.Text(status)" Tone="ActStatusDisplay.Tone(status)" ShowDot="true" />
+                    }
+                    else
+                    {
+                        <span class="ec-cell-empty">—</span>
+                    }
+                </text>,
+            },
             ActColumn.Contact => new EcColumn<ActListItem>
             {
                 Header = "Kontakt",
@@ -141,6 +156,19 @@
             </div>
         }
 
+        @if (this.ShowStatusFilter)
+        {
+            <label class="ec-select-labeled" for="@($"{this.InputPrefix}-status")">
+                <span class="ec-select-labeled-name">Stav</span>
+                <select id="@($"{this.InputPrefix}-status")" class="ec-select" @onchange="this.OnStatusSelected">
+                    @foreach (var value in Enum.GetValues<ActStatusFilter>())
+                    {
+                        <option value="@value" selected="@(value == this.status)">@ActStatusDisplay.FilterText(value)</option>
+                    }
+                </select>
+            </label>
+        }
+
         @if (this.ShowDates || this.ShowLabelFilter)
         {
             <ListFilters InputPrefix="@this.InputPrefix" ShowDates="this.ShowDates" ShowLabelFilter="this.ShowLabelFilter"
@@ -218,6 +246,9 @@
     public bool ShowDirectionFilter { get; set; }
 
     [Parameter]
+    public bool ShowStatusFilter { get; set; }
+
+    [Parameter]
     public bool ShowCaseStatusFilter { get; set; }
 
     [Parameter]
@@ -253,6 +284,8 @@
 
     private ActDirection? direction;
 
+    private ActStatusFilter status;
+
     private CaseStatusFilter caseStatus;
 
     private ActListRequest? seeded;
@@ -261,14 +294,15 @@
 
     protected override string FailureText => "Seznam úkonů se nepodařilo načíst. Zkuste to za chvíli znovu.";
 
-    private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter || this.ShowCaseStatusFilter;
+    private bool HasFilters => this.ShowSearch || this.ShowDates || this.ShowLabelFilter || this.ShowDirectionFilter || this.ShowStatusFilter
+        || this.ShowCaseStatusFilter;
 
     private bool ToolbarShown => this.HasFilters && !(this.HideToolbarWhenEmpty && this.IsEmptyUnfiltered);
 
     private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
 
-    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.caseStatus != this.Filter.CaseStatus
-        || this.ActiveFilterCount > 0;
+    private bool IsFiltered => this.Search is not null || this.direction != this.Filter.Direction || this.status != this.Filter.Status
+        || this.caseStatus != this.Filter.CaseStatus || this.ActiveFilterCount > 0;
 
     protected override void OnInitialized()
     {
@@ -276,11 +310,14 @@
         this.Direction = this.Filter.SortDirection;
     }
 
-    // A host filter with another direction or case status, e.g. a new address, resets the toolbar to it.
+    // A host filter with another direction, status or case status, e.g. a new address, resets the toolbar to it.
     protected override Task OnParametersSetAsync()
     {
         if (this.seeded?.Direction != this.Filter.Direction)
             this.direction = this.Filter.Direction;
+
+        if (this.seeded?.Status != this.Filter.Status)
+            this.status = this.Filter.Status;
 
         if (this.seeded?.CaseStatus != this.Filter.CaseStatus)
             this.caseStatus = this.Filter.CaseStatus;
@@ -299,6 +336,7 @@
             To = this.To,
             LabelIds = this.LabelIds,
             Direction = this.direction,
+            Status = this.status,
             CaseStatus = this.caseStatus,
             Sort = this.sort,
             SortDirection = this.Direction,
@@ -339,6 +377,13 @@
     private Task OnDirectionSelected(ChangeEventArgs args)
     {
         return this.SetDirection(Enum.TryParse<ActDirection>(args.Value as string, out var value) ? value : null);
+    }
+
+    private Task OnStatusSelected(ChangeEventArgs args)
+    {
+        this.status = Enum.Parse<ActStatusFilter>(args.Value as string ?? "");
+
+        return this.ReloadFirstPage();
     }
 
     private Task OnCaseStatusChanged(ChangeEventArgs args)
