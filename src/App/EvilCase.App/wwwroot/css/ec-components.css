@@ -1131,6 +1131,11 @@ html.ec-scroll-locked {
     color: var(--ec-text);
 }
 
+/* A hovered file row is already surface-sunken, so the star hovers a shade darker. */
+.ec-file-row .ec-main-star:hover:enabled {
+    background: var(--ec-surface-track);
+}
+
 .ec-main-star-on {
     color: var(--ec-text);
 }
