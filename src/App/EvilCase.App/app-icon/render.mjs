@@ -1,6 +1,7 @@
 // Renders the app icons of the web app manifest and iOS into wwwroot/icons: the PNGs of
-// wwwroot/favicon.svg (purpose any) and of its full-bleed variant without the rounded corners
-// (maskable, apple-touch-icon), whose scales stay inside the maskable safe zone.
+// wwwroot/favicon.svg (purpose any) and of its full-bleed variants without the rounded corners:
+// apple-touch-icon with the favicon's scales, maskable with scales at 42 % of the field, which
+// Android's launcher crop to the middle two thirds shows at about the favicon's size.
 //
 // Usage: PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers node render.mjs   (no parameters, any working directory)
 // PLAYWRIGHT_MODULE names Playwright's index.mjs; the default is the global install under /opt/node22.
@@ -23,10 +24,11 @@ try {
     process.exit(1);
 }
 const fullBleed = rounded.replace(/ rx="[^"]*"/, '');
+const maskable = fullBleed.replace(/transform="[^"]*"/, 'transform="translate(7 7.375) scale(0.75)"');
 const icons = [
     { source: rounded, size: 192, file: 'icon-192.png' },
     { source: rounded, size: 512, file: 'icon-512.png' },
-    { source: fullBleed, size: 512, file: 'icon-maskable-512.png' },
+    { source: maskable, size: 512, file: 'icon-maskable-512.png' },
     { source: fullBleed, size: 180, file: 'apple-touch-icon.png' },
 ];
 
