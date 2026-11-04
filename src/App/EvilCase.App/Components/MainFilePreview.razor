@@ -239,9 +239,9 @@ else if (this.File is { } file)
         await this.BrowserFiles.DownloadFile(file.FileId, number == file.Version ? null : number, file.FileName, CancellationToken.None);
     }
 
+    // The preview stays open over the confirmation.
     private void ConfirmDelete(FileListItem file)
     {
-        this.previewing = false;
         this.deleting = true;
     }
 
@@ -251,9 +251,15 @@ else if (this.File is { } file)
         this.deleting = true;
     }
 
+    // A cancel leaves the preview as it was; one from the versions closes everything.
     private async Task CloseDelete(bool open)
     {
-        if (!open)
+        if (open)
+            return;
+
+        this.deleting = false;
+
+        if (!this.previewing)
             await this.Close();
     }
 

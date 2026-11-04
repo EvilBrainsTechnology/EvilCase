@@ -250,8 +250,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   ukáže a schová pruh verzí pod hlavičkou, a Porovnat, pak Stáhnout, které stáhne zobrazenou
   verzi. Za nimi stojí nabídka ⋯ s Upravit, Nahrát novou verzi, Přejmenovat a Smazat. Nahrát
   novou verzi nahraje novou verzi jako akce řádku a pak ukáže aktuální verzi; náhled hlášku
-  o nahrané verzi neukazuje, vypíše ji karta. Smazat náhled zavře a otevře potvrzení smazání souboru. Na mobilu jsou Upravit, Nahrát
-  novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat v nabídce ⋯ lišty náhledu.
+  o nahrané verzi neukazuje, vypíše ji karta. Smazat otevře nad náhledem potvrzení smazání
+  souboru; náhled se zavře až po smazání, Zrušit ho nechá na souboru a verzi, které ukazoval. Na
+  mobilu jsou Upravit, Nahrát novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat
+  v nabídce ⋯ lišty náhledu.
 - Hlavička souboru karty nese hned za názvem hvězdu hlavního souboru, stejnou jako řádek.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.

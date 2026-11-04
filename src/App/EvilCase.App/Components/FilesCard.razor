@@ -146,7 +146,7 @@
                       Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
                       LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
-                      OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain" OnDelete="this.DeleteFromPreview"
+                      OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
                       EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
 }
 
@@ -614,13 +614,6 @@
         this.deleting = file;
     }
 
-    private void DeleteFromPreview(FileListItem file)
-    {
-        this.previewFileId = null;
-        this.previewVersion = null;
-        this.deleting = file;
-    }
-
     private async Task ChangeMainFromRow(FileListItem file, bool main)
     {
         if (await this.ChangeMain(file, main) is { } failure && !this.State.Failures.Contains(failure))
@@ -662,8 +655,15 @@
             this.deleting = null;
     }
 
+    // The preview stays open over the confirmation and closes once its file is deleted.
     private async Task FileDeleted()
     {
+        if (this.previewFileId == this.deleting?.FileId)
+        {
+            this.previewFileId = null;
+            this.previewVersion = null;
+        }
+
         this.deleting = null;
 
         await this.ReloadFiles();
