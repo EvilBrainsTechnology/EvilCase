@@ -2589,16 +2589,58 @@ html.ec-scroll-locked {
     position: absolute;
     bottom: calc(100% + var(--ec-space-2));
     left: 0;
+}
+
+/* The bubble of an ec-tooltip names its data-tooltip on hover and keyboard focus, above the host and aligned
+   to its end. Anchored and fixed where the browser can, so no overflow of a row or a list clips it. */
+.ec-tooltip {
+    position: relative;
+}
+
+.ec-tooltip:is(:hover, :focus-visible)::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + var(--ec-space-2));
+    right: 0;
+    text-align: start;
+}
+
+/* Without anchor-scope every bubble would anchor to the last host on the page. */
+@supports (anchor-scope: --ec-tooltip) and (position-try-fallbacks: flip-block) {
+    .ec-tooltip {
+        anchor-name: --ec-tooltip;
+        anchor-scope: --ec-tooltip;
+    }
+
+    .ec-tooltip:is(:hover, :focus-visible)::after {
+        position: fixed;
+        position-anchor: --ec-tooltip;
+        bottom: anchor(top);
+        right: anchor(right);
+        margin-bottom: var(--ec-space-2);
+        position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+    }
+}
+
+/* A tap leaves the hover on; on touch the bubble shows only on keyboard focus. */
+@media (hover: none) {
+    .ec-tooltip:not(:focus-visible)::after {
+        content: none;
+    }
+}
+
+.ec-markdown-compare-format[data-format]:is(:hover, :focus)::after,
+.ec-tooltip:is(:hover, :focus-visible)::after {
     z-index: 1;
     display: flex;
     align-items: center;
     box-sizing: border-box;
     width: max-content;
-    max-width: var(--ec-compare-tooltip-max-width);
-    min-height: var(--ec-compare-tooltip-height);
+    max-width: var(--ec-tooltip-max-width);
+    min-height: var(--ec-tooltip-height);
     padding: var(--ec-space-1) var(--ec-space-4);
     border-radius: var(--ec-radius-sm);
-    background: var(--ec-compare-tooltip-bg);
+    background: var(--ec-tooltip-bg);
     box-shadow: var(--ec-shadow-overlay);
     color: var(--ec-on-accent);
     font-family: var(--ec-font);
@@ -7207,13 +7249,23 @@ html:has(.ec-gate) {
     color: var(--ec-text-subtle);
 }
 
-/* Hlavní soubor úkonu: ikonové tlačítko jako akce řádku souborů, které v odkazu řádku otevře náhled. */
+/* Hlavní soubor úkonu: barevná ikona typu jako v kartě souborů, tlačítko, které v odkazu řádku otevře náhled. */
 .ec-cell-main-file {
     justify-content: center;
 }
 
 .ec-main-file {
-    height: var(--ec-control-md);
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: none;
+    cursor: pointer;
+}
+
+.ec-main-file:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
 }
 
 .ec-cell-empty {
@@ -7359,8 +7411,10 @@ html:has(.ec-gate) {
 
     .ec-table-row .ec-main-file {
         position: relative;
-        min-width: 0;
-        min-height: 0;
+    }
+
+    .ec-main-file .ec-file-icon {
+        width: var(--ec-control-sm);
         height: var(--ec-control-sm);
     }
 

@@ -390,9 +390,9 @@
     --ec-compare-cell-added: #F0F9F3;
     --ec-compare-line-width: 2px;
     --ec-compare-underline-offset: 3px;
-    --ec-compare-tooltip-bg: var(--ec-text);
-    --ec-compare-tooltip-height: 28px;
-    --ec-compare-tooltip-max-width: 280px;
+    --ec-tooltip-bg: var(--ec-text);
+    --ec-tooltip-height: 28px;
+    --ec-tooltip-max-width: 280px;
     --ec-compare-markdown-padding: 28px 40px 32px;
     --ec-markdown-task-box: 16px;
     --ec-overlay-strong: rgba(20, 22, 27, 0.6);

@@ -111,10 +111,9 @@
                     @if (item.MainFile is { } main)
                     {
                         @* Inside the row's link: the click opens the preview and never follows the row. *@
-                        <button type="button" class="ec-button ec-button-secondary ec-button-compact ec-button-icon ec-main-file"
-                                aria-label="@main.FileName" title="@main.FileName"
+                        <button type="button" class="ec-main-file ec-tooltip" aria-label="@main.FileName" data-tooltip="@main.FileName"
                                 @onclick="() => this.OpenMainFile(item.ActId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
-                            <EcIcon Paths="@EcFileIcon.Glyph(main.FileName)" />
+                            <EcFileIcon FileName="@main.FileName" Size="EcFileIconSize.Compact" />
                         </button>
                     }
                 </text>,
