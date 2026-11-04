@@ -151,27 +151,39 @@ internal sealed class TenantExporter(
     }
 
     /// <summary>
-    /// The root cases in Spisy, each with everything below it; answers how many blobs were missing.
+    /// The root cases, each with everything below it; answers how many blobs were missing.
     /// </summary>
     private async Task<int> WriteCases(ZipStreamWriter zip, List<OutlinedCase> cases, List<OutlinedAct> acts, CancellationToken token)
     {
         var subCases = cases.ToLookup(static @case => @case.ParentCaseId);
         var caseActs = acts.ToLookup(static act => act.CaseId);
+
+        return await this.WriteCaseFolders(zip, subCases, caseActs, subCases[null], TenantExportLayout.CasesFolder, token);
+    }
+
+    private async Task<int> WriteCaseFolders(
+        ZipStreamWriter zip,
+        ILookup<Guid?, OutlinedCase> subCases,
+        ILookup<Guid, OutlinedAct> caseActs,
+        IEnumerable<OutlinedCase> cases,
+        string path,
+        CancellationToken token)
+    {
         var names = FileArchiveLayout.ClaimedNames();
         var missing = 0;
 
-        foreach (var root in subCases[null])
+        foreach (var @case in cases)
         {
-            var name = FileArchiveLayout.ClaimFolderName(names, TenantExportLayout.FolderName(root.Date, root.Title, TenantExportLayout.CaseFallback));
+            var name = FileArchiveLayout.ClaimFolderName(names, TenantExportLayout.FolderName(@case.Date, @case.Title, TenantExportLayout.CaseFallback));
 
-            missing += await this.WriteCaseFolder(zip, subCases, caseActs, root, $"{TenantExportLayout.CasesFolder}/{name}", token);
+            missing += await this.WriteCaseFolder(zip, subCases, caseActs, @case, $"{path}/{name}", token);
         }
 
         return missing;
     }
 
     /// <summary>
-    /// The case's document beside its files, then its sub-cases and acts as folders; answers how many blobs were missing.
+    /// The case's document, its files, its sub-cases and its acts; answers how many blobs were missing.
     /// </summary>
     private async Task<int> WriteCaseFolder(
         ZipStreamWriter zip,
@@ -182,18 +194,8 @@ internal sealed class TenantExporter(
         CancellationToken token)
     {
         var context = dbSession.Current;
-        var names = FileArchiveLayout.ClaimedNames();
-        names.Add(TenantExportLayout.CaseDocumentName);
 
-        var children = subCases[@case.CaseId]
-            .Select(child => (Case: child, Name: FileArchiveLayout.ClaimFolderName(names, TenantExportLayout.FolderName(child.Date, child.Title, TenantExportLayout.CaseFallback))))
-            .ToList();
-
-        var acts = caseActs[@case.CaseId]
-            .Select(act => (Act: act, Name: FileArchiveLayout.ClaimFolderName(names, TenantExportLayout.FolderName(act.Date, act.Title, TenantExportLayout.ActFallback))))
-            .ToList();
-
-        var (files, missing) = await this.WriteFiles(zip, context.FileVersions.OfCaseFiles(@case.CaseId), path, names, token);
+        var (files, missing) = await this.WriteFiles(zip, context.FileVersions.OfCaseFiles(@case.CaseId), path, token);
 
         var comments = await context.Comments
             .OnCase(@case.CaseId)
@@ -210,11 +212,16 @@ internal sealed class TenantExporter(
             exported with { Comments = comments, Files = files, Path = path },
             token);
 
-        foreach (var child in children)
-            missing += await this.WriteCaseFolder(zip, subCases, caseActs, child.Case, $"{path}/{child.Name}", token);
+        missing += await this.WriteCaseFolders(zip, subCases, caseActs, subCases[@case.CaseId], $"{path}/{TenantExportLayout.CasesFolder}", token);
 
-        foreach (var act in acts)
-            missing += await this.WriteActFolder(zip, act.Act, $"{path}/{act.Name}", token);
+        var names = FileArchiveLayout.ClaimedNames();
+
+        foreach (var act in caseActs[@case.CaseId])
+        {
+            var name = FileArchiveLayout.ClaimFolderName(names, TenantExportLayout.FolderName(act.Date, act.Title, TenantExportLayout.ActFallback));
+
+            missing += await this.WriteActFolder(zip, act, $"{path}/{TenantExportLayout.ActsFolder}/{name}", token);
+        }
 
         return missing;
     }
@@ -222,10 +229,8 @@ internal sealed class TenantExporter(
     private async Task<int> WriteActFolder(ZipStreamWriter zip, OutlinedAct act, string path, CancellationToken token)
     {
         var context = dbSession.Current;
-        var names = FileArchiveLayout.ClaimedNames();
-        names.Add(TenantExportLayout.ActDocumentName);
 
-        var (files, missing) = await this.WriteFiles(zip, context.FileVersions.OfActFiles(act.ActId), path, names, token);
+        var (files, missing) = await this.WriteFiles(zip, context.FileVersions.OfActFiles(act.ActId), path, token);
 
         var comments = await context.Comments
             .OnAct(act.ActId)
@@ -246,14 +251,13 @@ internal sealed class TenantExporter(
     }
 
     /// <summary>
-    /// Every version under the names "Stáhnout vše včetně verzí" gives them, against the names the folder holds already.
+    /// Every version in the files folder under the names "Stáhnout vše včetně verzí" gives them.
     /// A version whose blob is missing stays out of the archive and is marked in its file.
     /// </summary>
     private async Task<(List<ExportedFile> Files, int Missing)> WriteFiles(
         ZipStreamWriter zip,
         IQueryable<FileVersion> versions,
         string path,
-        HashSet<string> names,
         CancellationToken token)
     {
         var rows = await versions
@@ -271,7 +275,7 @@ internal sealed class TenantExporter(
         });
 
         var entries = FileArchiveLayout
-            .Entries(archived, includeVersions: true, names)
+            .Entries(archived, includeVersions: true)
             .ToDictionary(static entry => entry.StoragePath, StringComparer.Ordinal);
 
         var entryPaths = new Dictionary<Guid, string?>();
@@ -279,7 +283,7 @@ internal sealed class TenantExporter(
         foreach (var row in rows)
         {
             var entry = entries[row.StoragePath];
-            var entryPath = $"{path}/{entry.EntryName}";
+            var entryPath = $"{path}/{TenantExportLayout.FilesFolder}/{entry.EntryName}";
 
             await using var content = blobStore.ReadFileBlob(row.StoragePath);
 

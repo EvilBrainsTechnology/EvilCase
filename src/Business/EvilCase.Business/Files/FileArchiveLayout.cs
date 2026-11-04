@@ -34,17 +34,17 @@ internal static partial class FileArchiveLayout
     /// <summary>
     /// Each file under its name, its older versions beside it as "Name (verze N).ext" where they are included. The
     /// versions come in file order, those of each file by number. The current versions claim their names first, in
-    /// file order, then the older ones; a name already claimed, also one in <paramref name="claimed"/>, gets " (2)",
-    /// " (3)" and on before its extension.
+    /// file order, then the older ones; a name already claimed gets " (2)", " (3)" and on before
+    /// its extension.
     /// </summary>
-    public static List<FileArchiveEntry> Entries(IReadOnlyList<ArchivedVersion> versions, bool includeVersions, HashSet<string>? claimed = null)
+    public static List<FileArchiveEntry> Entries(IReadOnlyList<ArchivedVersion> versions, bool includeVersions)
     {
         var files = versions
             .GroupBy(static version => version.FileId)
             .Select(static file => file.ToList())
             .ToList();
 
-        claimed ??= ClaimedNames();
+        var claimed = ClaimedNames();
         var names = files.ConvertAll(static file => SafeEntryName(file[^1].FileName, EntryFallback));
         var currentNames = names.ConvertAll(name => ClaimFileName(claimed, name));
 

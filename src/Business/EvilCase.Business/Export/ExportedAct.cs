@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Domain.Acts;
 namespace EvilBrains.EvilCase.Business.Export;
 
 /// <summary>
-/// !ukon.json in the act's folder.
+/// act.json in the act's folder.
 /// </summary>
 internal sealed record ExportedAct
 {

@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Business.Export;
 
 /// <summary>
-/// !stitky.json in Štítky.
+/// labels.json in labels.
 /// </summary>
 internal sealed record ExportedLabelList
 {

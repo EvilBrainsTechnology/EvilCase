@@ -37,9 +37,9 @@ public class TenantExportLayoutTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(TenantExportLayout.FolderName(Day, " .. ", TenantExportLayout.CaseFallback), Is.EqualTo("2026-08-21 Spis"));
-            Assert.That(TenantExportLayout.FolderName(Day, "...", TenantExportLayout.ActFallback), Is.EqualTo("2026-08-21 Úkon"));
-            Assert.That(TenantExportLayout.ContactDocumentName(". "), Is.EqualTo("Kontakt.json"));
+            Assert.That(TenantExportLayout.FolderName(Day, " .. ", TenantExportLayout.CaseFallback), Is.EqualTo("2026-08-21 case"));
+            Assert.That(TenantExportLayout.FolderName(Day, "...", TenantExportLayout.ActFallback), Is.EqualTo("2026-08-21 act"));
+            Assert.That(TenantExportLayout.ContactDocumentName(". "), Is.EqualTo("contact.json"));
         }
     }
 
