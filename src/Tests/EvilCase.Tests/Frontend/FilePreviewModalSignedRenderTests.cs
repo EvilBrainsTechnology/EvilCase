@@ -28,7 +28,7 @@ public class FilePreviewModalSignedRenderTests
 
         await component.WaitForAssertionAsync(() =>
             Assert.That(editors.Opened.Select(static opened => (opened.Text, opened.Language)), Is.EqualTo([("<?xml version=\"1.0\"?><a/>", (CodeLanguage?)CodeLanguage.Xml)])));
-        await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());
+        await component.Find(".ec-preview-actions button[aria-label='Stáhnout dokument']").ClickAsync(new());
 
         using (Assert.EnterMultipleScope())
         {
