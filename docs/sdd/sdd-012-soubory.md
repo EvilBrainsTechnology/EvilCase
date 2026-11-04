@@ -62,6 +62,20 @@ jedinečné bez ohledu na velikost písmen.
   nahrál.
 - Novou verzi nahrát, verzi smazat i soubor přejmenovat a smazat smí kdokoli z tenantu.
 
+### Hlavní soubor
+
+- Spis i úkon má nejvýše jeden hlavní soubor. Hlavní je soubor, ne jeho verze: náhled ukazuje
+  jeho aktuální verzi a přejmenování, nová verze ani smazání verze hlavní soubor nemění.
+- Hlavním se stane soubor nahraný do spisu nebo úkonu, který žádný soubor nemá, v dávce
+  její první soubor. Upload do spisu nebo úkonu, který soubor má, hlavní soubor nemění, ani když
+  žádný hlavní není.
+- Nastavit jako hlavní soubor přesune označení na jiný soubor téhož spisu nebo úkonu. Zrušit
+  hlavní soubor nechá spis nebo úkon bez hlavního souboru.
+- Smazání hlavního souboru udělá hlavním nejstarší zbývající soubor v pořadí seznamu souborů;
+  smazání jiného souboru hlavní soubor nemění. Po smazání posledního souboru hlavní soubor není.
+- Hlavní soubor nastavit i zrušit smí kdokoli z tenantu. Neznámý soubor a soubor jiného tenantu
+  jsou 404.
+
 ### UI
 
 Karta souborů leží na detailu spisu i úkonu podle toho, zda nese soubor. Bez souborů je
@@ -521,6 +535,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   a naformátované se liší.
 - Konce řádků v porovnání: rozdíl / žádný rozdíl. Platí žádný rozdíl.
 - Změny formátovaných úprav Markdownu: upravitelné / jen ke čtení. Platí jen ke čtení.
+- Hlavní soubor uploadu: první soubor bez hlavního / první soubor vůbec. Platí první soubor
+  vůbec.
+- Po smazání hlavního souboru: žádný hlavní / nejstarší zbývající. Platí nejstarší zbývající.
 
 ## Dopady
 

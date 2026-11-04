@@ -46,6 +46,7 @@ internal static class FileListQuery
         {
             FileId = file.Id,
             FileName = file.FileName,
+            IsMain = file.IsMain,
             SizeBytes = file.Versions
                 .OrderByDescending(static version => version.Number)
                 .Select(static version => version.SizeBytes)

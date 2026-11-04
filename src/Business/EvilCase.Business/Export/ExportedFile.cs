@@ -6,6 +6,8 @@ internal sealed record ExportedFile
 
     public required string FileName { get; init; }
 
+    public required bool IsMain { get; init; }
+
     /// <summary>
     /// By number; the last is the current version.
     /// </summary>

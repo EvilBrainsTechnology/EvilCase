@@ -5,7 +5,7 @@ namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
 /// Exactly one of CaseId and ActId is set (check constraint). Its name is unique within its case or act, ignoring
-/// case, through indexes the FileVersions migration creates.
+/// case, through indexes the FileVersions migration creates. A case or an act has at most one main file.
 /// </summary>
 [Index(nameof(TenantId))]
 [Index(nameof(CaseId))]
@@ -25,6 +25,8 @@ public sealed record FileAsset : IUserOwnedEntity
 
     [MaxLength(256)]
     public required string FileName { get; init; }
+
+    public bool IsMain { get; init; }
 
     public DateTime Created { get; init; }
 

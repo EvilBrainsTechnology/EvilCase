@@ -139,6 +139,7 @@ internal sealed class SampleDataSeeder(
                 actId: null,
                 caseNumber.Replace('/', '-') + ".txt",
                 [body, body + "\n\nDoplněné znění, druhá verze dokumentu."],
+                isMain: true,
                 counters,
                 token);
         }
@@ -191,13 +192,15 @@ internal sealed class SampleDataSeeder(
             counters.CommentCount++;
         }
 
-        await this.AddFile(tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], counters, token);
+        // The first file of an act is its main file, as an upload makes it.
+        await this.AddFile(
+            tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], isMain: true, counters, token);
 
         if (sampleAct.ExtraFileSuffix is not null)
         {
             var fileName = actNumber.Replace('/', '-') + "-" + sampleAct.ExtraFileSuffix + ".txt";
 
-            await this.AddFile(tenantId, caseId: null, act.Id, fileName, [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], counters, token);
+            await this.AddFile(tenantId, caseId: null, act.Id, fileName, [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], isMain: false, counters, token);
         }
 
         await dbSession.Current.SaveChangesAsync(token);
@@ -235,12 +238,13 @@ internal sealed class SampleDataSeeder(
         Guid? actId,
         string fileName,
         IReadOnlyList<string> versionContents,
+        bool isMain,
         SeedCounters counters,
         CancellationToken token)
     {
         var context = dbSession.Current;
 
-        var file = new FileAsset { CaseId = caseId, ActId = actId, FileName = fileName };
+        var file = new FileAsset { CaseId = caseId, ActId = actId, FileName = fileName, IsMain = isMain };
 
         context.FileAssets.Add(file);
         counters.FileCount++;

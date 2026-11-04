@@ -52,10 +52,11 @@
     "file": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["fileId", "fileName", "versions"],
+      "required": ["fileId", "fileName", "isMain", "versions"],
       "properties": {
         "fileId": { "$ref": "#/definitions/id" },
         "fileName": { "description": "The name the file carries in the application.", "type": "string" },
+        "isMain": { "description": "The main file of its case or act; at most one file there is.", "type": "boolean" },
         "versions": {
           "description": "By number; the last is the current version.",
           "type": "array",

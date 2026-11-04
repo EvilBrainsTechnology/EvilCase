@@ -132,6 +132,7 @@ internal sealed class TenantExporter(
                 {
                     FileId = file.Key,
                     FileName = file.First().FileName,
+                    IsMain = file.First().FileIsMain,
                     Versions =
                     [
                         .. file.Select(row => new ExportedFileVersion

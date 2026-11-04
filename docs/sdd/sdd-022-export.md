@@ -89,8 +89,9 @@ a společné definice `common.schema.json`.
 - `act.json`: všechna pole úkonu včetně stavu, id spisu, kontakt jako id a jméno, štítky jako id a název,
   komentáře, soubory, okamžik založení a poslední změny, cesta složky.
 - Komentář: id, text, e-mail autora, okamžik založení a poslední změny.
-- Soubor: id, jméno a u každé verze číslo, velikost, typ obsahu, SHA-256, okamžik nahrání, e-mail
-  toho, kdo ji nahrál, cesta v archivu a příznak `missing`.
+- Soubor: id, jméno, příznak hlavního souboru `isMain` a u každé verze číslo, velikost, typ
+  obsahu, SHA-256, okamžik nahrání, e-mail toho, kdo ji nahrál, cesta v archivu a příznak
+  `missing`.
 - Kontakt: všechna pole, okamžik založení a poslední změny, cesta v archivu.
 - Štítky: u každého id, název a barva.
 

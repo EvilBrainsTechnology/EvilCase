@@ -352,6 +352,9 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<bool>("IsMain")
+                        .HasColumnType("boolean");
+
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
@@ -371,6 +374,14 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "TenantId", "ActId" }, "IX_FileAssets_TenantId_ActId_IsMain")
+                        .IsUnique()
+                        .HasFilter("\"IsMain\"");
+
+                    b.HasIndex(new[] { "TenantId", "CaseId" }, "IX_FileAssets_TenantId_CaseId_IsMain")
+                        .IsUnique()
+                        .HasFilter("\"IsMain\"");
 
                     b.ToTable("FileAssets", t =>
                         {

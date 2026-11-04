@@ -6,6 +6,11 @@ public sealed record FileListItem
 
     public required string FileName { get; init; }
 
+    /// <summary>
+    /// The main file of its case or act; at most one file there is.
+    /// </summary>
+    public bool IsMain { get; init; }
+
     public required long SizeBytes { get; init; }
 
     /// <summary>

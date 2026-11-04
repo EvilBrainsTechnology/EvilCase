@@ -24,7 +24,8 @@ textu souboru. Tvary REST API drží SDD-005, API tokeny SDD-006.
 ### Nástroje
 
 - Nástroje pokrývají každý zdroj REST API kromě API tokenů a archivu souborů (SDD-005): spisy,
-  úkony, kontakty, štítky a jejich přidělení, komentáře, soubory a verze, podpisy a hledání.
+  úkony, kontakty, štítky a jejich přidělení, komentáře, soubory s hlavním souborem a verze,
+  podpisy a hledání.
   Upload a download obsahu jdou jen jednorázovým odkazem.
 - Názvy nástrojů jsou snake_case (`list_cases`, `delete_label`), každý nástroj i parametr nese
   anglický popis.
