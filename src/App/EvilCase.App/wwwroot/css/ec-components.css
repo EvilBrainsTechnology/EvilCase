@@ -2598,66 +2598,18 @@ html.ec-scroll-locked {
     outline-offset: 1px;
 }
 
-/* The tooltip of a stretch or block in another format or of another type names the change; a tap focuses it. */
-.ec-markdown-compare-format[data-format] {
-    position: relative;
-}
-
-.ec-markdown-compare-format[data-format]:is(:hover, :focus)::after {
-    content: attr(data-format);
-    position: absolute;
-    bottom: calc(100% + var(--ec-space-2));
-    left: 0;
-}
-
-/* The bubble of an ec-tooltip names its data-tooltip on hover and keyboard focus, above the host and aligned
-   to its end. Anchored and fixed where the browser can, so no overflow of a row or a list clips it. */
+/* The one tooltip bubble, which ec-tooltip.js places beside its host and points its arrow at; data-side names the
+   host's side the bubble stands on. */
 .ec-tooltip {
-    position: relative;
-}
-
-.ec-tooltip:is(:hover, :focus-visible)::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: calc(100% + var(--ec-space-2));
-    right: 0;
-    text-align: start;
-}
-
-/* Without anchor-scope every bubble would anchor to the last host on the page. */
-@supports (anchor-scope: --ec-tooltip) and (position-try-fallbacks: flip-block) {
-    .ec-tooltip {
-        anchor-name: --ec-tooltip;
-        anchor-scope: --ec-tooltip;
-    }
-
-    .ec-tooltip:is(:hover, :focus-visible)::after {
-        position: fixed;
-        position-anchor: --ec-tooltip;
-        bottom: anchor(top);
-        right: anchor(right);
-        margin-bottom: var(--ec-space-2);
-        position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
-    }
-}
-
-/* A tap leaves the hover on; on touch the bubble shows only on keyboard focus. */
-@media (hover: none) {
-    .ec-tooltip:not(:focus-visible)::after {
-        content: none;
-    }
-}
-
-.ec-markdown-compare-format[data-format]:is(:hover, :focus)::after,
-.ec-tooltip:is(:hover, :focus-visible)::after {
-    z-index: 1;
-    display: flex;
-    align-items: center;
+    inset: auto;
     box-sizing: border-box;
     width: max-content;
     max-width: var(--ec-tooltip-max-width);
     min-height: var(--ec-tooltip-height);
+    margin: 0;
     padding: var(--ec-space-1) var(--ec-space-4);
+    overflow: visible;
+    border: 0;
     border-radius: var(--ec-radius-sm);
     background: var(--ec-tooltip-bg);
     box-shadow: var(--ec-shadow-overlay);
@@ -2666,8 +2618,38 @@ html.ec-scroll-locked {
     font-size: var(--ec-text-xs);
     font-style: normal;
     font-weight: var(--ec-weight-medium);
+    text-align: start;
     overflow-wrap: anywhere;
     pointer-events: none;
+}
+
+.ec-tooltip:popover-open {
+    display: flex;
+    align-items: center;
+}
+
+.ec-tooltip-arrow {
+    position: absolute;
+    width: var(--ec-tooltip-arrow);
+    height: var(--ec-tooltip-arrow);
+    background: var(--ec-tooltip-bg);
+    transform: rotate(45deg);
+}
+
+.ec-tooltip[data-side="bottom"] .ec-tooltip-arrow {
+    top: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-tooltip[data-side="top"] .ec-tooltip-arrow {
+    bottom: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-tooltip[data-side="left"] .ec-tooltip-arrow {
+    right: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-tooltip[data-side="right"] .ec-tooltip-arrow {
+    left: calc(var(--ec-tooltip-arrow) / -2);
 }
 
 .ec-markdown-compare-legend {

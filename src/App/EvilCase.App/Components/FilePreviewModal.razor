@@ -33,7 +33,7 @@
                 </div>
                 <EcFileIcon FileName="@attachment.Name" />
                 <div class="ec-preview-title">
-                    <h2 class="ec-preview-name" title="@attachment.Name">@attachment.Name</h2>
+                    <h2 class="ec-preview-name" data-tooltip-overflow>@attachment.Name</h2>
                     <span class="ec-preview-meta">@FileSizeDisplay.Text(attachment.Content.Length) <span class="ec-sep" aria-hidden="true">·</span> příloha zprávy @ownerName</span>
                 </div>
                 <div class="ec-preview-actions">
@@ -57,7 +57,7 @@
 
                 <EcFileIcon FileName="@file.FileName" />
                 <div class="ec-preview-title">
-                    <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                    <h2 class="ec-preview-name" data-tooltip-overflow>@file.FileName</h2>
                     <span class="ec-preview-meta">@(pair is { } shownPair ? $"Porovnání verze {shownPair.Older} s verzí {shownPair.Newer}" : "Porovnání verzí")</span>
                 </div>
                 <div class="ec-preview-actions">
@@ -73,7 +73,7 @@
             {
                 <EcFileIcon FileName="@file.FileName" />
                 <div class="ec-preview-title">
-                    <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                    <h2 class="ec-preview-name" data-tooltip-overflow>@file.FileName</h2>
                     <span class="ec-preview-meta">
                         @if (this.dirty)
                         {
@@ -102,7 +102,7 @@
                 {
                     <div class="ec-preview-title">
                         <div class="ec-preview-name-row">
-                            <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                            <h2 class="ec-preview-name" data-tooltip-overflow>@file.FileName</h2>
                             @if (this.ChangeMain is not null)
                             {
                                 <MainFileStar IsMain="file.IsMain" OnChange="main => this.MarkMain(file, main)" />
@@ -127,8 +127,8 @@
                     {
                         @* Not an EcButton: the focus returns to it, which needs its element reference. *@
                         <button type="button" class="ec-button ec-button-secondary ec-button-standard" @ref="this.versionsToggle"
-                                aria-label="@($"Verze, {file.VersionCount}")" aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
-                                aria-disabled="@(this.OlderVersion is not null ? "true" : null)" title="@(this.OlderVersion is not null ? "Zobrazena je starší verze" : null)"
+                                aria-label="@(this.OlderVersion is not null ? $"Verze, {file.VersionCount}, zobrazena je starší verze" : $"Verze, {file.VersionCount}")" aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
+                                aria-disabled="@(this.OlderVersion is not null ? "true" : null)" data-tooltip="@(this.OlderVersion is not null ? "Zobrazena je starší verze" : null)"
                                 @onclick="this.ToggleVersions">
                             <EcIcon Paths="@AppIcons.Clock" />
                             <span class="ec-preview-action-label">Verze<span class="ec-preview-versions-count">@file.VersionCount</span></span>

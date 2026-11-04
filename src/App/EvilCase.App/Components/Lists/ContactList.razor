@@ -21,7 +21,7 @@
                 Primary = true,
                 Cell = item =>@<span class="ec-contact-name">
                     <span class="@($"ec-contact-monogram ec-contact-monogram-{ContactKindDisplay.Css(item.Kind)}")">@ContactMonogram.Text(item.Name)</span>
-                    <span class="ec-contact-name-text" title="@item.Name">@item.Name</span>
+                    <span class="ec-contact-name-text" data-tooltip-overflow>@item.Name</span>
                 </span>,
             },
             ContactColumn.Kind => new EcColumn<ContactListItem>
@@ -57,7 +57,7 @@
                     }
                     else
                     {
-                        <span class="ec-cell-text" title="@item.Address">@item.Address</span>
+                        <span class="ec-cell-text" data-tooltip-overflow>@item.Address</span>
                     }
                 </text>,
             },

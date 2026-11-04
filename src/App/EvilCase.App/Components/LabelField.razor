@@ -120,7 +120,7 @@
                                 @foreach (var color in LabelColorDisplay.Palette)
                                 {
                                     <button type="button" role="radio" class="@($"ec-swatch ec-chip-{LabelColorDisplay.Css(color)}")"
-                                            title="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
+                                            data-tooltip="@LabelColorDisplay.Text(color)" aria-label="@LabelColorDisplay.Text(color)"
                                             aria-checked="@(this.newColor == color ? "true" : "false")"
                                             aria-pressed="@(this.newColor == color ? "true" : "false")"
                                             @onclick="() => this.newColor = color"></button>

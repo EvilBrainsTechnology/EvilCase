@@ -1,6 +1,7 @@
 // Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
 // license files, and bundles each module of lib-src with esbuild: postal-mime, @kenjiuno/msgreader, file-type, the code
-// formatting (Prettier with @prettier/plugin-xml), the text editor (CodeMirror) and the Markdown view and editor (Milkdown).
+// formatting (Prettier with @prettier/plugin-xml), the text editor (CodeMirror), the Markdown view and editor (Milkdown)
+// and the tooltip placement (Floating UI).
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
@@ -172,6 +173,7 @@ await bundle('file-type');
 await bundle('code-preview');
 await bundle('codemirror');
 await bundle('milkdown');
+await bundle('floating-ui');
 // The base rules of an editable ProseMirror text; the app's stylesheet loads after it and wins. tables.css is not used.
 copy('@milkdown/prose', 'lib/style/prosemirror.css', join(lib, 'milkdown', 'prosemirror.css'));
 
