@@ -41,8 +41,8 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku vlastní název se štítky a pod ním šedě název rodičovského spisu, jako úkon v seznamu úkonů, stav
-  s barevnou tečkou, okamžik poslední změny a hlavní soubor. Výchozí řazení je podle
+- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku vlastní název se štítky a pod ním šedě název rodičovského spisu, jako úkon v seznamu úkonů, hlavní soubor, stav
+  s barevnou tečkou a okamžik poslední změny. Výchozí řazení je podle
   data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
   stránkovaný podle SDD-005 a nese celkový počet. Lišta je na jednom řádku: hledání, přepínač
   stavu, tlačítko Filtry a Jen rodičovské spisy. Hledací pole hledá v názvu, popisu, spisové značce a
@@ -58,14 +58,14 @@ kontakt. Zadává se na editaci spisu.
   Nabídka vedle Upravit spis nese Nový úkon, Nový podřízený spis, Zkopírovat odkaz na spis
   a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
-- Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem, směr,
-  stav, kontakt, okamžik poslední změny a hlavní soubor (SDD-010). Kontakt, který je protistranou
+- Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem, hlavní
+  soubor, směr, stav, kontakt a okamžik poslední změny (SDD-010). Kontakt, který je protistranou
   spisu, je potlačený; jiný kontakt je zvýrazněný. Lišta nese hledání a směr; rozsah dat
   a štítky jsou pod tlačítkem Filtry, které je ve výchozím stavu sbalené a nese počet
   aktivních filtrů.
 - Podřízené spisy v detailu spisu ukazují počet otevřených a uzavřených a ve výchozím stavu jen
   otevřené (vše kromě uzavřených); přepínač ukáže i uzavřené.
-- Každý seznam spisů nese za Změněno úzký sloupec Soubor s hlavním souborem spisu (SDD-012);
+- Každý seznam spisů nese hned za názvem úzký sloupec Soubor s hlavním souborem spisu (SDD-012);
   podřízené spisy v detailu spisu ho nesou vpravo na řádku. Tlačítko, náhled bez listování
   ostatními soubory spisu, obnovení seznamu po změně, prázdná buňka i mobil jsou jako v seznamu
   úkonů (SDD-010).
