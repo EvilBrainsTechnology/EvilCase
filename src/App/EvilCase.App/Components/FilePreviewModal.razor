@@ -127,7 +127,7 @@
                     {
                         @* Not an EcButton: the focus returns to it, which needs its element reference. *@
                         <button type="button" class="ec-button ec-button-secondary ec-button-standard" @ref="this.versionsToggle"
-                                aria-label="@($"Verze, {file.VersionCount}")" aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
+                                aria-label="@(this.OlderVersion is not null ? $"Verze, {file.VersionCount}, zobrazena je starší verze" : $"Verze, {file.VersionCount}")" aria-pressed="@(this.OlderVersion is not null || this.versionsOpen ? "true" : "false")"
                                 aria-disabled="@(this.OlderVersion is not null ? "true" : null)" data-tooltip="@(this.OlderVersion is not null ? "Zobrazena je starší verze" : null)"
                                 @onclick="this.ToggleVersions">
                             <EcIcon Paths="@AppIcons.Clock" />

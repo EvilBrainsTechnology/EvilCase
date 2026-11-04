@@ -18,7 +18,7 @@
                 Width = "var(--ec-list-col-moment)",
                 SortKey = nameof(CaseSortKey.Changed),
                 CellClass = "ec-cell-num",
-                Cell = item =>@<span data-tooltip="@MomentDisplay.Text(item.Changed)">@MomentDisplay.Relative(item.Changed, DateTime.Now)</span>,
+                Cell = item =>@<span data-tooltip="@MomentDisplay.Text(item.Changed)"><span aria-hidden="true">@MomentDisplay.Relative(item.Changed, DateTime.Now)</span><span class="ec-visually-hidden">@MomentDisplay.Text(item.Changed)</span></span>,
             },
             CaseColumn.Date => new EcColumn<CaseListItem>
             {
