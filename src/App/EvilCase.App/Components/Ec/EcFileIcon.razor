@@ -1,7 +1,7 @@
 @using System.Diagnostics
 @using EvilBrains.EvilCase.App.Models
 
-<span class="@this.CssClass" aria-hidden="true"><EcIcon Paths="@this.Glyph" /></span>
+<span class="@this.CssClass" aria-hidden="true"><EcIcon Paths="@Glyph(this.FileName)" /></span>
 
 @code {
     [Parameter, EditorRequired]
@@ -45,22 +45,26 @@
         }
     }
 
-    private string Glyph => FileTypeDisplay.Kind(this.FileName) switch
+    /// <summary>The glyph of the file's type, e.g. on an icon button that opens the file.</summary>
+    public static string Glyph(string fileName)
     {
-        FileKind.Pdf => AppIcons.FileTypePdf,
-        FileKind.Document => AppIcons.FileTypeDocument,
-        FileKind.Sheet => AppIcons.FileTypeSheet,
-        FileKind.Presentation => AppIcons.FileTypePresentation,
-        FileKind.Text => AppIcons.FileTypeText,
-        FileKind.Image => AppIcons.FileTypeImage,
-        FileKind.Audio => AppIcons.FileTypeAudio,
-        FileKind.Video => AppIcons.FileTypeVideo,
-        FileKind.Email => AppIcons.FileTypeEmail,
-        FileKind.DataMessage => AppIcons.FileTypeDataMessage,
-        FileKind.Signature => AppIcons.FileTypeSignature,
-        FileKind.Code => AppIcons.FileTypeCode,
-        FileKind.Archive => AppIcons.FileTypeArchive,
-        FileKind.Other => AppIcons.FileTypeOther,
-        _ => throw new UnreachableException(),
-    };
+        return FileTypeDisplay.Kind(fileName) switch
+        {
+            FileKind.Pdf => AppIcons.FileTypePdf,
+            FileKind.Document => AppIcons.FileTypeDocument,
+            FileKind.Sheet => AppIcons.FileTypeSheet,
+            FileKind.Presentation => AppIcons.FileTypePresentation,
+            FileKind.Text => AppIcons.FileTypeText,
+            FileKind.Image => AppIcons.FileTypeImage,
+            FileKind.Audio => AppIcons.FileTypeAudio,
+            FileKind.Video => AppIcons.FileTypeVideo,
+            FileKind.Email => AppIcons.FileTypeEmail,
+            FileKind.DataMessage => AppIcons.FileTypeDataMessage,
+            FileKind.Signature => AppIcons.FileTypeSignature,
+            FileKind.Code => AppIcons.FileTypeCode,
+            FileKind.Archive => AppIcons.FileTypeArchive,
+            FileKind.Other => AppIcons.FileTypeOther,
+            _ => throw new UnreachableException(),
+        };
+    }
 }

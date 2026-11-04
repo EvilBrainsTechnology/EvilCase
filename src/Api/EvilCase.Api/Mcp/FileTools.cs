@@ -14,7 +14,7 @@ namespace EvilBrains.EvilCase.Api.Mcp;
 internal static class FileTools
 {
     [McpServerTool(Name = "list_case_files", ReadOnly = true, OpenWorld = false)]
-    [Description("Lists the files of a case in upload order, each with its current version and the signature file that signs it.")]
+    [Description("Lists the files of a case in upload order, each with its current version, whether it is the main file and the signature file that signs it.")]
     public static async Task<FileListResponse> ListCaseFiles(IFileReader files, [Description("The case.")] Guid caseId, CancellationToken token)
     {
         var items = await files.ListCaseFiles(caseId, token) ?? throw McpProblem.Of(CaseProblems.NotFound);
@@ -23,7 +23,7 @@ internal static class FileTools
     }
 
     [McpServerTool(Name = "list_act_files", ReadOnly = true, OpenWorld = false)]
-    [Description("Lists the files of an act in upload order, each with its current version and the signature file that signs it.")]
+    [Description("Lists the files of an act in upload order, each with its current version, whether it is the main file and the signature file that signs it.")]
     public static async Task<FileListResponse> ListActFiles(IFileReader files, [Description("The act.")] Guid actId, CancellationToken token)
     {
         var items = await files.ListActFiles(actId, token) ?? throw McpProblem.Of(ActProblems.NotFound);
@@ -104,6 +104,20 @@ internal static class FileTools
         return Answer(outcome, "act");
     }
 
+    [McpServerTool(Name = "set_main_file", Destructive = false, OpenWorld = false)]
+    [Description("Makes a file the main file of its case or act; the previous main file there stops being main.")]
+    public static async Task<string> SetMainFile(IFileWriter writer, [Description("The file.")] Guid fileId, CancellationToken token)
+    {
+        return Answer(await writer.SetMainFile(fileId, token), "The file is the main file.");
+    }
+
+    [McpServerTool(Name = "unset_main_file", Destructive = false, OpenWorld = false)]
+    [Description("Leaves the case or act of a main file without a main file; a file that is not main stays as it is.")]
+    public static async Task<string> UnsetMainFile(IFileWriter writer, [Description("The file.")] Guid fileId, CancellationToken token)
+    {
+        return Answer(await writer.UnsetMainFile(fileId, token), "The file is not the main file.");
+    }
+
     [McpServerTool(Name = "delete_case_file", Destructive = true, OpenWorld = false)]
     [Description("Deletes a file of a case with every version. Cannot be undone.")]
     public static async Task<string> DeleteCaseFile(IFileWriter writer, [Description("The case.")] Guid caseId, [Description("The file.")] Guid fileId, CancellationToken token)
@@ -151,6 +165,16 @@ internal static class FileTools
             FileRenameOutcome.Renamed => "The file was renamed.",
             FileRenameOutcome.NotFound => throw McpProblem.Of(FileProblems.NotFound),
             FileRenameOutcome.NameTaken => throw McpProblem.Of(FileProblems.NameTaken, FileProblems.NameTakenDetail(ownerWord)),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    private static string Answer(MainFileOutcome outcome, string changed)
+    {
+        return outcome switch
+        {
+            MainFileOutcome.Changed => changed,
+            MainFileOutcome.NotFound => throw McpProblem.Of(FileProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }

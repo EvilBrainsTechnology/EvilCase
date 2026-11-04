@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Entities;
@@ -780,36 +779,6 @@ public class FileWriterTests : TenantFixture
     private FileWriter WriterOver(ApplicationDbContext context, IFileBlobStore store)
     {
         return new FileWriter(new FixedDbSession(context), store, this.Tenant.UserContext, NullLogger<FileWriter>.Instance);
-    }
-
-    private sealed class MeetingBlobStore(int parties) : IFileBlobStore
-    {
-        private readonly TaskCompletionSource meeting = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        private int arrived;
-
-        public async Task<FileBlobInfo> WriteFileBlob(Guid tenantId, Guid fileVersionId, Stream content, CancellationToken token)
-        {
-            using var reader = new StreamReader(content, Encoding.UTF8);
-            var bytes = Encoding.UTF8.GetBytes(await reader.ReadToEndAsync(token));
-
-            if (Interlocked.Increment(ref this.arrived) == parties)
-                this.meeting.SetResult();
-
-            await this.meeting.Task;
-
-            return new FileBlobInfo
-            {
-                StoragePath = $"{tenantId}/{fileVersionId}",
-                ContentHash = Convert.ToHexStringLower(SHA256.HashData(bytes)),
-                SizeBytes = bytes.Length,
-            };
-        }
-
-        public Stream? ReadFileBlob(string storagePath)
-        {
-            return null;
-        }
     }
 
     private sealed class RecordingTenantBlobStore : IFileBlobStore

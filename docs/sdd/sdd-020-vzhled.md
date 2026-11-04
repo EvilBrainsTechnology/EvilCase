@@ -106,15 +106,17 @@ Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo
 a dělené tlačítko Stáhnout vše se šipkou nabídky, v bočním sloupci jen název a Nahrát; záhlaví
 drží jeden řádek i na mobilu. Na mobilu záhlaví výzvu nenese a Nahrát soubory i Stáhnout vše
 široké karty nesou jen ikonu. Velikost a okamžik nahrání se zalomí jen mezi sebou. Pod seznamem
-žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; stažení
-a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je
+žádný pruh není. Řádek souboru je jedno ovládací místo po celé šířce a otevírá náhled; před
+stažením stojí neohraničená hvězda hlavního souboru, u hlavního souboru plná v barvě akcentu,
+u ostatních prázdná a šedá. Stažení a nabídka ⋯ jsou ohraničená tlačítka jen s ikonou, v nabídce je
 Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více verzemi
 nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“ nebo
 „nová verze“. Při tažení souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem
 „Pusťte soubory a nahrají se k úkonu" (ve spisu „ke spisu") a limity. Náhled souboru je velký
-modal; hlavička nese ikonu, název, velikost a okamžik nahrání, u víc souborů karty přechod mezi
-nimi s pořadím „Soubor 2 z 5", u souboru s více verzemi přepínač Verze s počtem, Nová verze,
-Přejmenovat, Stáhnout a zavření; pruh verzí leží pod hlavičkou a u starší verze má barvu
+modal; hlavička nese ikonu, název s hvězdou hlavního souboru, velikost a okamžik nahrání, Upravit,
+u souboru s více verzemi přepínač Verze s počtem a Porovnat, nabídku ⋯ se Stáhnout, Nahrát novou
+verzi, Přejmenovat a odděleným, červeným Smazat, u víc souborů karty přechod mezi nimi s pořadím
+„Soubor 2 z 5" a zavření; pruh verzí leží pod hlavičkou a u starší verze má barvu
 upozornění, hlavička starší verze nese vedle názvu štítek „verze 2“ a neaktivní Verze. Náhled přílohy datové zprávy nese v hlavičce návrat „← Zpráva", ikonu, název
 a velikost přílohy, u víc příloh přechod mezi nimi s pořadím „příloha 2 z 5", Stáhnout přílohu
 a zavření; Přejmenovat nenese.
@@ -145,7 +147,7 @@ posledním polem, karta s ovládáním (nadřízený spis, spis) nad tlačítky 
 na mobilu nekreslí. Výběr kontaktu a spisu je spodní panel s nadpisem, hledáním a Hotovo. Pole i celá lišta seznamu mají na mobilu písmo
 16 px. Seznam se nikdy neposouvá vodorovně: řádek nese název na nejvýše dva řádky, pod ním
 spis, do něhož patří, jednu řádku údajů (datum, stav nebo směr, zkrácený kontakt, změněno) a štítky
-pod ní; řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
+pod ní; úkon nese vpravo vedle názvu ikonu hlavního souboru. Řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
 
 Na mobilu stránka karty nemá: sekce jsou bílé bloky přes celou šířku oddělené jednou linkou,
 bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznamu, údaj detailu,

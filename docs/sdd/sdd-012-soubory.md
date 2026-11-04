@@ -62,6 +62,20 @@ jedinečné bez ohledu na velikost písmen.
   nahrál.
 - Novou verzi nahrát, verzi smazat i soubor přejmenovat a smazat smí kdokoli z tenantu.
 
+### Hlavní soubor
+
+- Spis i úkon má nejvýše jeden hlavní soubor. Hlavní je soubor, ne jeho verze: náhled ukazuje
+  jeho aktuální verzi a přejmenování, nová verze ani smazání verze hlavní soubor nemění.
+- Hlavním se stane soubor nahraný do spisu nebo úkonu, který žádný soubor nemá, v dávce
+  její první soubor. Upload do spisu nebo úkonu, který soubor má, hlavní soubor nemění, ani když
+  žádný hlavní není.
+- Nastavit jako hlavní soubor přesune označení na jiný soubor téhož spisu nebo úkonu. Zrušit
+  hlavní soubor nechá spis nebo úkon bez hlavního souboru.
+- Smazání hlavního souboru udělá hlavním nejstarší zbývající soubor v pořadí seznamu souborů;
+  smazání jiného souboru hlavní soubor nemění. Po smazání posledního souboru hlavní soubor není.
+- Hlavní soubor nastavit i zrušit smí kdokoli z tenantu. Neznámý soubor a soubor jiného tenantu
+  jsou 404.
+
 ### UI
 
 Karta souborů leží na detailu spisu i úkonu podle toho, zda nese soubor. Bez souborů je
@@ -107,9 +121,12 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
-i starší verzi pod jménem souboru. Vedle toho nese řádek stažení aktuální verze a nabídku
-Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat; na mobilu řádek nese jen nabídku
-a Stáhnout je její první položka. Upravit nese jen soubor, který
+i starší verzi pod jménem souboru. Vedle toho nese řádek hvězdu hlavního souboru, stažení
+aktuální verze a nabídku Upravit, Nahrát novou verzi, Verze (3), Přejmenovat a Smazat; na mobilu
+řádek nese jen hvězdu a nabídku a Stáhnout je její první položka. Hvězda je u hlavního souboru
+plná, u ostatních prázdná; klik na prázdnou soubor nastaví jako hlavní, klik na plnou hlavní
+soubor zruší, a náhled neotevře. Její popisek je Nastavit jako hlavní soubor, u hlavního souboru
+Zrušit hlavní soubor. Upravit nese jen soubor, který
 náhled podle přípony upravuje (Úpravy textu) a který má nejvýše 1 MB; otevře náhled rovnou
 v úpravách, Markdown formátovaně. Soubor, který po načtení upravit nejde, zůstane v náhledu ke
 čtení s jeho poznámkou. Potvrzení smazání souboru s více verzemi řekne, kolik verzí se smaže.
@@ -219,14 +236,19 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   cesty a bez znaků, které jméno souboru nesmí obsahovat; prázdné jméno nahradí „příloha".
 - HEIC a HEIF se ukážou jako obrázek.
 - Náhled listuje mezi soubory karty, ze které se otevřel, vždy v jejich aktuální verzi; hlavička
-  ukáže pořadí „Soubor 2 z 5“. Listování souborů i příloh stojí v hlavičce vpravo za Stáhnout,
-  hned před zavřením. Na mobilu stojí pořadí „soubor 2 z 5“ za okamžikem nahrání a listování
-  souborů bez pořadí na konci lišty náhledu se Stáhnout a nabídkou ⋯; náhled bez lišty je nese
+  ukáže pořadí „Soubor 2 z 5“. Náhled hlavního souboru otevřený ze seznamu úkonů (SDD-010) ukáže
+  jen ten soubor a nelistuje; akce nese stejné jako náhled souboru karty. Listování souborů stojí
+  v hlavičce vpravo za nabídkou ⋯, listování příloh za Stáhnout přílohu, obojí hned před
+  zavřením. Na mobilu stojí pořadí „soubor 2 z 5“ za okamžikem nahrání a listování souborů bez
+  pořadí na konci lišty náhledu se Stáhnout a nabídkou ⋯; náhled bez lišty je nese
   v hlavičce. Listování příloh zůstává v hlavičce.
-- Hlavička souboru karty nese Nová verze, která nahraje novou verzi jako akce řádku a pak ukáže
-  aktuální verzi, a u souboru s více verzemi tlačítko Verze s počtem verzí, které ukáže a schová
-  pruh verzí pod hlavičkou. Náhled hlášku o nahrané verzi neukazuje, vypíše ji karta. Na mobilu
-  jsou Upravit, Nahrát novou verzi, Verze (3), Porovnat a Přejmenovat v nabídce ⋯.
+- Hlavička souboru karty nese jako tlačítka jen Upravit, u souboru s více verzemi Verze s počtem
+  verzí, které ukáže a schová pruh verzí pod hlavičkou, a Porovnat. Za nimi stojí nabídka ⋯ se
+  Stáhnout, Nahrát novou verzi, Přejmenovat a Smazat. Nahrát novou verzi nahraje novou verzi
+  jako akce řádku a pak ukáže aktuální verzi; náhled hlášku o nahrané verzi neukazuje, vypíše ji
+  karta. Smazat náhled zavře a otevře potvrzení smazání souboru. Na mobilu jsou Upravit, Nahrát
+  novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat v nabídce ⋯ lišty náhledu.
+- Hlavička souboru karty nese hned za názvem hvězdu hlavního souboru, stejnou jako řádek.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
   Na mobilu je pruh jeden řádek bez e-mailu a bez textu o starší verzi a Zobrazit aktuální verzi
@@ -249,7 +271,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   stejně velký a ve 100 %. Kód se upravuje vždy v původní podobě; když ho náhled ukazoval naformátovaný, editor
   řekne „Upravuje se originál souboru, ne jeho naformátovaná podoba.“ Hlavička nese jen ikonu
   a jméno souboru, „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
-  a zavření; listování soubory, Verze, Nová verze, Přejmenovat a Stáhnout se během úprav skryjí.
+  a zavření; listování soubory, Verze a nabídka ⋯ se během úprav skryjí.
 - Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a hledání Hledat v textu
   uspořádané jako v náhledu: pořadí výskytu z počtu, pole a předchozí a další výskyt. Zpět
   a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,
@@ -319,7 +341,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   verzi s následující. Porovnat s předchozí v okně Verze souboru otevře náhled s porovnáním té
   verze s předchozí; na mobilu nese jen ikonu.
 - Během porovnání nese hlavička ikonu a jméno souboru, „Porovnání verze 2 s verzí 3“, Zavřít
-  porovnání, Stáhnout a listování soubory; Upravit, Verze, Nová verze a Přejmenovat se skryjí.
+  porovnání, Stáhnout a listování soubory; Upravit, Verze a nabídka ⋯ souboru se skryjí.
   Stáhnout stáhne novější z porovnávaných verzí. Zavřít porovnání vrátí náhled k verzi, kterou
   ukazoval předtím; přechod na jiný soubor porovnání ukončí. Na mobilu jsou Zavřít porovnání,
   Stáhnout a listování soubory v nabídce ⋯ hlavičky.
@@ -405,8 +427,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   (Potvrzení.p7s s XML jako Potvrzení.xml); s ní se dokument zobrazí i stáhne. Dokument bez
   náhledu, vnořený podepsaný soubor a vnořená datová zpráva nabídnou jen stažení dokumentu.
 - Hlavička podepsaného dokumentu ukáže u velikosti „podepsaný dokument“ se jménem dokumentu
-  a nese Přejmenovat, Stáhnout dokument a Stáhnout s příponou souboru (Stáhnout .p7m). Dokument
-  se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.
+  a jeho nabídka ⋯ nese místo Stáhnout Stáhnout dokument a Stáhnout s příponou souboru
+  (Stáhnout .p7m). Dokument se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.
 - Pod hlavičkou je pruh Podpisy: u každého podepisujícího štítek podpisu, jméno, druh podpisu,
   vydavatel certifikátu a čas. Čas je čas časového razítka nad podpisem („časové razítko 12. 10. 2026
   10:14“), bez razítka čas, který uvádí podepisující („bez časového razítka, uvedeno
@@ -521,6 +543,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   a naformátované se liší.
 - Konce řádků v porovnání: rozdíl / žádný rozdíl. Platí žádný rozdíl.
 - Změny formátovaných úprav Markdownu: upravitelné / jen ke čtení. Platí jen ke čtení.
+- Hlavní soubor uploadu: první soubor bez hlavního / první soubor vůbec. Platí první soubor
+  vůbec.
+- Po smazání hlavního souboru: žádný hlavní / nejstarší zbývající. Platí nejstarší zbývající.
 
 ## Dopady
 

@@ -30,7 +30,8 @@ public class FilePreviewModalCompareRenderTests
         {
             Assert.That(header, Does.Contain("Porovnání verze 2 s verzí 3"));
             Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)), Is.EqualTo([("b\n", "c\n")]));
-            Assert.That(header, Does.Not.Contain("Upravit").And.Not.Contain("Nová verze").And.Not.Contain("Přejmenovat"), "the compare only reads");
+            Assert.That(header, Does.Not.Contain("Upravit"), "the compare only reads");
+            Assert.That(component.FindAll($"{Header} [aria-label='Další akce se souborem']"), Is.Empty, "the compare hides the file's menu");
             Assert.That(component.FindAll($"{Header} button[aria-label='Verze, 3']"), Is.Empty, "the version shown is chosen in the compare");
         }
 

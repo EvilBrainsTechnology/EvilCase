@@ -141,6 +141,7 @@ internal static class TenantExportQuery
                 FileVersionId = version.Id,
                 FileId = version.FileAssetId,
                 FileName = version.FileAsset!.FileName,
+                FileIsMain = version.FileAsset!.IsMain,
                 Number = version.Number,
                 SizeBytes = version.SizeBytes,
                 MediaType = version.MediaType,

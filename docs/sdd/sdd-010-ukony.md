@@ -39,10 +39,10 @@ kontakt. Zadává se na editaci úkonu.
 
 ### Stránky a řazení
 
-- `/acts` — seznam úkonů napříč spisy: datum úkonu, název se spisem, směr, stav, kontakt
-  a okamžik poslední změny. Hledací pole hledá v názvu, popisu, čísle úkonu a externím čísle
-  úkonu. Zužuje se hledáním, směrem, stavem (Vše, Bez stavu, Rozpracováno, Odesláno), rozsahem
-  dat a štítkem; zúžení stavem nese jen tento seznam. Volba „Jen z otevřených spisů“ je
+- `/acts` — seznam úkonů napříč spisy: datum úkonu, název se spisem, směr, stav, kontakt,
+  okamžik poslední změny a hlavní soubor. Hledací pole hledá v názvu, popisu, čísle úkonu
+  a externím čísle úkonu. Zužuje se hledáním, směrem, stavem (Vše, Bez stavu, Rozpracováno,
+  Odesláno), rozsahem dat a štítkem; zúžení stavem nese jen tento seznam. Volba „Jen z otevřených spisů“ je
   ve výchozím stavu zapnutá a vynechá úkony uzavřených spisů. Výchozí řazení je podle data úkonu
   sestupně, 20 úkonů na stránku. Příchod na adresu seznamu nastaví všechny filtry podle adresy;
   co adresa nezmiňuje, má výchozí hodnotu.
@@ -59,7 +59,14 @@ kontakt. Zadává se na editaci úkonu.
   zruší.
 - Seznam úkonů jde napříč spisy a zužuje se spisem, stavem spisu, kontaktem, štítkem, směrem,
   stavem a rozsahem dat; v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr,
-  stav, kontakt, okamžik poslední změny a štítky (SDD-019); podobu v detailu spisu řídí SDD-009. Výchozí řazení je
+  stav, kontakt, okamžik poslední změny, štítky (SDD-019) a hlavní soubor; podobu v detailu
+  spisu řídí SDD-009.
+- Každý seznam úkonů nese za Změněno úzký sloupec Soubor s hlavním souborem úkonu (SDD-012):
+  tlačítko s ikonou typu souboru, jehož tooltip a popisek jmenují soubor. Klik otevře náhled
+  hlavního souboru se všemi jeho akcemi, bez listování ostatními soubory úkonu, a do detailu
+  úkonu nevede. Změna v náhledu (přejmenování, nová verze, zrušení hlavního souboru, smazání) se
+  v seznamu hned projeví. Úkon bez hlavního souboru má buňku prázdnou. Na mobilu stojí ikona
+  vpravo vedle názvu. Výchozí řazení je
   podle data úkonu vzestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
   stránkovaný podle SDD-005 a nese celkový počet.
 

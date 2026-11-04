@@ -253,6 +253,16 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 @"(""CaseId"" IS NULL) <> (""ActId"" IS NULL)"));
 
         modelBuilder.Entity<FileAsset>()
+            .HasIndex(static asset => new { asset.TenantId, asset.CaseId }, "IX_FileAssets_TenantId_CaseId_IsMain")
+            .IsUnique()
+            .HasFilter(@"""IsMain""");
+
+        modelBuilder.Entity<FileAsset>()
+            .HasIndex(static asset => new { asset.TenantId, asset.ActId }, "IX_FileAssets_TenantId_ActId_IsMain")
+            .IsUnique()
+            .HasFilter(@"""IsMain""");
+
+        modelBuilder.Entity<FileAsset>()
             .HasOne(static asset => asset.Case)
             .WithMany(static @case => @case.Files)
             .HasForeignKey(static asset => asset.CaseId)

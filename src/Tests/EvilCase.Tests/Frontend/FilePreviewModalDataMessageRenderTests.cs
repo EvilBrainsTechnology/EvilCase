@@ -46,7 +46,7 @@ public class FilePreviewModalDataMessageRenderTests
             {
                 Assert.That(component.Find(".ec-preview-data-message-subject").TextContent, Is.EqualTo("Rozhodnutí o přestupku"));
                 Assert.That(component.Find(".ec-preview-name").TextContent, Is.EqualTo("Zpráva.zfo"));
-                Assert.That(component.FindAll("[aria-label='Přejmenovat']"), Has.Count.EqualTo(1));
+                Assert.That(component.FindAll(".ec-preview-actions [aria-label='Další akce se souborem']"), Has.Count.EqualTo(1));
                 Assert.That(loads, Is.EqualTo(1), "the message is read once");
             }
         });

@@ -237,14 +237,14 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Comments, comment);
     }
 
-    public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf", long sizeBytes = 1)
+    public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf", long sizeBytes = 1, bool isMain = false, Guid? fileId = null)
     {
-        return await this.AddFile(@case.Id, actId: null, fileName, sizeBytes);
+        return await this.AddFile(@case.Id, actId: null, fileName, sizeBytes, isMain, fileId);
     }
 
-    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf")
+    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf", bool isMain = false)
     {
-        return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes: 1);
+        return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes: 1, isMain, fileId: null);
     }
 
     /// <summary>
@@ -300,9 +300,9 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.LabelAssignments, assignment);
     }
 
-    private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName, long sizeBytes)
+    private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName, long sizeBytes, bool isMain, Guid? fileId)
     {
-        var fileAssetId = Guid.CreateVersion7();
+        var fileAssetId = fileId ?? Guid.CreateVersion7();
         var fileVersionId = Guid.CreateVersion7();
 
         var version = new FileVersion
@@ -326,6 +326,7 @@ internal sealed class TestTenant : IAsyncDisposable
             CaseId = caseId,
             ActId = actId,
             FileName = fileName,
+            IsMain = isMain,
             Versions = [version],
         };
 

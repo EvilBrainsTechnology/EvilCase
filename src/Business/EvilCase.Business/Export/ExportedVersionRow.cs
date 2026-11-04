@@ -11,6 +11,8 @@ internal sealed record ExportedVersionRow
 
     public required string FileName { get; init; }
 
+    public required bool FileIsMain { get; init; }
+
     public required int Number { get; init; }
 
     public required long SizeBytes { get; init; }

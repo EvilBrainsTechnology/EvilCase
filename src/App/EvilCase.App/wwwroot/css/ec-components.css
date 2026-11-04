@@ -1118,6 +1118,37 @@ html.ec-scroll-locked {
     height: var(--ec-control-md);
 }
 
+/* Hvězda hlavního souboru: plná u hlavního, prázdná u ostatních. */
+.ec-main-star {
+    position: relative;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ec-text-subtle);
+}
+
+.ec-main-star:hover:enabled {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-main-star-on,
+.ec-main-star-on:hover:enabled {
+    color: var(--ec-accent);
+}
+
+.ec-main-star-on .ec-icon {
+    fill: currentColor;
+}
+
+/* V hlavičce náhledu zabere hvězda jen výšku ikony, takže hlavičku nezvýší. */
+.ec-modal-large .ec-modal-header .ec-preview-name-row .ec-button.ec-main-star {
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 0;
+    height: var(--ec-control-sm);
+    margin-block: calc((var(--ec-icon-md) - var(--ec-control-sm)) / 2);
+}
+
 /* The row's menu from lg up; below lg the one that opens with the download. */
 .ec-file-menu-wide {
     display: contents;
@@ -7177,6 +7208,15 @@ html:has(.ec-gate) {
     color: var(--ec-text-subtle);
 }
 
+/* Hlavní soubor úkonu: ikonové tlačítko jako akce řádku souborů, které v odkazu řádku otevře náhled. */
+.ec-cell-main-file {
+    justify-content: center;
+}
+
+.ec-main-file {
+    height: var(--ec-control-md);
+}
+
 .ec-cell-empty {
     font-family: var(--ec-font);
     font-size: var(--ec-text-sm);
@@ -7296,6 +7336,40 @@ html:has(.ec-gate) {
     /* Prázdný údaj na mobilu řádek nenese. */
     .ec-table-row > .ec-table-cell:has(> .ec-cell-empty:only-child) {
         display: none;
+    }
+
+    /* Hlavní soubor stojí vpravo na řádku názvu mimo tok a místo si bere jen z názvu, takže údaje zůstanou na jednom řádku; úkon bez něj buňku nenese. */
+    .ec-table-row:has(> .ec-cell-main-file .ec-main-file) {
+        position: relative;
+    }
+
+    .ec-table-row:has(> .ec-cell-main-file .ec-main-file) .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub) {
+        box-sizing: border-box;
+        padding-right: calc(var(--ec-control-sm) + var(--ec-space-4));
+    }
+
+    .ec-table-row > .ec-cell-main-file {
+        position: absolute;
+        top: var(--ec-space-2);
+        right: var(--ec-space-5);
+    }
+
+    .ec-table-row > .ec-cell-main-file:not(:has(.ec-main-file)) {
+        display: none;
+    }
+
+    .ec-table-row .ec-main-file {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        height: var(--ec-control-sm);
+    }
+
+    /* Dotyková plocha má plnou velikost, tlačítko vizuálně ne. */
+    .ec-main-file::before {
+        content: "";
+        position: absolute;
+        inset: calc((var(--ec-control-sm) - var(--ec-touch-min)) / 2);
     }
 
     /* Údaje kontaktu začínají pod jménem, ne pod monogramem. */
@@ -8593,9 +8667,21 @@ html:has(.ec-gate) {
         min-height: var(--ec-file-row-mobile);
     }
 
-    .ec-file-actions > .ec-button,
+    .ec-file-actions > .ec-button:not(.ec-main-star),
     .ec-file-menu-wide {
         display: none;
+    }
+
+    .ec-file-actions > .ec-main-star {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+
+    /* Dotyková plocha hvězdy v hlavičce náhledu má plnou velikost, tlačítko vizuálně ne. */
+    .ec-preview-name-row .ec-main-star::before {
+        content: "";
+        position: absolute;
+        inset: calc((var(--ec-control-sm) - var(--ec-touch-min)) / 2);
     }
 
     .ec-file-menu-narrow {

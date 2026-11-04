@@ -16,6 +16,16 @@ public interface IFileWriter
 
     public Task<FileRenameOutcome> RenameActFile(Guid actId, Guid fileId, string fileName, CancellationToken token);
 
+    /// <summary>
+    /// Moves the main file mark of the file's case or act to the file.
+    /// </summary>
+    public Task<MainFileOutcome> SetMainFile(Guid fileId, CancellationToken token);
+
+    /// <summary>
+    /// Leaves the file's case or act without a main file, if the file is it.
+    /// </summary>
+    public Task<MainFileOutcome> UnsetMainFile(Guid fileId, CancellationToken token);
+
     public Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token);
 
     public Task<DeleteOutcome> DeleteActFile(Guid actId, Guid fileId, CancellationToken token);

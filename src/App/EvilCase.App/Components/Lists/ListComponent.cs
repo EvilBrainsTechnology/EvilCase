@@ -73,6 +73,14 @@ public abstract class ListComponent<TSortRequest> : ComponentBase, IDisposable
         await this.Load(debounce: false);
     }
 
+    /// <summary>
+    /// Reads the page shown again, after a change made from the list.
+    /// </summary>
+    protected async Task ReloadPage()
+    {
+        await this.Load(debounce: false);
+    }
+
     protected void TurnDirection()
     {
         this.Direction = this.Direction == ListSortDirection.Descending ? ListSortDirection.Ascending : ListSortDirection.Descending;

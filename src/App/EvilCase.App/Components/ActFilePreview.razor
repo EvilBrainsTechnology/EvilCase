@@ -1,0 +1,246 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject IActFilesClient ActFilesClient
+@inject IFileTransferClient FileTransfer
+@inject IFileVersionsClient FileVersions
+@inject IMainFileClient MainFiles
+@inject IBrowserFiles BrowserFiles
+@inject ILogger<ActFilePreview> Logger
+
+@* One file of an act, previewed outside the act's files card: no paging over the act's other files,
+   and the operations of the card's preview on the act's own files. *@
+@if (this.state.ListFailure is { } failure)
+{
+    <EcModal Title="Soubor úkonu" Open OpenChanged="this.Close">
+        <div class="ec-card-error">
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@failure</div>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Reload">Zkusit znovu</EcButton>
+        </div>
+    </EcModal>
+}
+else if (this.File is { } file)
+{
+    if (this.previewing)
+    {
+        <FilePreviewModal Files="[file]" FileId="file.FileId" Version="this.previewVersion" VersionChanged="this.PreviewVersion"
+                          LoadContent="this.LoadContent" Rename="this.Rename"
+                          LoadVersions="this.LoadVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
+                          OnDownload="this.Download" OnRenamed="this.Changed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
+                          CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
+    }
+
+    if (this.versionsOpen)
+    {
+        <FileVersionsModal File="file" LoadVersions="this.LoadVersions" DeleteVersion="this.DeleteVersion" UploadVersion="this.UploadVersion"
+                           OnPreview="number => this.ShowVersion(file, number)" OnDownload="number => this.DownloadVersion(file, number)"
+                           OnCompare="number => this.CompareVersion(file, number)"
+                           OnDeleteFile="this.DeleteFromVersions" OnChanged="this.Changed" Open OpenChanged="this.CloseVersions" />
+    }
+
+    if (this.deleting)
+    {
+        <FileDeleteConfirm File="file" Delete="this.Delete" OpenChanged="this.CloseDelete" OnDone="this.Deleted" />
+    }
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public Guid ActId { get; set; }
+
+    [Parameter, EditorRequired]
+    public Guid FileId { get; set; }
+
+    /// <summary>
+    /// A change the act's list shows: a rename, a new version, the main mark or a delete.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnClosed { get; set; }
+
+    private FilesCardState state = null!;
+
+    private bool previewing = true;
+
+    private int? previewVersion;
+
+    // Porovnat s předchozí in the versions opens the preview comparing.
+    private bool previewCompares;
+
+    private bool versionsOpen;
+
+    private bool deleting;
+
+    private FileListItem? File => this.state.Items.FirstOrDefault(item => item.FileId == this.FileId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        this.state = new FilesCardState(async token => (await this.ActFilesClient.ListActFiles(this.ActId, token)).Items);
+
+        await this.Reload();
+    }
+
+    private async Task Reload()
+    {
+        await this.state.Reload(this.Logger);
+
+        // A file gone meanwhile leaves nothing to show; the list learns of it.
+        if (this.state.ListFailure is null && this.File is null)
+        {
+            await this.OnChanged.InvokeAsync();
+            await this.OnClosed.InvokeAsync();
+        }
+    }
+
+    private async Task Changed()
+    {
+        await this.Reload();
+        await this.OnChanged.InvokeAsync();
+    }
+
+    private async Task Close()
+    {
+        await this.OnClosed.InvokeAsync();
+    }
+
+    private async Task<Stream> LoadContent(FileListItem file, int? version, CancellationToken token)
+    {
+        return await this.FileTransfer.DownloadFileContent(file.FileId, version, token);
+    }
+
+    private async Task Rename(FileListItem file, string fileName, CancellationToken token)
+    {
+        await this.ActFilesClient.RenameActFile(this.ActId, file.FileId, new FileRenameRequest { FileName = fileName }, token);
+    }
+
+    private async Task<IReadOnlyList<FileVersionItem>> LoadVersions(FileListItem file, CancellationToken token)
+    {
+        return (await this.FileVersions.ListFileVersions(file.FileId, token)).Items;
+    }
+
+    private async Task DeleteVersion(FileListItem file, int number, CancellationToken token)
+    {
+        await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
+    }
+
+    private async Task Delete(FileListItem file, CancellationToken token)
+    {
+        await this.ActFilesClient.DeleteActFile(this.ActId, file.FileId, token);
+    }
+
+    // Called from the modals through a plain delegate, so it redraws itself.
+    private async Task<(string? Failure, string? Notice)> UploadVersion(FileListItem file, IBrowserFile picked)
+    {
+        if (FileVersionUploader.Refusal(file, picked) is { } refusal)
+            return (refusal, null);
+
+        var (_, failure) = await FileVersionUploader.Upload(
+            async (target, content, token) => await this.FileTransfer.UploadFileVersion(target.FileId, content, token), file, picked, this.Logger);
+
+        await this.Changed();
+
+        this.StateHasChanged();
+
+        return (failure, null);
+    }
+
+    // Called from the preview through a plain delegate, so it redraws itself.
+    private async Task<string?> ChangeMain(FileListItem file, bool main)
+    {
+        string? failure = null;
+
+        try
+        {
+            if (main)
+                await this.MainFiles.SetMainFile(file.FileId, CancellationToken.None);
+            else
+                await this.MainFiles.UnsetMainFile(file.FileId, CancellationToken.None);
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Changing the main file failed");
+
+            failure = "Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu.";
+        }
+
+        await this.Changed();
+
+        this.StateHasChanged();
+
+        return failure;
+    }
+
+    private void PreviewVersion(int? version)
+    {
+        this.previewVersion = version;
+    }
+
+    private async Task ClosePreview(bool open)
+    {
+        if (!open)
+            await this.Close();
+    }
+
+    private void ManageVersions(FileListItem file)
+    {
+        this.previewing = false;
+        this.previewVersion = null;
+        this.versionsOpen = true;
+    }
+
+    private async Task CloseVersions(bool open)
+    {
+        if (!open)
+            await this.Close();
+    }
+
+    private void ShowVersion(FileListItem file, int number)
+    {
+        this.versionsOpen = false;
+        this.previewing = true;
+        this.previewCompares = false;
+        this.previewVersion = number == file.Version ? null : number;
+    }
+
+    private void CompareVersion(FileListItem file, int number)
+    {
+        this.ShowVersion(file, number);
+        this.previewCompares = true;
+    }
+
+    private async Task Download(FileListItem file)
+    {
+        await this.BrowserFiles.DownloadFile(file.FileId, null, file.FileName, CancellationToken.None);
+    }
+
+    private async Task DownloadVersion(FileListItem file, int number)
+    {
+        await this.BrowserFiles.DownloadFile(file.FileId, number == file.Version ? null : number, file.FileName, CancellationToken.None);
+    }
+
+    private void ConfirmDelete(FileListItem file)
+    {
+        this.previewing = false;
+        this.deleting = true;
+    }
+
+    private void DeleteFromVersions()
+    {
+        this.versionsOpen = false;
+        this.deleting = true;
+    }
+
+    private async Task CloseDelete(bool open)
+    {
+        if (!open)
+            await this.Close();
+    }
+
+    private async Task Deleted()
+    {
+        await this.OnChanged.InvokeAsync();
+        await this.Close();
+    }
+}
