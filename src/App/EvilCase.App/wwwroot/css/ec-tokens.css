@@ -206,7 +206,7 @@
     --ec-content-padding: 32px;
     --ec-sidebar-width: 380px;
     --ec-settings-rail: 220px;
-    --ec-settings-export-max: 760px;
+    --ec-export-text-max: 720px;
     --ec-popover-width: 320px;
     --ec-menu-width: 240px;
     --ec-combobox-max-height: 320px;
