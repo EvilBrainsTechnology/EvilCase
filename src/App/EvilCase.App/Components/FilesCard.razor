@@ -663,10 +663,21 @@
         await this.ReloadFiles();
     }
 
+    // The focus goes to the row that took the deleted one's place, or to the last row.
     private async Task FileDeleted()
     {
+        var deletedId = this.deleting!.FileId;
+        var position = this.State.Items
+            .TakeWhile(file => file.FileId != deletedId)
+            .Count();
+
         this.deleting = null;
 
         await this.ReloadFiles();
+
+        var left = this.State.Items;
+
+        if (left.Count > 0)
+            this.focusFileId = left[Math.Min(position, left.Count - 1)].FileId;
     }
 }
