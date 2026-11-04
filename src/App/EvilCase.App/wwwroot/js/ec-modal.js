@@ -35,9 +35,13 @@ function unlockScroll(dialog) {
     if (location.href === page.href && (window.scrollX !== page.x || window.scrollY !== page.y)) window.scrollTo(page.x, page.y);
 }
 
-// Answers the dialog's lock of the page scroll; its release frees a dialog removed while open, which fires no close.
+// Answers the dialog's lock of the page scroll; its release frees a dialog removed while open, which fires no close,
+// and hands the focus back to the element that held it before the dialog opened, as a close does.
 export function openModal(dialog, owner) {
+    let opener = null;
+
     if (!dialog.open) {
+        opener = document.activeElement;
         owners.set(dialog, owner);
         dialog.addEventListener('cancel', requestClose);
         dialog.addEventListener('keydown', keepEscape);
@@ -51,7 +55,15 @@ export function openModal(dialog, owner) {
 
     lockScroll(dialog);
 
-    return { release: () => unlockScroll(dialog) };
+    return {
+        release: () => {
+            unlockScroll(dialog);
+            // Blazor releases before it removes the dialog.
+            setTimeout(() => {
+                if (!dialog.isConnected && opener?.isConnected) opener.focus();
+            });
+        },
+    };
 }
 
 export function closeModal(dialog) {
