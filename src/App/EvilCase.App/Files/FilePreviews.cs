@@ -30,6 +30,11 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : JsModule(jsRuntime, "
         await this.InvokeVoid("openTextView", stage, view);
     }
 
+    public async Task<bool> OpenImageView(ElementReference stage, ElementReference image, DotNetObjectReference<PreviewToolbar> view)
+    {
+        return await this.Invoke<bool>("openImageView", stage, image, view);
+    }
+
     public async Task ZoomView(ElementReference element, PreviewZoom zoom)
     {
         await this.InvokeVoid("zoomView", element, ZoomValue(zoom));

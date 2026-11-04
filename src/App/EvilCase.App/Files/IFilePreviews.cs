@@ -28,6 +28,12 @@ internal interface IFilePreviews
     /// </summary>
     public Task OpenTextView(ElementReference stage, DotNetObjectReference<PreviewToolbar> view);
 
+    /// <summary>
+    /// Lets the loaded image in the scrolling stage zoom through <see cref="ZoomView"/>, fitted whole into the stage and
+    /// at most at 100 %, and answers whether it took the zoom; the view hears of the zoom.
+    /// </summary>
+    public Task<bool> OpenImageView(ElementReference stage, ElementReference image, DotNetObjectReference<PreviewToolbar> view);
+
     public Task ZoomView(ElementReference element, PreviewZoom zoom);
 
     public Task GoToViewPage(ElementReference element, int page);

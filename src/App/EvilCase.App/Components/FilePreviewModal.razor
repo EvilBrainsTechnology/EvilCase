@@ -141,13 +141,13 @@
                     <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.HeaderMenuActions(file)" />
                     @this.FileSteps()
                 </div>
-                @* Below lg the preview's toolbar carries these; a preview without one keeps them here. *@
+                @* Below lg the preview's toolbar carries these; a preview without one, an image's included, keeps them here. *@
                 <div class="ec-preview-compact">@this.CompactActions(file)</div>
                 <div class="ec-visually-hidden"><InputFile @ref="this.versionInput" @key="this.versionRound" tabindex="-1" aria-label="Nová verze souboru" OnChange="args => this.VersionPicked(file, args)" /></div>
             }
         </Heading>
         <ChildContent>
-            <CascadingValue Name="PreviewActions" Value="@(attachment is null && this.compareStart is null && this.editing is null ? this.CompactActions(file) : null)">
+            <CascadingValue Name="PreviewActions" Value="@(attachment is null && this.compareStart is null && this.editing is null && preview is not (FilePreviewKind.Image or FilePreviewKind.ConvertedImage) ? this.CompactActions(file) : null)">
                 @if (this.saveFailure is not null)
                 {
                     <div class="ec-alert ec-preview-alert" role="alert">
@@ -425,9 +425,7 @@
                     }
                     else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
                     {
-                        <div class="ec-preview-stage">
-                            <img @key="this.shownKey" class="ec-preview-image" src="@this.url" alt="@stagedName" @onerror="this.Unreadable" />
-                        </div>
+                        <ImagePreview @key="this.shownKey" Url="@(this.url ?? "")" FileName="@stagedName" OnUnreadable="this.Unreadable" />
                     }
                     else if (preview == FilePreviewKind.Audio)
                     {
