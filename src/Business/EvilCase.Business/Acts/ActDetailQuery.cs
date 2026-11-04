@@ -29,6 +29,7 @@ internal static class ActDetailQuery
                 ActNumber = act.ActNumber,
                 ExternalActNumber = act.ExternalActNumber,
                 Direction = act.Direction,
+                Status = act.Status,
                 Date = act.Date,
                 Title = act.Title,
                 Description = act.Description,

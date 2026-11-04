@@ -23,6 +23,8 @@ internal sealed record ExportedAct
 
     public required ActDirection? Direction { get; init; }
 
+    public required ActStatus? Status { get; init; }
+
     public required Guid CaseId { get; init; }
 
     public required ExportedContactReference? Contact { get; init; }

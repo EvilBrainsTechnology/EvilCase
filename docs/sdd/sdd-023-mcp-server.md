@@ -32,6 +32,8 @@ textu souboru. Tvary REST API drží SDD-005, API tokeny SDD-006.
   jen nástroje, které ověřují podpis online u autority.
 - Nástroje berou a vracejí kontraktní DTOs REST API; výpis bere stejnou stránku (`Take` 1 až 100)
   a stejná zúžení.
+- Nástroje úkonu vracejí jeho stav, založení a editace ho berou a výpis se jím zužuje. Úkon označí
+  jako odeslaný `update_act`; vlastní nástroj na to není.
 - Token jen pro čtení vidí ve výpisu nástrojů jen nástroje pro čtení. Volání jiného nástroje
   vrátí chybu nástroje a nic nezmění.
 - Chyba validace, nenalezený záznam, konflikt i odepření vrátí chybu nástroje s titulkem

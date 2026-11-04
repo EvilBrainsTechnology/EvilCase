@@ -19,7 +19,7 @@ SDD-006.
 - Data jsou pseudonymizovaný případ překročení rychlosti z `test-data/case-01-speeding.md`,
   přepsaný do modelu SDD-007: pod-spisy jako podřízené spisy, z nichž jeden visí o úroveň
   hlouběji pod jiným pod-spisem, strany jako kontakty, kontakt spisu i úkonu, externí značka
-  spisu a externí čísla jednací úkonů, úkony se směrem, komentáře.
+  spisu a externí čísla jednací úkonů, úkony se směrem, některé se stavem, komentáře.
 - Každý pod-spis nese dva syntetické úkony; počty úkonů, které drží zdroj, seed nepřebírá.
 - Seed zakládá čtyři štítky a přiděluje je hlavnímu spisu, žádostem o informace a dvěma
   úkonům hlavního spisu (SDD-019).

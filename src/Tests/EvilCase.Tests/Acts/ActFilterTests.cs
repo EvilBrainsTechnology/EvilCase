@@ -1,3 +1,4 @@
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Business.Acts;
 using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Tests.Data;
@@ -99,6 +100,23 @@ public class ActFilterTests : TenantFixture
         Guid[] expected = [incoming.Id];
 
         Assert.That(ids, Is.EqualTo(expected), "the direction filter leaves only the acts carrying it");
+    }
+
+    [TestCase(ActStatusFilter.All, new[] { "Bez stavu", "Rozpracováno", "Odesláno" })]
+    [TestCase(ActStatusFilter.None, new[] { "Bez stavu" })]
+    [TestCase(ActStatusFilter.InProgress, new[] { "Rozpracováno" })]
+    [TestCase(ActStatusFilter.Sent, new[] { "Odesláno" })]
+    public async Task TheStatusFilterLeavesTheActsInThatStatus(ActStatusFilter filter, string[] expected)
+    {
+        var @case = await this.Tenant.AddCase(Day);
+
+        await this.Tenant.AddAct(@case, Day, "Bez stavu");
+        await this.Tenant.AddAct(@case, Day, "Rozpracováno", status: ActStatus.InProgress);
+        await this.Tenant.AddAct(@case, Day, "Odesláno", status: ActStatus.Sent);
+
+        var titles = await this.Tenant.Context.Acts.WithStatus(filter).Select(static act => act.Title).ToListAsync();
+
+        Assert.That(titles, Is.EquivalentTo(expected), "None keeps the acts without a status, a status only the acts carrying it");
     }
 
     [Test]

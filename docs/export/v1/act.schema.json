@@ -4,8 +4,8 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "type", "actId", "actNumber", "externalActNumber", "date", "title", "description", "direction", "caseId",
-    "contact", "labels", "comments", "files", "created", "updated", "path"
+    "type", "actId", "actNumber", "externalActNumber", "date", "title", "description", "direction", "status",
+    "caseId", "contact", "labels", "comments", "files", "created", "updated", "path"
   ],
   "properties": {
     "type": { "enum": ["act"] },
@@ -16,6 +16,7 @@
     "title": { "type": "string" },
     "description": { "description": "Markdown.", "$ref": "common.schema.json#/definitions/optionalText" },
     "direction": { "description": "From the case owner's point of view; null exactly where contact is.", "enum": ["Incoming", "Outgoing", null] },
+    "status": { "description": "Null for an act without a status.", "enum": ["InProgress", "Sent", null] },
     "caseId": { "$ref": "common.schema.json#/definitions/id" },
     "contact": {
       "oneOf": [{ "type": "null" }, { "$ref": "common.schema.json#/definitions/contactReference" }]

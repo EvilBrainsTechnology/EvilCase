@@ -88,6 +88,7 @@ internal static class TenantExportQuery
                 Title = act.Title,
                 Description = act.Description,
                 Direction = act.Direction,
+                Status = act.Status,
                 CaseId = act.CaseId,
                 Contact = act.Contact == null ? null : new ExportedContactReference { ContactId = act.Contact.Id, Name = act.Contact.Name },
                 Labels = act.Labels

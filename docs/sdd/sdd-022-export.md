@@ -73,7 +73,8 @@ labels/
 
 ### Dokumenty JSON
 
-Formát je verzovaný; každá změna struktury zvýší verzi formátu i jejích schémat. Schéma JSON
+Formát je verzovaný; přidané pole verzi nezvýší, každá jiná změna struktury zvýší verzi
+formátu i jejích schémat. Schéma JSON
 každého typu dokumentu leží v [`docs/export/v1/`](../export/v1/): `export.schema.json`,
 `case.schema.json`, `act.schema.json`, `contact.schema.json`, `labels.schema.json`
 a společné definice `common.schema.json`.
@@ -85,7 +86,7 @@ a společné definice `common.schema.json`.
 - `export.json`: verze formátu, okamžik exportu, verze aplikace, id a název tenanta.
 - `case.json`: všechna pole spisu, id nadřízeného spisu, protistrana jako id a jméno, štítky
   jako id a název, komentáře, soubory, okamžik založení a poslední změny, cesta složky.
-- `act.json`: všechna pole úkonu, id spisu, kontakt jako id a jméno, štítky jako id a název,
+- `act.json`: všechna pole úkonu včetně stavu, id spisu, kontakt jako id a jméno, štítky jako id a název,
   komentáře, soubory, okamžik založení a poslední změny, cesta složky.
 - Komentář: id, text, e-mail autora, okamžik založení a poslední změny.
 - Soubor: id, jméno a u každé verze číslo, velikost, typ obsahu, SHA-256, okamžik nahrání, e-mail

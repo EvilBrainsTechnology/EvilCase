@@ -18,8 +18,8 @@ internal static class ActTools
     [Description(
         "Lists the acts (úkony), one page at a time, with the total count the filter leaves. take (1-100) is required, skip "
             + "starts at 0. caseId keeps the acts of one case; caseStatus narrows to acts of cases in that state (All by default); "
-            + "search matches the act number and title; from and to bound the act date; contactId, direction and labelIds "
-            + "(every label named) narrow further.")]
+            + "search matches the act number and title; from and to bound the act date; contactId, direction, status (All, None "
+            + "for acts without a status, InProgress, Sent) and labelIds (every label named) narrow further.")]
     public static async Task<ActListResponse> ListActs(IActReader acts, [Description("Paging, order and filters.")] ActListRequest request, CancellationToken token)
     {
         McpProblem.Validate(request);
@@ -37,7 +37,8 @@ internal static class ActTools
     [McpServerTool(Name = "create_act", Destructive = false, OpenWorld = false)]
     [Description(
         "Creates an act on a case; its act number is issued from date. title is required (at most 256 characters), description "
-            + "at most 4000. direction and contactId come together or not at all. Returns the new act.")]
+            + "at most 4000. direction and contactId come together or not at all. status (InProgress or Sent) is optional. "
+            + "Returns the new act.")]
     public static async Task<ActListItem> CreateAct(IActWriter writer, [Description("The new act.")] CreateActRequest request, CancellationToken token)
     {
         McpProblem.Validate(request);
@@ -58,7 +59,8 @@ internal static class ActTools
     [Description(
         "Replaces every field of an act; read it with get_act first. actNumber must read <case-number>/yyyyMMdd-nnn and stay "
             + "unique; title is required (at most 256 characters), description at most 4000, externalActNumber at most 128. "
-            + "direction and contactId come together or not at all. labelIds is the whole set the act carries afterwards.")]
+            + "direction and contactId come together or not at all. status is InProgress, Sent or null for none; Sent marks "
+            + "the act as sent. labelIds is the whole set the act carries afterwards.")]
     public static async Task<string> UpdateAct(
         IActWriter writer, [Description("The act.")] Guid actId, [Description("The act's new fields.")] ActEditRequest request, CancellationToken token)
     {

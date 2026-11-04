@@ -59,6 +59,18 @@ internal static class ActListQuery
         return direction is null ? acts : acts.Where(act => act.Direction == direction);
     }
 
+    public static IQueryable<Act> WithStatus(this IQueryable<Act> acts, ActStatusFilter filter)
+    {
+        return filter switch
+        {
+            ActStatusFilter.All => acts,
+            ActStatusFilter.None => acts.Where(static act => act.Status == null),
+            ActStatusFilter.InProgress => acts.Where(static act => act.Status == ActStatus.InProgress),
+            ActStatusFilter.Sent => acts.Where(static act => act.Status == ActStatus.Sent),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     public static IQueryable<Act> WithLabels(this IQueryable<Act> acts, IReadOnlyList<Guid> labelIds)
     {
         foreach (var labelId in labelIds)
@@ -101,6 +113,7 @@ internal static class ActListQuery
             ActNumber = act.ActNumber,
             ExternalActNumber = act.ExternalActNumber,
             Direction = act.Direction,
+            Status = act.Status,
             Title = act.Title,
             Date = act.Date,
             Changed = act.Updated ?? act.Created,

@@ -172,6 +172,7 @@ internal sealed class SampleDataSeeder(
             ActNumber = actNumber,
             ExternalActNumber = sampleAct.ExternalActNumber,
             Direction = sampleAct.Direction,
+            Status = sampleAct.Status,
             Title = sampleAct.Title,
             Description = sampleAct.Description,
             Date = sampleAct.Date,
@@ -211,6 +212,7 @@ internal sealed class SampleDataSeeder(
             new SampleAct
             {
                 Direction = ActDirection.Outgoing,
+                Status = ActStatus.Sent,
                 Title = "Podání",
                 Description = "Syntetické vzorové podání.",
                 Date = sampleCase.Date,

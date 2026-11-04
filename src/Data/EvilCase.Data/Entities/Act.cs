@@ -29,6 +29,8 @@ public sealed record Act : IUserOwnedEntity
     /// </summary>
     public ActDirection? Direction { get; init; }
 
+    public ActStatus? Status { get; init; }
+
     [MaxLength(256)]
     public required string Title { get; init; }
 

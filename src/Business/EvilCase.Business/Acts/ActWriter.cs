@@ -78,6 +78,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             CaseId = request.CaseId,
             ActNumber = actNumber,
             Direction = request.Direction,
+            Status = request.Status,
             Title = request.Title.Trim(),
             Date = request.Date,
             Description = request.Description?.TrimEmptyToNull(),
@@ -126,6 +127,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
                     .SetProperty(static act => act.ActNumber, edit.ActNumber)
                     .SetProperty(static act => act.ExternalActNumber, edit.ExternalActNumber)
                     .SetProperty(static act => act.Direction, edit.Direction)
+                    .SetProperty(static act => act.Status, edit.Status)
                     .SetProperty(static act => act.Date, edit.Date)
                     .SetProperty(static act => act.Title, edit.Title)
                     .SetProperty(static act => act.Description, edit.Description)
@@ -142,6 +144,20 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         logger.LogInformation("Act {ActId} was edited", actId);
 
         return ActUpdateOutcome.Updated;
+    }
+
+    public async Task<ActStatusOutcome> SetActStatus(Guid actId, ActStatusRequest request, CancellationToken token)
+    {
+        var rows = await dbSession.Current.Acts
+            .WithId(actId)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(static act => act.Status, request.Status), token);
+
+        if (rows == 0)
+            return ActStatusOutcome.NotFound;
+
+        logger.LogInformation("Act {ActId} was set to status {Status}", actId, request.Status);
+
+        return ActStatusOutcome.Updated;
     }
 
     public async Task<DeleteOutcome> DeleteAct(Guid actId, CancellationToken token)

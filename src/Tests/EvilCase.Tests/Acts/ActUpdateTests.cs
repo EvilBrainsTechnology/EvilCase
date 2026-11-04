@@ -336,6 +336,25 @@ public class ActUpdateTests : TenantFixture
         Assert.That(reloaded.ExternalActNumber, Is.Null, "an emptied field takes the number away");
     }
 
+    [Test]
+    public async Task TheStatusOfAnActOfAnotherTenantIsNotFound()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherAct = await other.AddAct(otherCase, Day);
+
+        var outcome = await this.writer.SetActStatus(otherAct.Id, new ActStatusRequest { Status = ActStatus.Sent }, CancellationToken.None);
+
+        other.Context.ChangeTracker.Clear();
+        var untouched = await other.Context.Acts.SingleAsync(act => act.Id == otherAct.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome, Is.EqualTo(ActStatusOutcome.NotFound), "the tenant query filter keeps another tenant's act out of a status write");
+            Assert.That(untouched.Status, Is.Null);
+        }
+    }
+
     private async Task<Act> Reload(Guid actId)
     {
         this.Tenant.Context.ChangeTracker.Clear();

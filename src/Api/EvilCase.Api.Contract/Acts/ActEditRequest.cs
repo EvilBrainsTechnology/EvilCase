@@ -18,6 +18,8 @@ public sealed record ActEditRequest : IValidatableObject
 
     public ActDirection? Direction { get; init; }
 
+    public ActStatus? Status { get; init; }
+
     public required DateOnly Date { get; init; }
 
     [Required]
