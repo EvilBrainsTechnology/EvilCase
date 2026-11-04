@@ -7258,6 +7258,9 @@ html:has(.ec-gate) {
 
 .ec-main-file {
     display: inline-flex;
+    box-sizing: border-box;
+    width: var(--ec-file-icon-compact-size);
+    height: var(--ec-file-icon-compact-size);
     padding: 0;
     border: 0;
     border-radius: var(--ec-radius-md);
@@ -7268,6 +7271,17 @@ html:has(.ec-gate) {
 .ec-main-file:focus-visible {
     outline: none;
     box-shadow: var(--ec-focus-ring);
+}
+
+.ec-main-file .ec-file-icon {
+    width: 100%;
+    height: 100%;
+    border: var(--ec-hairline) solid currentColor;
+}
+
+.ec-main-file:hover .ec-file-icon {
+    background-image: linear-gradient(var(--ec-main-file-hover-shade), var(--ec-main-file-hover-shade));
+    box-shadow: inset 0 0 0 var(--ec-hairline) currentColor;
 }
 
 .ec-cell-empty {
@@ -7413,9 +7427,6 @@ html:has(.ec-gate) {
 
     .ec-table-row .ec-main-file {
         position: relative;
-    }
-
-    .ec-main-file .ec-file-icon {
         width: var(--ec-control-sm);
         height: var(--ec-control-sm);
     }
