@@ -59,7 +59,7 @@ kontakt. Zadává se na editaci spisu.
   a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
 - Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem, směr,
-  kontakt a okamžik poslední změny. Kontakt, který je protistranou
+  stav, kontakt a okamžik poslední změny. Kontakt, který je protistranou
   spisu, je potlačený; jiný kontakt je zvýrazněný. Lišta nese hledání a směr; rozsah dat
   a štítky jsou pod tlačítkem Filtry, které je ve výchozím stavu sbalené a nese počet
   aktivních filtrů.

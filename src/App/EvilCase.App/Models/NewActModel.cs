@@ -9,6 +9,8 @@ internal sealed class NewActModel : IValidatableObject
 {
     public ActDirection? Direction { get; set; }
 
+    public ActStatus? Status { get; set; }
+
     public DateOnly Date { get; set; }
 
     [Required(ErrorMessage = "Zadejte název úkonu")]

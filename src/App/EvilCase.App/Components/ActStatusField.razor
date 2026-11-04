@@ -1,0 +1,28 @@
+@using EvilBrains.EvilCase.Domain.Acts
+
+<div class="ec-segmented ec-segmented-inline" role="group" aria-label="Stav úkonu">
+    @foreach (var status in Enum.GetValues<ActStatus>())
+    {
+        <button id="@($"{this.InputId}-{ActStatusDisplay.Css(status)}")" type="button" class="ec-segment"
+                aria-pressed="@(this.Selected == status ? "true" : "false")"
+                @onclick="() => this.Toggle(status)">
+            @ActStatusDisplay.Text(status)
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required string InputId { get; set; }
+
+    [Parameter]
+    public ActStatus? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<ActStatus?> SelectedChanged { get; set; }
+
+    private Task Toggle(ActStatus status)
+    {
+        return this.SelectedChanged.InvokeAsync(this.Selected == status ? null : status);
+    }
+}

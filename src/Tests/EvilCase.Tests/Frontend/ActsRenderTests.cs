@@ -16,6 +16,34 @@ public class ActsRenderTests
         using var ctx = new BunitContext();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
 
+        Serve(ctx);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/acts?q=odpor&direction=Incoming&open=false");
+
+        var component = ctx.Render<App.Pages.Acts>();
+
+        Assert.That(component.FindComponents<ActList>(), Has.Count.EqualTo(1));
+    }
+
+    [TestCase("inprogress", ActStatusFilter.InProgress)]
+    [TestCase("none", ActStatusFilter.None)]
+    [TestCase("unknown", ActStatusFilter.All)]
+    public async Task TheStatusInTheAddressNarrowsTheList(string query, ActStatusFilter expected)
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var actsClient = Serve(ctx);
+
+        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo($"/acts?status={query}");
+
+        ctx.Render<App.Pages.Acts>();
+
+        await actsClient.Received().ListActs(Arg.Is<ActListRequest>(request => request.Status == expected), Arg.Any<CancellationToken>());
+    }
+
+    private static IActsClient Serve(BunitContext ctx)
+    {
         var actsClient = Substitute.For<IActsClient>();
         actsClient
             .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
@@ -27,10 +55,6 @@ public class ActsRenderTests
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(labelsClient);
 
-        ctx.Services.GetRequiredService<NavigationManager>().NavigateTo("/acts?q=odpor&direction=Incoming&open=false");
-
-        var component = ctx.Render<App.Pages.Acts>();
-
-        Assert.That(component.FindComponents<ActList>(), Has.Count.EqualTo(1));
+        return actsClient;
     }
 }
