@@ -185,8 +185,8 @@ přihlašuje zvlášť, nezávisle na Safari.
 
 Ikona aplikace i ikona záložky jsou značka z přihlášení: bílé váhy na poli v barvě akcentu,
 váhy přes 62 % šířky pole. Ikona záložky a ikona na počítači mají zaoblené rohy jako značka;
-ikona na ploše telefonu vyplní celé pole a rohy jí dá telefon. Android z ikony ukáže jen její
-střed, proto na něm váhy zabírají 42 % šířky pole a po ořezu vyjdou stejně velké jako jinde.
+ikona na ploše telefonu vyplní celé pole a rohy jí dá telefon. Na ploše Androidu jsou váhy celé
+a stejně velké jako na ikoně záložky.
 
 ### Bez cizí knihovny
 
