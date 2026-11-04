@@ -39,9 +39,30 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll("button[aria-label='Upravit']"), Has.Count.EqualTo(1), "closing returns to the preview");
+            Assert.That(await FilePreviewHeaderMenu.Texts(component), Does.Contain("Upravit"), "closing returns to the preview");
             Assert.That(compares.Closed, Is.EqualTo(1));
         }
+    }
+
+    [Test]
+    public async Task PorovnatOnAnOlderVersionComparesItWithTheCurrentOneAndClosingReturnsToIt()
+    {
+        await using var ctx = NewContext(out var compares, out _);
+
+        var file = File("a.txt", 3);
+        var component = Render(ctx, file, Texts("a\n", "b\n", "c\n"), version: 1);
+
+        await component.Find(".ec-preview-actions button[aria-label='Porovnat']").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 3"));
+            Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)), Is.EqualTo([("a\n", "c\n")]), "an older version compares with the current one");
+        }
+
+        await component.Find("button[aria-label='Zavřít porovnání']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find(".ec-preview-name-row").TextContent, Does.Contain("verze 1"), "closing returns to the older version");
     }
 
     [Test]
@@ -250,16 +271,16 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
-    public void AFileLeftWithOneVersionEndsTheCompare()
+    public async Task AFileLeftWithOneVersionEndsTheCompare()
     {
-        using var ctx = NewContext(out _, out _);
+        await using var ctx = NewContext(out _, out _);
 
         var file = File("a.txt", 2);
         var component = Render(ctx, file, Texts("a\n", "b\n"), compareOnOpen: true);
 
         component.Render(parameters => parameters.Add(static modal => modal.Files, [file with { VersionCount = 1 }]));
 
-        Assert.That(component.FindAll("button[aria-label='Upravit']"), Has.Count.EqualTo(1), "one version has nothing to compare");
+        Assert.That(await FilePreviewHeaderMenu.Texts(component), Does.Contain("Upravit"), "one version has nothing to compare");
     }
 
     private static async Task<List<(string Title, bool Enabled)>> Options(IRenderedComponent<FilePreviewModal> component, string side)

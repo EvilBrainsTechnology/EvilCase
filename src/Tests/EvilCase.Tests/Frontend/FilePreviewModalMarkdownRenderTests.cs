@@ -42,7 +42,7 @@ public class FilePreviewModalMarkdownRenderTests
         var component = Render(ctx, [file], file.FileId);
 
         await component.WaitForAssertionAsync(() => Assert.That(markdown.Opened, Has.Count.EqualTo(1)));
-        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+        await FilePreviewHeaderMenu.Select(component, "Upravit");
         await component.InvokeAsync(previews.TextViewLoading.SetResult);
 
         await component.WaitForAssertionAsync(() => Assert.That(markdown.Edits, Is.EqualTo(1), "the edit starts once the preview's toolbar is gone"));
@@ -249,7 +249,7 @@ public class FilePreviewModalMarkdownRenderTests
     {
         var component = Render(ctx, files, fileId, content, uploadVersion, onVersionChanged);
 
-        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+        await FilePreviewHeaderMenu.Select(component, "Upravit");
 
         return component;
     }

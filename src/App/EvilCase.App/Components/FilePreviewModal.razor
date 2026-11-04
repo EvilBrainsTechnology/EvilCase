@@ -119,10 +119,6 @@
                     </div>
                 }
                 <div class="ec-preview-actions">
-                    @if (this.CanEdit)
-                    {
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Edit" AriaLabel="Upravit" OnClick="this.StartEdit"><span class="ec-preview-action-label">Upravit</span></EcButton>
-                    }
                     @if (file.VersionCount > 1)
                     {
                         @* Not an EcButton: the focus returns to it, which needs its element reference. *@
@@ -137,6 +133,14 @@
                     @if (file.VersionCount > 1 && attachment is null && FileTypeDisplay.Compares(file.FileName))
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Compare" AriaLabel="Porovnat" OnClick="() => this.StartCompare(file)"><span class="ec-preview-action-label">Porovnat</span></EcButton>
+                    }
+                    @if (this.signedContentName is not null)
+                    {
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout dokument" OnClick="this.DownloadSignedContent"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
+                    }
+                    else
+                    {
+                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
                     }
                     <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.HeaderMenuActions(file)" />
                     @this.FileSteps()
@@ -1331,16 +1335,14 @@
     {
         var actions = new List<EcMenuItem>();
 
+        if (this.CanEdit)
+            actions.Add(new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Factory.Create(this, this.StartEdit) });
+
         if (this.signedContentName is not null)
         {
             var extension = Path.GetExtension(file.FileName);
 
-            actions.Add(new EcMenuItem { Text = "Stáhnout dokument", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, this.DownloadSignedContent) });
             actions.Add(new EcMenuItem { Text = $"Stáhnout {extension}", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
-        }
-        else
-        {
-            actions.Add(new EcMenuItem { Text = "Stáhnout", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
         }
 
         if (!this.uploadingVersion)
@@ -1398,13 +1400,14 @@
         await this.BrowserFiles.PickFile(this.versionInput!.Element!.Value, CancellationToken.None);
     }
 
+    // An older version compares with the current one, the current with the one before it.
     private void StartCompare(FileListItem file)
     {
         this.renaming = false;
         this.versionsOpen = false;
         this.versionFailure = null;
         this.compareStart = (file.FileId, this.OlderVersion ?? file.Version);
-        this.comparePair = null;
+        this.comparePair = this.OlderVersion is { } older ? (older, file.Version) : null;
     }
 
     private void CloseCompare()

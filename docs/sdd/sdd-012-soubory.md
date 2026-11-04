@@ -246,11 +246,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   zavřením. Na mobilu stojí pořadí „soubor 2 z 5“ za okamžikem nahrání a listování souborů bez
   pořadí na konci lišty náhledu se Stáhnout a nabídkou ⋯; náhled bez lišty je nese
   v hlavičce. Listování příloh zůstává v hlavičce.
-- Hlavička souboru karty nese jako tlačítka jen Upravit, u souboru s více verzemi Verze s počtem
-  verzí, které ukáže a schová pruh verzí pod hlavičkou, a Porovnat. Za nimi stojí nabídka ⋯ se
-  Stáhnout, Nahrát novou verzi, Přejmenovat a Smazat. Nahrát novou verzi nahraje novou verzi
-  jako akce řádku a pak ukáže aktuální verzi; náhled hlášku o nahrané verzi neukazuje, vypíše ji
-  karta. Smazat náhled zavře a otevře potvrzení smazání souboru. Na mobilu jsou Upravit, Nahrát
+- Hlavička souboru karty nese jako tlačítka u souboru s více verzemi Verze s počtem verzí, které
+  ukáže a schová pruh verzí pod hlavičkou, a Porovnat, pak Stáhnout, které stáhne zobrazenou
+  verzi. Za nimi stojí nabídka ⋯ s Upravit, Nahrát novou verzi, Přejmenovat a Smazat. Nahrát
+  novou verzi nahraje novou verzi jako akce řádku a pak ukáže aktuální verzi; náhled hlášku
+  o nahrané verzi neukazuje, vypíše ji karta. Smazat náhled zavře a otevře potvrzení smazání souboru. Na mobilu jsou Upravit, Nahrát
   novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat v nabídce ⋯ lišty náhledu.
 - Hlavička souboru karty nese hned za názvem hvězdu hlavního souboru, stejnou jako řádek.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
@@ -266,7 +266,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 ### Úpravy textu
 
 - Text (txt, csv, tsv, log), kód (json, xml, isdoc, yaml, yml, html) a Markdown (md, markdown) jde
-  upravit přímo v náhledu. Hlavička náhledu nese Upravit před Verze jen u aktuální verze souboru
+  upravit přímo v náhledu. Nabídka ⋯ hlavičky nese Upravit jako první jen u aktuální verze souboru
   karty, který se celý vejde do 1 MB a je platné UTF-8, s BOM i bez něj. Starší verze, obsah podepsaného dokumentu a příloha
   datové zprávy se neupravují. U souboru, který není platné UTF-8, náhled řekne „Soubor není
   v kódování UTF-8, proto ho nejde upravit.“
@@ -275,7 +275,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   stejně velký a ve 100 %. Kód se upravuje vždy v původní podobě; když ho náhled ukazoval naformátovaný, editor
   řekne „Upravuje se originál souboru, ne jeho naformátovaná podoba.“ Hlavička nese jen ikonu
   a jméno souboru, „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
-  a zavření; listování soubory, Verze a nabídka ⋯ se během úprav skryjí.
+  a zavření; listování soubory, Verze, Porovnat, Stáhnout a nabídka ⋯ se během úprav skryjí.
 - Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a hledání Hledat v textu
   uspořádané jako v náhledu: pořadí výskytu z počtu, pole a předchozí a další výskyt. Zpět
   a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,
@@ -341,11 +341,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 ### Porovnání verzí
 
 - Verze textu, kódu a Markdownu jde porovnat v náhledu. Hlavička náhledu souboru karty s více
-  verzemi nese za Verze tlačítko Porovnat, které porovná zobrazenou verzi s předchozí, nejstarší
-  verzi s následující. Porovnat s předchozí v okně Verze souboru otevře náhled s porovnáním té
+  verzemi nese za Verze tlačítko Porovnat, které porovná aktuální verzi s předchozí a zobrazenou
+  starší verzi s aktuální. Porovnat s předchozí v okně Verze souboru otevře náhled s porovnáním té
   verze s předchozí; na mobilu nese jen ikonu.
 - Během porovnání nese hlavička ikonu a jméno souboru, „Porovnání verze 2 s verzí 3“, Zavřít
-  porovnání, Stáhnout a listování soubory; Upravit, Verze a nabídka ⋯ souboru se skryjí.
+  porovnání, Stáhnout a listování soubory; Verze a nabídka ⋯ souboru se skryjí.
   Stáhnout stáhne novější z porovnávaných verzí. Zavřít porovnání vrátí náhled k verzi, kterou
   ukazoval předtím; přechod na jiný soubor porovnání ukončí. Na mobilu jsou Zavřít porovnání,
   Stáhnout a listování soubory v nabídce ⋯ hlavičky.
@@ -431,8 +431,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   (Potvrzení.p7s s XML jako Potvrzení.xml); s ní se dokument zobrazí i stáhne. Dokument bez
   náhledu, vnořený podepsaný soubor a vnořená datová zpráva nabídnou jen stažení dokumentu.
 - Hlavička podepsaného dokumentu ukáže u velikosti „podepsaný dokument“ se jménem dokumentu
-  a jeho nabídka ⋯ nese místo Stáhnout Stáhnout dokument a Stáhnout s příponou souboru
-  (Stáhnout .p7m). Dokument se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.
+  a jeho Stáhnout stáhne dokument; nabídka ⋯ nese navíc Stáhnout s příponou souboru (Stáhnout
+  .p7m). Dokument se stáhne pod jménem bez koncovky podpisu, soubor celý pod svým jménem.
 - Pod hlavičkou je pruh Podpisy: u každého podepisujícího štítek podpisu, jméno, druh podpisu,
   vydavatel certifikátu a čas. Čas je čas časového razítka nad podpisem („časové razítko 12. 10. 2026
   10:14“), bez razítka čas, který uvádí podepisující („bez časového razítka, uvedeno
