@@ -223,7 +223,7 @@ public class FilePreviewModalEditorChangesRenderTests
             .Add(static modal => modal.Rename, static (_, _, _) => Task.CompletedTask)
             .Add(static modal => modal.Open, value: true));
 
-        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+        await FilePreviewHeaderMenu.Select(component, "Upravit");
 
         return component;
 

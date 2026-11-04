@@ -230,7 +230,7 @@ public class FilePreviewModalRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(component.FindAll(".ec-main-star"), Is.Empty, "a host that does not handle the mark gets no star");
-            Assert.That(await HeaderMenuTexts(component), Is.EqualTo(["Stáhnout", "Nahrát novou verzi", "Přejmenovat"]), "a host that does not handle the delete gets no Smazat");
+            Assert.That(await FilePreviewHeaderMenu.Texts(component), Is.EqualTo(["Nahrát novou verzi", "Přejmenovat"]), "a host that does not handle the delete gets no Smazat");
         }
 
         await component.Find(".ec-menu-backdrop").ClickAsync(new MouseEventArgs());
@@ -258,7 +258,7 @@ public class FilePreviewModalRenderTests
             Assert.That(component.Find(".ec-preview-alert").TextContent, Is.EqualTo("Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu."));
         }
 
-        Assert.That(await HeaderMenuTexts(component), Is.EqualTo(["Stáhnout", "Nahrát novou verzi", "Přejmenovat", "Smazat"]));
+        Assert.That(await FilePreviewHeaderMenu.Texts(component), Is.EqualTo(["Nahrát novou verzi", "Přejmenovat", "Smazat"]));
 
         await component.FindAll("[role=menuitem]")[^1].ClickAsync(new MouseEventArgs());
 
@@ -360,13 +360,6 @@ public class FilePreviewModalRenderTests
         await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Verze (3)", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
 
         Assert.That(component.FindAll(".ec-preview-versions"), Has.Count.EqualTo(1), "the menu's Verze opens the version bar as the header's button does");
-    }
-
-    private static async Task<string[]> HeaderMenuTexts(IRenderedComponent<FilePreviewModal> component)
-    {
-        await component.Find(".ec-preview-actions [aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
-
-        return [.. component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim())];
     }
 
     private static async Task<string[]> MenuTexts(IRenderedComponent<FilePreviewModal> component)

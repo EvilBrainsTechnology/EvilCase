@@ -30,8 +30,7 @@ public class FilePreviewModalCompareRenderTests
         {
             Assert.That(header, Does.Contain("Porovnání verze 2 s verzí 3"));
             Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)), Is.EqualTo([("b\n", "c\n")]));
-            Assert.That(header, Does.Not.Contain("Upravit"), "the compare only reads");
-            Assert.That(component.FindAll($"{Header} [aria-label='Další akce se souborem']"), Is.Empty, "the compare hides the file's menu");
+            Assert.That(component.FindAll($"{Header} [aria-label='Další akce se souborem']"), Is.Empty, "the compare only reads, so it hides the file's menu with Upravit");
             Assert.That(component.FindAll($"{Header} button[aria-label='Verze, 3']"), Is.Empty, "the version shown is chosen in the compare");
         }
 
@@ -39,13 +38,34 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.FindAll("button[aria-label='Upravit']"), Has.Count.EqualTo(1), "closing returns to the preview");
+            Assert.That(await FilePreviewHeaderMenu.Texts(component), Does.Contain("Upravit"), "closing returns to the preview");
             Assert.That(compares.Closed, Is.EqualTo(1));
         }
     }
 
     [Test]
-    public void TheOldestVersionComparesWithTheNextOne()
+    public async Task PorovnatOnAnOlderVersionComparesItWithTheCurrentOneAndClosingReturnsToIt()
+    {
+        await using var ctx = NewContext(out var compares, out _);
+
+        var file = File("a.txt", 3);
+        var component = Render(ctx, file, Texts("a\n", "b\n", "c\n"), version: 1);
+
+        await component.Find(".ec-preview-actions button[aria-label='Porovnat']").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 3"));
+            Assert.That(compares.Opened.Select(static opened => (opened.Older, opened.Newer)), Is.EqualTo([("a\n", "c\n")]), "an older version compares with the current one");
+        }
+
+        await component.Find("button[aria-label='Zavřít porovnání']").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.Find(".ec-preview-name-row").TextContent, Does.Contain("verze 1"), "closing returns to the older version");
+    }
+
+    [Test]
+    public void TheOldestVersionComparesWithTheCurrentOne()
     {
         using var ctx = NewContext(out var compares, out _);
 
@@ -54,9 +74,27 @@ public class FilePreviewModalCompareRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 2"));
-            Assert.That(compares.Opened, Is.EqualTo([("{}", "[]", (CodeLanguage?)CodeLanguage.Json, true)]), "code compares formatted");
+            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 3"));
+            Assert.That(compares.Opened, Is.EqualTo([("{}", "1", (CodeLanguage?)CodeLanguage.Json, true)]), "code compares formatted");
         }
+    }
+
+    [Test]
+    public async Task ANewVersionTakesTheCurrentSideOfACompareFromAnOlderVersion()
+    {
+        await using var ctx = NewContext(out _, out _);
+
+        var file = File("a.txt", 3);
+        var component = Render(ctx, file, Texts("a\n", "b\n", "c\n", "d\n"), version: 1);
+
+        await component.Find(".ec-preview-actions button[aria-label='Porovnat']").ClickAsync(new MouseEventArgs());
+
+        IReadOnlyList<FileVersionItem> four = [.. Enumerable.Range(1, 4).Reverse().Select(static number => Version(number, 2))];
+        component.Render(parameters => parameters
+            .Add(static modal => modal.Files, [file with { Version = 4, VersionCount = 4 }])
+            .Add(static modal => modal.LoadVersions, (_, _) => Task.FromResult(four)));
+
+        Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 1 s verzí 4"), "the compare against the current version follows a new one");
     }
 
     [Test]
@@ -250,16 +288,16 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
-    public void AFileLeftWithOneVersionEndsTheCompare()
+    public async Task AFileLeftWithOneVersionEndsTheCompare()
     {
-        using var ctx = NewContext(out _, out _);
+        await using var ctx = NewContext(out _, out _);
 
         var file = File("a.txt", 2);
         var component = Render(ctx, file, Texts("a\n", "b\n"), compareOnOpen: true);
 
         component.Render(parameters => parameters.Add(static modal => modal.Files, [file with { VersionCount = 1 }]));
 
-        Assert.That(component.FindAll("button[aria-label='Upravit']"), Has.Count.EqualTo(1), "one version has nothing to compare");
+        Assert.That(await FilePreviewHeaderMenu.Texts(component), Does.Contain("Upravit"), "one version has nothing to compare");
     }
 
     private static async Task<List<(string Title, bool Enabled)>> Options(IRenderedComponent<FilePreviewModal> component, string side)

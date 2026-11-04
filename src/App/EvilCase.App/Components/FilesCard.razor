@@ -146,7 +146,7 @@
                       Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
                       LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
-                      OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain" OnDelete="this.DeleteFromPreview"
+                      OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
                       EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
 }
 
@@ -343,7 +343,10 @@
 
         // A file removed elsewhere takes its open preview or rename with it.
         if (this.previewFileId is { } previewId && this.State.Items.All(file => file.FileId != previewId))
+        {
             this.previewFileId = null;
+            this.previewVersion = null;
+        }
 
         if (this.renamingFileId is { } renamingId && this.State.Items.All(file => file.FileId != renamingId))
             this.renamingFileId = null;
@@ -614,13 +617,6 @@
         this.deleting = file;
     }
 
-    private void DeleteFromPreview(FileListItem file)
-    {
-        this.previewFileId = null;
-        this.previewVersion = null;
-        this.deleting = file;
-    }
-
     private async Task ChangeMainFromRow(FileListItem file, bool main)
     {
         if (await this.ChangeMain(file, main) is { } failure && !this.State.Failures.Contains(failure))
@@ -656,16 +652,32 @@
         return failure;
     }
 
-    private void CloseDelete(bool open)
+    // A delete that found the file gone leaves the list stale; the reload drops the file and its preview.
+    private async Task CloseDelete(bool open)
     {
-        if (!open)
-            this.deleting = null;
-    }
+        if (open)
+            return;
 
-    private async Task FileDeleted()
-    {
         this.deleting = null;
 
         await this.ReloadFiles();
+    }
+
+    // The focus goes to the row that took the deleted one's place, or to the last row.
+    private async Task FileDeleted()
+    {
+        var deletedId = this.deleting!.FileId;
+        var position = this.State.Items
+            .TakeWhile(file => file.FileId != deletedId)
+            .Count();
+
+        this.deleting = null;
+
+        await this.ReloadFiles();
+
+        var left = this.State.Items;
+
+        if (left.Count > 0)
+            this.focusFileId = left[Math.Min(position, left.Count - 1)].FileId;
     }
 }

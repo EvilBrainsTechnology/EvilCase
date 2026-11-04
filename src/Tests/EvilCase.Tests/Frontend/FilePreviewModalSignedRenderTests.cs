@@ -28,7 +28,7 @@ public class FilePreviewModalSignedRenderTests
 
         await component.WaitForAssertionAsync(() =>
             Assert.That(editors.Opened.Select(static opened => (opened.Text, opened.Language)), Is.EqualTo([("<?xml version=\"1.0\"?><a/>", (CodeLanguage?)CodeLanguage.Xml)])));
-        await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());
+        await component.Find(".ec-preview-actions button[aria-label='Stáhnout dokument']").ClickAsync(new());
 
         using (Assert.EnterMultipleScope())
         {
@@ -147,7 +147,7 @@ public class FilePreviewModalSignedRenderTests
 
         await component.WaitForAssertionAsync(() => Assert.That(editors.OpenedReadOnly, Is.EqualTo([true])));
 
-        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty, "the content of a signed document is not edited");
+        Assert.That(await FilePreviewHeaderMenu.Texts(component), Is.EqualTo(["Nahrát novou verzi", "Přejmenovat", "Stáhnout .p7m"]), "the content of a signed document is not edited and the menu downloads the signed file whole");
     }
 
     [Test]

@@ -1,4 +1,6 @@
+using System.Net;
 using Bunit;
+using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
@@ -367,6 +369,78 @@ public class FilesCardRenderTests
     }
 
     [Test]
+    public async Task SmazatInThePreviewKeepsThePreviewOpenUntilTheDeleteIsDone()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        IReadOnlyList<FileListItem> files = [Versioned("a.txt", 3, 3)];
+        var component = new Card
+        {
+            LoadFiles = _ => Task.FromResult(files),
+            LoadFileVersions = static (_, _) => Task.FromResult(VersionItems()),
+            DeleteFile = (_, _) =>
+            {
+                files = [];
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await MenuItem(component, "Verze (3)").ClickAsync(new MouseEventArgs());
+        await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1)));
+
+        await component.Find(".ec-preview-actions [aria-label='Další akce se souborem']").ClickAsync(new MouseEventArgs());
+        await MenuItem(component, "Smazat").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(".ec-modal-large"), Has.Count.EqualTo(1), "the preview stays open under the confirmation");
+
+        await component.Find("dialog[aria-label='Smazat soubor'] .ec-modal-footer button.ec-button-secondary").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("dialog[aria-label='Smazat soubor']"), Is.Empty);
+            Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1), "a cancel leaves the preview on the version it showed");
+        }
+
+        await component.Find(".ec-preview-actions [aria-label='Další akce se souborem']").ClickAsync(new MouseEventArgs());
+        await MenuItem(component, "Smazat").ClickAsync(new MouseEventArgs());
+        await component.Find("dialog[aria-label='Smazat soubor'] .ec-modal-footer button.ec-button-danger").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(".ec-modal-large"), Is.Empty, "the preview closes once the file is deleted");
+    }
+
+    [Test]
+    public async Task ACancelAfterTheDeleteFoundTheFileGoneClosesItsPreview()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        IReadOnlyList<FileListItem> files = [File("a.txt")];
+        var component = new Card
+        {
+            LoadFiles = _ => Task.FromResult(files),
+            DeleteFile = (_, _) =>
+            {
+                files = [];
+
+                throw new ApiException(HttpStatusCode.NotFound, responseBody: null);
+            },
+        }
+            .Render(ctx);
+
+        await component.Find(".ec-file-name").ClickAsync(new MouseEventArgs());
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-modal-large"), Has.Count.EqualTo(1)));
+        await component.Find(".ec-preview-actions [aria-label='Další akce se souborem']").ClickAsync(new MouseEventArgs());
+        await MenuItem(component, "Smazat").ClickAsync(new MouseEventArgs());
+        await component.Find("dialog[aria-label='Smazat soubor'] .ec-modal-footer button.ec-button-danger").ClickAsync(new MouseEventArgs());
+        await component.Find("dialog[aria-label='Smazat soubor'] .ec-modal-footer button.ec-button-secondary").ClickAsync(new MouseEventArgs());
+
+        Assert.That(component.FindAll(".ec-modal-large"), Is.Empty, "the preview of a file found gone closes with the confirmation");
+    }
+
+    [Test]
     public async Task TheFileMenuOpensWithTheDownloadThatTheRowCarriesOnlyAboveLg()
     {
         await using var ctx = FrontendContext.Create();
@@ -477,6 +551,8 @@ public class FilesCardRenderTests
 
         public Func<FileListItem, bool, CancellationToken, Task> ChangeMainFile { get; init; } = static (_, _, _) => Task.CompletedTask;
 
+        public Func<FileListItem, CancellationToken, Task> DeleteFile { get; init; } = static (_, _) => Task.CompletedTask;
+
         public IRenderedComponent<FilesCard> Render(BunitContext ctx)
         {
             var files = this.Files;
@@ -491,7 +567,7 @@ public class FilesCardRenderTests
                 .Add(static card => card.LoadFileVersions, this.LoadFileVersions)
                 .Add(static card => card.DeleteFileVersion, this.DeleteFileVersion)
                 .Add(static card => card.RenameFile, this.RenameFile)
-                .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+                .Add(static card => card.DeleteFile, this.DeleteFile)
                 .Add(static card => card.ChangeMainFile, this.ChangeMainFile)
                 .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
                 .Add(static card => card.UploadTarget, this.UploadTarget)

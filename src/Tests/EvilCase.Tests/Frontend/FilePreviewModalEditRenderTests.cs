@@ -17,14 +17,14 @@ public class FilePreviewModalEditRenderTests
     private static readonly byte[] Mark = [0xEF, 0xBB, 0xBF];
 
     [Test]
-    public void AnOlderVersionOffersNoEditing()
+    public async Task AnOlderVersionOffersNoEditing()
     {
-        using var ctx = NewContext(out _);
+        await using var ctx = NewContext(out _);
 
         var file = Versioned("a.txt", 3, 3);
         var component = Render(ctx, [file], file.FileId, "a"u8.ToArray(), version: 2);
 
-        Assert.That(component.FindAll("[aria-label='Upravit']"), Is.Empty);
+        Assert.That(await FilePreviewHeaderMenu.Texts(component), Does.Not.Contain("Upravit"));
     }
 
     [Test]
@@ -351,9 +351,9 @@ public class FilePreviewModalEditRenderTests
     }
 
     [Test]
-    public void EditOnOpenEditsAFileThatCanBeEditedAndShowsAnotherForReading()
+    public async Task EditOnOpenEditsAFileThatCanBeEditedAndShowsAnotherForReading()
     {
-        using var ctx = NewContext(out var editors);
+        await using var ctx = NewContext(out var editors);
 
         var text = File("a.txt");
         var latin2 = File("b.txt");
@@ -364,7 +364,7 @@ public class FilePreviewModalEditRenderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(editors.OpenedReadOnly, Is.EqualTo([false, true]), "the editor opens without the view, a file not in UTF-8 opens for reading");
-            Assert.That(notUtf8.FindAll("[aria-label='Upravit']"), Is.Empty);
+            Assert.That(await FilePreviewHeaderMenu.Texts(notUtf8), Does.Not.Contain("Upravit"));
         }
     }
 
@@ -423,7 +423,7 @@ public class FilePreviewModalEditRenderTests
     {
         var component = Render(ctx, files, fileId, content ?? "a\nb\n"u8.ToArray(), uploadVersion: uploadVersion, onVersionChanged: onVersionChanged, onOpenChanged: onOpenChanged);
 
-        await component.Find("button[aria-label='Upravit']").ClickAsync(new MouseEventArgs());
+        await FilePreviewHeaderMenu.Select(component, "Upravit");
 
         return component;
     }
