@@ -103,6 +103,10 @@
                     <div class="ec-preview-title">
                         <div class="ec-preview-name-row">
                             <h2 class="ec-preview-name" title="@file.FileName">@file.FileName</h2>
+                            @if (this.ChangeMain is not null)
+                            {
+                                <MainFileStar IsMain="file.IsMain" OnChange="main => this.MarkMain(file, main)" />
+                            }
                             @if (this.OlderVersion is { } olderNumber)
                             {
                                 <EcBadge Text="@($"verze {olderNumber}")" Tone="EcBadgeTone.FileVersion" />
@@ -134,19 +138,7 @@
                     {
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Compare" AriaLabel="Porovnat" OnClick="() => this.StartCompare(file)"><span class="ec-preview-action-label">Porovnat</span></EcButton>
                     }
-                    <FileVersionPicker Text="Nová verze" Disabled="this.uploadingVersion" OnPicked="picked => this.UploadNewVersion(file, picked)" />
-                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" AriaLabel="Přejmenovat" OnClick="this.StartRename"><span class="ec-preview-action-label">Přejmenovat</span></EcButton>
-                    @if (this.signedContentName is not null)
-                    {
-                        var extension = Path.GetExtension(file.FileName);
-
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout dokument" OnClick="this.DownloadSignedContent"><span class="ec-preview-action-label">Stáhnout dokument</span></EcButton>
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="@($"Stáhnout {extension}")" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout @extension</span></EcButton>
-                    }
-                    else
-                    {
-                        <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout" OnClick="() => this.DownloadStored(file)"><span class="ec-preview-action-label">Stáhnout</span></EcButton>
-                    }
+                    <EcMenu AriaLabel="Další akce se souborem" Title="@file.FileName" Items="this.HeaderMenuActions(file)" />
                     @this.FileSteps()
                 </div>
                 @* Below lg the preview's toolbar carries these; a preview without one keeps them here. *@
@@ -515,6 +507,18 @@
 
     [Parameter]
     public EventCallback OnRenamed { get; set; }
+
+    /// <summary>
+    /// Sets the file as the main file, or unsets it; answers the failure to show. Without it the header carries no star.
+    /// </summary>
+    [Parameter]
+    public Func<FileListItem, bool, Task<string?>>? ChangeMain { get; set; }
+
+    /// <summary>
+    /// Asks to delete the file; without it the preview does not offer Smazat.
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileListItem> OnDelete { get; set; }
 
     /// <summary>
     /// Opens the editor once the file first shown has loaded, when it can be edited; read when the preview opens.
@@ -1321,7 +1325,57 @@
             actions.Add(new EcMenuItem { Text = $"Stáhnout {extension}", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
         }
 
+        return [.. actions, .. this.FileMenuActions(file)];
+    }
+
+    // The header's menu above lg.
+    private List<EcMenuItem> HeaderMenuActions(FileListItem file)
+    {
+        var actions = new List<EcMenuItem>();
+
+        if (this.signedContentName is not null)
+        {
+            var extension = Path.GetExtension(file.FileName);
+
+            actions.Add(new EcMenuItem { Text = "Stáhnout dokument", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, this.DownloadSignedContent) });
+            actions.Add(new EcMenuItem { Text = $"Stáhnout {extension}", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
+        }
+        else
+        {
+            actions.Add(new EcMenuItem { Text = "Stáhnout", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadStored(file)) });
+        }
+
+        if (!this.uploadingVersion)
+            actions.Add(new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, this.PickVersion) });
+
+        actions.Add(new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, this.StartRename) });
+
+        return [.. actions, .. this.FileMenuActions(file)];
+    }
+
+    // Closes the header's menu above lg and the toolbar's below it.
+    private List<EcMenuItem> FileMenuActions(FileListItem file)
+    {
+        var actions = new List<EcMenuItem>();
+
+        if (this.OnDelete.HasDelegate)
+        {
+            actions.Add(new EcMenuItem
+            {
+                Text = "Smazat",
+                Icon = AppIcons.Trash,
+                OnSelect = EventCallback.Factory.Create(this, () => this.OnDelete.InvokeAsync(file)),
+                Danger = true,
+                DividerBefore = true,
+            });
+        }
+
         return actions;
+    }
+
+    private async Task MarkMain(FileListItem file, bool main)
+    {
+        this.versionFailure = await this.ChangeMain!(file, main);
     }
 
     private List<EcMenuItem> CompareActions(FileListItem file)

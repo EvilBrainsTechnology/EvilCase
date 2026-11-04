@@ -1,0 +1,28 @@
+@using EvilBrains.EvilCase.Api.Contract.Files
+
+<ConfirmModal Title="Smazat soubor" ConfirmText="Smazat soubor" Action="token => this.Delete(this.File, token)"
+              NotFoundText="Soubor už neexistuje." FailureText="Soubor se nepodařilo smazat. Zkuste to za chvíli znovu."
+              Open OpenChanged="this.OpenChanged" OnDone="this.OnDone">
+    @if (this.File.VersionCount > 1)
+    {
+        <p class="ec-confirm-text">Opravdu smazat soubor <strong>@this.File.FileName</strong> se všemi @this.File.VersionCount verzemi? Akci nelze vrátit zpět.</p>
+    }
+    else
+    {
+        <p class="ec-confirm-text">Opravdu smazat soubor <strong>@this.File.FileName</strong>? Akci nelze vrátit zpět.</p>
+    }
+</ConfirmModal>
+
+@code {
+    [Parameter, EditorRequired]
+    public required FileListItem File { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, CancellationToken, Task> Delete { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnDone { get; set; }
+}

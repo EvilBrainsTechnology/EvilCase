@@ -218,6 +218,54 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
+    public async Task TheHeaderOffersTheStarAndSmazatTheHostHandlesAndShowsAFailedMainChange()
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = File("a.pdf") with { IsMain = true };
+        var changes = new List<bool>();
+        var deleted = new List<Guid>();
+        var component = Render(ctx, [file], file.FileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll(".ec-main-star"), Is.Empty, "a host that does not handle the mark gets no star");
+            Assert.That(await HeaderMenuTexts(component), Is.EqualTo(["Stáhnout", "Nahrát novou verzi", "Přejmenovat"]), "a host that does not handle the delete gets no Smazat");
+        }
+
+        await component.Find(".ec-menu-backdrop").ClickAsync(new MouseEventArgs());
+
+        Task<string?> ChangeMain(FileListItem _, bool main)
+        {
+            changes.Add(main);
+
+            return Task.FromResult<string?>("Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu.");
+        }
+
+        component.Render(parameters => parameters
+            .Add(static modal => modal.ChangeMain, ChangeMain)
+            .Add(static modal => modal.OnDelete, item => deleted.Add(item.FileId)));
+
+        var star = component.Find(".ec-preview-name-row .ec-main-star");
+
+        Assert.That(star.GetAttribute("aria-label"), Is.EqualTo("Zrušit hlavní soubor"), "the main file's star unsets the mark");
+
+        await star.ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(changes, Is.EqualTo([false]));
+            Assert.That(component.Find(".ec-preview-alert").TextContent, Is.EqualTo("Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu."));
+        }
+
+        Assert.That(await HeaderMenuTexts(component), Is.EqualTo(["Stáhnout", "Nahrát novou verzi", "Přejmenovat", "Smazat"]));
+
+        await component.FindAll("[role=menuitem]")[^1].ClickAsync(new MouseEventArgs());
+
+        Assert.That(deleted, Is.EqualTo([file.FileId]), "Smazat hands the file to the host, which confirms the delete");
+    }
+
+    [Test]
     public async Task ClosingTheModalRevokesTheBlob()
     {
         await using var ctx = NewContext(out var files);
@@ -312,6 +360,13 @@ public class FilePreviewModalRenderTests
         await component.FindAll("[role=menuitem]").Single(static item => string.Equals(item.TextContent.Trim(), "Verze (3)", StringComparison.Ordinal)).ClickAsync(new MouseEventArgs());
 
         Assert.That(component.FindAll(".ec-preview-versions"), Has.Count.EqualTo(1), "the menu's Verze opens the version bar as the header's button does");
+    }
+
+    private static async Task<string[]> HeaderMenuTexts(IRenderedComponent<FilePreviewModal> component)
+    {
+        await component.Find(".ec-preview-actions [aria-haspopup=menu]").ClickAsync(new MouseEventArgs());
+
+        return [.. component.FindAll("[role=menuitem]").Select(static item => item.TextContent.Trim())];
     }
 
     private static async Task<string[]> MenuTexts(IRenderedComponent<FilePreviewModal> component)

@@ -113,6 +113,7 @@
                                         <span class="ec-file-meta">@if (stored is { } freshOutcome && this.Compact) { <EcBadge Text="@FreshText(freshOutcome)" Tone="EcBadgeTone.Fresh" /> }@if (file.VersionCount > 1 && this.Compact) { <span class="ec-file-version">verze @file.Version</span>@(" ")<span class="ec-sep" aria-hidden="true">·</span>@(" ") }@if (file.VersionCount > 1 && !this.Compact) { <EcBadge Text="@($"verze {file.Version}")" Tone="EcBadgeTone.FileVersion" /> }@if (stored is { } wideOutcome && !this.Compact) { <EcBadge Text="@FreshText(wideOutcome)" Tone="EcBadgeTone.Fresh" /> }@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> <span class="ec-file-moment">@MomentDisplay.Text(file.Created)</span></span>
                                     </div>
                                     <div class="ec-file-actions">
+                                        <MainFileStar IsMain="file.IsMain" FileName="@file.FileName" OnChange="main => this.ChangeMainFromRow(file, main)" />
                                         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                                   AriaLabel="@($"Stáhnout {file.FileName}")" title="Stáhnout"
                                                   OnClick="() => this.Download(file)" />
@@ -145,7 +146,7 @@
                       Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
                       LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
-                      OnDownload="this.Download" OnRenamed="this.FileRenamed"
+                      OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain" OnDelete="this.DeleteFromPreview"
                       EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
 }
 
@@ -159,18 +160,7 @@
 
 @if (this.deleting is { } file)
 {
-    <ConfirmModal Title="Smazat soubor" ConfirmText="Smazat soubor" Action="token => this.DeleteFile(file, token)"
-                  NotFoundText="Soubor už neexistuje." FailureText="Soubor se nepodařilo smazat. Zkuste to za chvíli znovu."
-                  Open OpenChanged="this.CloseDelete" OnDone="this.FileDeleted">
-        @if (file.VersionCount > 1)
-        {
-            <p class="ec-confirm-text">Opravdu smazat soubor <strong>@file.FileName</strong> se všemi @file.VersionCount verzemi? Akci nelze vrátit zpět.</p>
-        }
-        else
-        {
-            <p class="ec-confirm-text">Opravdu smazat soubor <strong>@file.FileName</strong>? Akci nelze vrátit zpět.</p>
-        }
-    </ConfirmModal>
+    <FileDeleteConfirm File="file" Delete="this.DeleteFile" OpenChanged="this.CloseDelete" OnDone="this.FileDeleted" />
 }
 
 @code {
@@ -208,6 +198,12 @@
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, CancellationToken, Task> DeleteFile { get; set; }
+
+    /// <summary>
+    /// Sets the file as the main file of its case or act, or unsets it.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, bool, CancellationToken, Task> ChangeMainFile { get; set; }
 
     /// <summary>
     /// Lower case: it follows the file name and a colon.
@@ -430,15 +426,8 @@
         if (this.busyRound is not null || this.versionUploading)
             return (WaitForUpload, null);
 
-        if (!FileNameRules.SameExtension(file.FileName, picked.Name))
-        {
-            var extension = Path.GetExtension(file.FileName);
-
-            return ($"{picked.Name}: nová verze souboru {file.FileName} musí {(extension.Length == 0 ? "být bez přípony" : $"mít příponu {extension}")}.", null);
-        }
-
-        if (picked.Size > FileLimits.MaxUploadBytes)
-            return (TooLarge(picked.Name), null);
+        if (FileVersionUploader.Refusal(file, picked) is { } refusal)
+            return (refusal, null);
 
         this.versionUploading = true;
         this.State.UploadStarted();
@@ -449,30 +438,15 @@
         this.uploadName = picked.Name;
         this.StateHasChanged();
 
-        string? failure = null;
+        string? failure;
         string? notice = null;
 
         try
         {
-            notice = this.Record(await this.UploadFileVersion(file, picked, CancellationToken.None));
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.RequestEntityTooLarge)
-        {
-            this.Logger.LogWarning(exception, "Uploading a file version failed: too large");
+            (var result, failure) = await FileVersionUploader.Upload(this.UploadFileVersion, file, picked, this.Logger);
 
-            failure = TooLarge(picked.Name);
-        }
-        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
-        {
-            this.Logger.LogWarning(exception, "Uploading a file version failed: the file is gone");
-
-            failure = $"{picked.Name}: soubor {file.FileName} už neexistuje.";
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
-        {
-            this.Logger.LogWarning(exception, "Uploading a file version failed");
-
-            failure = $"{picked.Name}: nahrání se nezdařilo.";
+            if (result is not null)
+                notice = this.Record(result);
         }
         finally
         {
@@ -523,11 +497,6 @@
             default:
                 throw new UnreachableException();
         }
-    }
-
-    private static string TooLarge(string name)
-    {
-        return $"{name}: soubor je větší než {FileSizeDisplay.Text(FileLimits.MaxUploadBytes)}.";
     }
 
     private static string FreshText(FileUploadOutcome outcome)
@@ -643,6 +612,48 @@
     private void ConfirmDelete(FileListItem file)
     {
         this.deleting = file;
+    }
+
+    private void DeleteFromPreview(FileListItem file)
+    {
+        this.previewFileId = null;
+        this.previewVersion = null;
+        this.deleting = file;
+    }
+
+    private async Task ChangeMainFromRow(FileListItem file, bool main)
+    {
+        if (await this.ChangeMain(file, main) is { } failure && !this.State.Failures.Contains(failure))
+            this.State.Failures.Add(failure);
+    }
+
+    // Called from the preview through a plain delegate, so it redraws the card itself.
+    private async Task<string?> ChangeMain(FileListItem file, bool main)
+    {
+        string? failure = null;
+
+        try
+        {
+            await this.ChangeMainFile(file, main, CancellationToken.None);
+        }
+        catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+        {
+            this.Logger.LogWarning(exception, "Changing the main file failed: the file is gone");
+
+            failure = $"Soubor {file.FileName} už neexistuje.";
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "Changing the main file failed");
+
+            failure = "Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu.";
+        }
+
+        await this.ReloadFiles();
+
+        this.StateHasChanged();
+
+        return failure;
     }
 
     private void CloseDelete(bool open)

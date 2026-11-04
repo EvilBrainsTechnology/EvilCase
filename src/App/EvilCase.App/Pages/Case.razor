@@ -175,6 +175,7 @@
         ActColumn.Status,
         ActColumn.Contact,
         ActColumn.Changed,
+        ActColumn.MainFile,
     ];
 
     [Parameter]
@@ -203,6 +204,7 @@
                     DeleteFileVersion="this.DeleteFileVersion"
                     RenameFile="this.RenameFile"
                     DeleteFile="this.DeleteFile"
+                    ChangeMainFile="this.ChangeMainFile"
                     UploadTarget="ke spisu"
                     ArchiveUrl="@FileUrl.CaseArchive(this.CaseId)"
                     Compact="compact" />;

@@ -359,6 +359,7 @@ public class CaseRenderTests
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
+        ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
 
         return (casesClient, caseLabelsClient, caseCommentsClient, labelsClient);

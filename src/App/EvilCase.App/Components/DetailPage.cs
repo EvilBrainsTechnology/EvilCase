@@ -12,7 +12,7 @@ using Microsoft.JSInterop;
 namespace EvilBrains.EvilCase.App.Components;
 
 /// <summary>
-/// The load, label save, link copy, files card list, file content load and file version operations that the case and the act detail share.
+/// The load, label save, link copy, files card list, file content load, file version and main file operations that the case and the act detail share.
 /// </summary>
 public abstract class DetailPage<TDetail> : ComponentBase
     where TDetail : class
@@ -25,6 +25,9 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     [Inject]
     private IFileVersionsClient FileVersions { get; set; } = null!;
+
+    [Inject]
+    private IMainFileClient MainFiles { get; set; } = null!;
 
     [Inject]
     private ILogger<DetailPage<TDetail>> Logger { get; set; } = null!;
@@ -171,5 +174,13 @@ public abstract class DetailPage<TDetail> : ComponentBase
     protected async Task DeleteFileVersion(FileListItem file, int number, CancellationToken token)
     {
         await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
+    }
+
+    protected async Task ChangeMainFile(FileListItem file, bool main, CancellationToken token)
+    {
+        if (main)
+            await this.MainFiles.SetMainFile(file.FileId, token);
+        else
+            await this.MainFiles.UnsetMainFile(file.FileId, token);
     }
 }

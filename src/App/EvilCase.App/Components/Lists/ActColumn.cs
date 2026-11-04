@@ -15,4 +15,9 @@ public enum ActColumn
     ActAndCase = 11,
 
     Status = 12,
+
+    /// <summary>
+    /// The act's main file, opened in a preview from the row.
+    /// </summary>
+    MainFile = 13,
 }

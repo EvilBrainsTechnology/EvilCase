@@ -176,6 +176,67 @@ public class FilesCardRenderTests
         }
     }
 
+    [Test]
+    public async Task TheRowStarSetsOrUnsetsTheMainFileAndTheReloadedListMovesIt()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var main = File("rozhodnuti.pdf") with { IsMain = true };
+        var other = File("priloha.pdf");
+        IReadOnlyList<FileListItem> listed = [main, other];
+        var changes = new List<(Guid FileId, bool Main)>();
+
+        var component = new Card
+        {
+            LoadFiles = _ => Task.FromResult(listed),
+            ChangeMainFile = (file, isMain, _) =>
+            {
+                changes.Add((file.FileId, isMain));
+                listed = [main with { IsMain = false }, other with { IsMain = isMain }];
+
+                return Task.CompletedTask;
+            },
+        }
+            .Render(ctx);
+
+        var stars = component.FindAll(".ec-file-row .ec-main-star");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stars.Select(static star => star.ClassList.Contains("ec-main-star-on")), Is.EqualTo([true, false]), "only the main file's star is filled");
+            Assert.That(stars.Select(static star => star.GetAttribute("aria-label")), Is.EqualTo(["Zrušit hlavní soubor rozhodnuti.pdf", "Nastavit priloha.pdf jako hlavní soubor"]));
+        }
+
+        await stars[1].ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(
+            component.FindAll(".ec-file-row .ec-main-star").Select(static star => star.ClassList.Contains("ec-main-star-on")),
+            Is.EqualTo([false, true]),
+            "the reloaded list moves the mark"));
+
+        await component.FindAll(".ec-file-row .ec-main-star")[1].ClickAsync(new MouseEventArgs());
+
+        Assert.That(changes, Is.EqualTo([(other.FileId, true), (other.FileId, false)]), "an empty star sets the mark, a filled one unsets it");
+    }
+
+    [Test]
+    public async Task AFailedChangeOfTheMainFileSaysSo()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var component = new Card
+        {
+            Files = [PdfFile()],
+            ChangeMainFile = static (_, _, _) => throw new HttpRequestException("offline"),
+        }
+            .Render(ctx);
+
+        await component.Find(".ec-file-row .ec-main-star").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.Find(".ec-alert").TextContent, Is.EqualTo("Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu.")));
+    }
+
     private static FileUploadResult Stored(FileListItem file, FileUploadOutcome outcome)
     {
         return new FileUploadResult { File = file with { Version = file.Version + 1, VersionCount = file.VersionCount + 1 }, Outcome = outcome };
@@ -414,6 +475,8 @@ public class FilesCardRenderTests
 
         public Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; init; } = static (_, _, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray()));
 
+        public Func<FileListItem, bool, CancellationToken, Task> ChangeMainFile { get; init; } = static (_, _, _) => Task.CompletedTask;
+
         public IRenderedComponent<FilesCard> Render(BunitContext ctx)
         {
             var files = this.Files;
@@ -429,6 +492,7 @@ public class FilesCardRenderTests
                 .Add(static card => card.DeleteFileVersion, this.DeleteFileVersion)
                 .Add(static card => card.RenameFile, this.RenameFile)
                 .Add(static card => card.DeleteFile, static (_, _) => Task.CompletedTask)
+                .Add(static card => card.ChangeMainFile, this.ChangeMainFile)
                 .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
                 .Add(static card => card.UploadTarget, this.UploadTarget)
                 .Add(static card => card.ArchiveUrl, this.ArchiveUrl)

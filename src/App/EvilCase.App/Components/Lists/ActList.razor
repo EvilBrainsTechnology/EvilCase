@@ -102,6 +102,23 @@
                     <span class="ec-cell-text ec-cell-sub" title="@item.CaseTitle">@item.CaseTitle</span>
                 </text>,
             },
+            ActColumn.MainFile => new EcColumn<ActListItem>
+            {
+                Header = "Soubor",
+                Width = "var(--ec-list-col-main-file)",
+                CellClass = "ec-cell-main-file",
+                Cell = item =>@<text>
+                    @if (item.MainFile is { } main)
+                    {
+                        @* Inside the row's link: the click opens the preview and never follows the row. *@
+                        <button type="button" class="ec-button ec-button-secondary ec-button-compact ec-button-icon ec-main-file"
+                                aria-label="@main.FileName" title="@main.FileName"
+                                @onclick="() => this.OpenMainFile(item.ActId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
+                            <EcIcon Paths="@EcFileIcon.Glyph(main.FileName)" />
+                        </button>
+                    }
+                </text>,
+            },
             _ => throw new UnreachableException(),
         });
     }
@@ -200,6 +217,11 @@
     </Empty>
 </EcTable>
 
+@if (this.previewed is { } previewed)
+{
+    <ActFilePreview @key="previewed" ActId="previewed.ActId" FileId="previewed.FileId" OnChanged="this.ReloadPage" OnClosed="this.CloseMainFile" />
+}
+
 @code {
     private const string FilteredEmptyText = "Filtru neodpovídá žádný úkon.";
 
@@ -289,6 +311,8 @@
     private CaseStatusFilter caseStatus;
 
     private ActListRequest? seeded;
+
+    private (Guid ActId, Guid FileId)? previewed;
 
     protected override int PageSize => this.Filter.Take;
 
@@ -406,6 +430,16 @@
         }
 
         return this.ReloadFirstPage();
+    }
+
+    private void OpenMainFile(Guid actId, Guid fileId)
+    {
+        this.previewed = (actId, fileId);
+    }
+
+    private void CloseMainFile()
+    {
+        this.previewed = null;
     }
 
     private string ContactClass(ActListItem item)
