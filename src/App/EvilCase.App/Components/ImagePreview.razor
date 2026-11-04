@@ -1,0 +1,63 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IFilePreviews Previews
+@inject ILogger<ImagePreview> Logger
+
+@* An image opens whole and at most at 100 %; the zoom sizes it, so it stays sharp. Below lg the toolbar is hidden. *@
+<div class="ec-preview-view ec-preview-view-image">
+    <PreviewToolbar @ref="this.toolbar" Label="Ovládání náhledu obrázku" Ready="this.ready" FitsImage OnZoom="this.Zoom" />
+    <div @ref="this.stage" class="ec-preview-stage ec-preview-stage-image">
+        <img @ref="this.image" class="@(this.ready ? "ec-preview-image ec-preview-image-zoomed" : "ec-preview-image")" src="@this.Url" alt="@this.FileName"
+             @onload="this.Loaded" @onerror="() => this.OnUnreadable.InvokeAsync()" />
+    </div>
+</div>
+
+@code {
+    private PreviewToolbar? toolbar;
+
+    private ElementReference stage;
+
+    private ElementReference image;
+
+    private bool opened;
+
+    private bool ready;
+
+    [Parameter, EditorRequired]
+    public required string Url { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+
+    /// <summary>
+    /// Raised when the browser cannot show the image.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnUnreadable { get; set; }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!this.opened)
+            return;
+
+        try
+        {
+            await this.Previews.DisposeView(this.stage);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The image preview was already gone");
+        }
+    }
+
+    private async Task Loaded()
+    {
+        this.opened = true;
+        this.ready = await this.Previews.OpenImageView(this.stage, this.image, this.toolbar!.View);
+    }
+
+    private async Task Zoom(PreviewZoom zoom)
+    {
+        await this.Previews.ZoomView(this.stage, zoom);
+    }
+}

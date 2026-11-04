@@ -31,6 +31,8 @@ internal sealed class StubFilePreviews : IFilePreviews
 
     public int OpenedTextViews { get; private set; }
 
+    public int OpenedImageViews { get; private set; }
+
     /// <summary>
     /// When set, a text view opens once it completes, as a script still loading would.
     /// </summary>
@@ -74,6 +76,13 @@ internal sealed class StubFilePreviews : IFilePreviews
         _ = view.Value;
         this.OpenedTextViews++;
         this.TextView = view;
+    }
+
+    public Task<bool> OpenImageView(ElementReference stage, ElementReference image, DotNetObjectReference<PreviewToolbar> view)
+    {
+        this.OpenedImageViews++;
+
+        return Task.FromResult(true);
     }
 
     public Task ZoomView(ElementReference element, PreviewZoom zoom)

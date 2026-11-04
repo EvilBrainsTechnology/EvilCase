@@ -96,17 +96,18 @@ export function disposeView(element) {
     }
 }
 
-function openView(element, stage, content, root, view, page) {
+// A view with a page scales it rather than reflowing, so two fingers also pan it; `opening` is the fit it opens at.
+function openView(element, stage, content, root, view, page, opening = 'page-width') {
     disposeView(element);
 
     const abort = new AbortController();
-    const state = { element, stage, content, root, view, page, abort, zoom: 1, fit: null, index: null, query: '', search: null, typing: null, sections: [], current: 0, pinned: null };
+    const state = { element, stage, content, root, view, page, opening, abort, zoom: 1, fit: null, index: null, query: '', search: null, typing: null, sections: [], current: 0, pinned: null };
 
     views.set(element, state);
 
     wheelZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y));
     touchZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y),
-        page ? () => fitPage(state, 'opening') : null);
+        page ? { reset: () => fitPage(state, 'opening'), pan: true } : {});
 
     return state;
 }
@@ -125,25 +126,60 @@ function setZoom(state, zoom, fit, x = 0, y = 0) {
     stage.scrollTop = (top * stage.scrollHeight) / Math.max(height, 1) - y;
     stage.scrollLeft = (left * stage.scrollWidth) / Math.max(width, 1) - x;
 
-    const preset = fit === 'opening' ? (zoom < 1 ? 'page-width' : '') : fit ?? '';
+    const preset = fit === 'opening' ? (zoom < 1 ? state.opening : '') : fit ?? '';
 
     if (views.get(state.element) === state) {
         state.view.invokeMethodAsync('ZoomChanged', Math.round(zoom * 100), preset).catch(() => {});
     }
 }
 
-// The opening zoom of a document is the page width, at most 100 %; it follows the stage's size until the zoom changes.
+// The opening zoom is the view's opening fit, at most 100 %; it follows the stage's size until the zoom changes.
 function fitPage(state, fit) {
     const { stage, page } = state;
     const style = getComputedStyle(stage);
     const width = stage.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     const height = stage.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
     const toWidth = width / page.width;
-    const zoom = fit === 'page-fit' ? Math.min(toWidth, height / page.height) : fit === 'opening' ? Math.min(toWidth, 1) : toWidth;
+    const fitted = (fit === 'opening' ? state.opening : fit) === 'page-fit' ? Math.min(toWidth, height / page.height) : toWidth;
+    const zoom = fit === 'opening' ? Math.min(fitted, 1) : fitted;
 
     if (zoom > 0) {
         setZoom(state, zoom, fit);
     }
+}
+
+// The fit follows the stage's size until the zoom changes.
+function followStage(state) {
+    const resize = new ResizeObserver(() => {
+        if (state.fit) {
+            fitPage(state, state.fit);
+        }
+    });
+
+    resize.observe(state.stage);
+    state.abort.signal.addEventListener('abort', () => resize.disconnect(), { once: true });
+}
+
+// An image zooms by its size, so it stays sharp; 100 % is its own pixels, an image without them keeps the size it
+// shows at. Answers whether the image took the zoom.
+export function openImageView(stage, image, view) {
+    release();
+
+    const page = { width: image.naturalWidth || image.offsetWidth, height: image.naturalHeight || image.offsetHeight };
+
+    if (!image.isConnected || page.width === 0 || page.height === 0) {
+        return false;
+    }
+
+    image.style.setProperty('--ec-preview-image-width', `${page.width}px`);
+    image.style.setProperty('--ec-preview-image-height', `${page.height}px`);
+
+    const state = openView(stage, stage, image, image, view, page, 'page-fit');
+
+    followStage(state);
+    fitPage(state, 'opening');
+
+    return true;
 }
 
 export function openTextView(stage, view) {
@@ -420,14 +456,7 @@ export async function renderDocument(host, contentStream, view) {
         frame = requestAnimationFrame(() => reportPage(state));
     }, { passive: true, signal: state.abort.signal });
     state.abort.signal.addEventListener('abort', () => cancelAnimationFrame(frame), { once: true });
-    const resize = new ResizeObserver(() => {
-        if (state.fit) {
-            fitPage(state, state.fit);
-        }
-    });
-
-    resize.observe(stage);
-    state.abort.signal.addEventListener('abort', () => resize.disconnect(), { once: true });
+    followStage(state);
     fitPage(state, 'opening');
     reportPage(state);
 
@@ -901,9 +930,12 @@ async function openPdf(host, source, view) {
     };
 
     wheelZoom(host, signal, () => viewer.currentScale, scaleTo);
-    touchZoom(host, signal, () => viewer.currentScale, scaleTo, () => {
-        pdf.opening = true;
-        fitOpening(viewer);
+    touchZoom(host, signal, () => viewer.currentScale, scaleTo, {
+        reset: () => {
+            pdf.opening = true;
+            fitOpening(viewer);
+        },
+        pan: true,
     });
 
     return count;

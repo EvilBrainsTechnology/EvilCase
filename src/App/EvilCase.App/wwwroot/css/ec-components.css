@@ -1670,6 +1670,25 @@ html.ec-scroll-locked {
     box-shadow: var(--ec-shadow-raised);
 }
 
+/* An image larger than the stage starts at its top left edge, a smaller one stands in the middle. */
+.ec-preview-stage-image {
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow: auto;
+}
+
+.ec-preview-stage-image .ec-preview-image {
+    margin: auto;
+}
+
+.ec-preview-image-zoomed {
+    flex: 0 0 auto;
+    width: calc(var(--ec-preview-image-width) * var(--ec-preview-zoom));
+    height: calc(var(--ec-preview-image-height) * var(--ec-preview-zoom));
+    max-width: none;
+    max-height: none;
+}
+
 .ec-preview-audio {
     width: var(--ec-preview-audio-width);
     max-width: 100%;
@@ -5708,11 +5727,12 @@ html.ec-scroll-locked {
         height: var(--ec-touch-min);
     }
 
-    /* Two fingers zoom the preview; a double tap fits it to the width. */
+    /* Two fingers zoom the preview; a double tap fits it to the width, an image whole. An image's toolbar holds only the zoom. */
     .ec-preview-toolbar-page-word,
     .ec-preview-toolbar-zoom,
     .ec-preview-toolbar > .ec-preview-toolbar-separator,
-    .ec-preview-toolbar-label {
+    .ec-preview-toolbar-label,
+    .ec-preview-view-image > .ec-preview-toolbar {
         display: none;
     }
 

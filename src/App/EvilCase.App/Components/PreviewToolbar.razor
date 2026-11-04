@@ -34,6 +34,13 @@
                           Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageFit)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.PageFit)"><span class="ec-preview-toolbar-label">Celá stránka</span></EcButton>
             </span>
         }
+        @if (this.FitsImage)
+        {
+            <span class="ec-preview-toolbar-fit ec-preview-toolbar-fit-page">
+                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowAutofitHeight" AriaLabel="Celý obrázek"
+                          Disabled="@(!this.Ready)" aria-pressed="@Pressed(this.fit == PageFit)" OnClick="() => this.OnZoom.InvokeAsync(PreviewZoom.PageFit)"><span class="ec-preview-toolbar-label">Celý obrázek</span></EcButton>
+            </span>
+        }
     </div>
     @if (this.Formats)
     {
@@ -52,7 +59,10 @@
     {
         <div class="ec-toolbar-notes">@this.Notes</div>
     }
-    <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.Ready)" Collapsible OnSearch="this.OnSearch" />
+    @if (this.OnSearch.HasDelegate)
+    {
+        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.Ready)" Collapsible OnSearch="this.OnSearch" />
+    }
     @if (this.Actions is not null)
     {
         <div class="ec-preview-toolbar-actions">@this.Actions</div>
@@ -107,6 +117,12 @@
     public bool Fits { get; set; }
 
     /// <summary>
+    /// Whether the zoom offers the fit to the whole image.
+    /// </summary>
+    [Parameter]
+    public bool FitsImage { get; set; }
+
+    /// <summary>
     /// Whether the toolbar offers to switch between the formatted and the original text.
     /// </summary>
     [Parameter]
@@ -154,6 +170,9 @@
     [Parameter]
     public EventCallback<int> OnGoToPage { get; set; }
 
+    /// <summary>
+    /// The toolbar offers the search only to a preview that takes it.
+    /// </summary>
     [Parameter]
     public EventCallback<PreviewSearch> OnSearch { get; set; }
 

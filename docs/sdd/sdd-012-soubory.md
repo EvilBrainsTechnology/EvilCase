@@ -168,7 +168,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   velikostí 100 %, a s hledáním. Hledání stojí na pravém konci lišty a zleva nese pořadí výskytu
   z počtu (3 z 12), Hledám… nebo Nenalezeno, pole hledání a předchozí a další výskyt; na mobilu
   ho otevře ikona na vlastním řádku. Na mobilu lišta tlačítka zvětšení nenese a náhled se zvětší
-  a zmenší dvěma prsty, ve stejných mezích. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
+  a zmenší dvěma prsty, ve stejných mezích. PDF, dokument Word a obrázek se přitom posouvají s prsty
+  jako v aplikaci s fotkami a zvětšené se jedním prstem posunou do všech stran. Hledání nerozlišuje velikost písmen ani diakritiku, zvýrazní
   všechny výskyty, aktuální odliší a posune do zobrazení; Enter přejde na další výskyt,
   Shift+Enter na předchozí, Esc hledání vymaže a náhled nezavře.
 - Poznámky náhledu i editoru textu, kódu a Markdownu (soubor je delší, není platný ve svém jazyce,
@@ -215,6 +216,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   Wordu o několik řádků lišit. Prázdná stránka se neukáže. Lišta navíc ukáže
   stránku z počtu stran s polem pro skok na stránku a přizpůsobení na šířku a na celou stránku
   podle velikosti papíru.
+- Obrázek se ukáže zpočátku celý v ploše náhledu, nejvýš však ve 100 %, což je jeho skutečná
+  velikost v pixelech. Na počítači nese lišta zvětšení a zmenšení, 100 % a přizpůsobení na celý
+  obrázek, hledání ne. Na mobilu se lišta neukáže a dvojí klepnutí vrátí obrázek na celý.
 - Sešit se ukáže jako tabulka s kartami listů; z každého listu se ukáže nejvýše prvních
   1 000 řádků a náhled řekne, že je list delší.
 - E-mail ukáže odesílatele, příjemce, předmět, datum, text zprávy a seznam příloh s velikostí;
