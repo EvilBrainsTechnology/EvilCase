@@ -251,7 +251,7 @@ else if (this.File is { } file)
         this.deleting = true;
     }
 
-    // A cancel leaves the preview as it was; one from the versions closes everything.
+    // A cancel leaves the preview as it was, unless the delete found the file gone; one from the versions closes everything.
     private async Task CloseDelete(bool open)
     {
         if (open)
@@ -259,7 +259,9 @@ else if (this.File is { } file)
 
         this.deleting = false;
 
-        if (!this.previewing)
+        if (this.previewing)
+            await this.Reload();
+        else
             await this.Close();
     }
 

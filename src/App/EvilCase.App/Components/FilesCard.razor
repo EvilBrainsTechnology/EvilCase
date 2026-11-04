@@ -652,10 +652,15 @@
         return failure;
     }
 
-    private void CloseDelete(bool open)
+    // A delete that found the file gone leaves the list stale; the reload drops the file and its preview.
+    private async Task CloseDelete(bool open)
     {
-        if (!open)
-            this.deleting = null;
+        if (open)
+            return;
+
+        this.deleting = null;
+
+        await this.ReloadFiles();
     }
 
     private async Task FileDeleted()
