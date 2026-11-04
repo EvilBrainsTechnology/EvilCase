@@ -96,6 +96,7 @@ export function disposeView(element) {
     }
 }
 
+// A view with a page scales it rather than reflowing, so two fingers also pan it.
 function openView(element, stage, content, root, view, page) {
     disposeView(element);
 
@@ -106,7 +107,7 @@ function openView(element, stage, content, root, view, page) {
 
     wheelZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y));
     touchZoom(stage, abort.signal, () => state.zoom, (zoom, x, y) => setZoom(state, zoom, null, x, y),
-        page ? () => fitPage(state, 'opening') : null);
+        page ? { reset: () => fitPage(state, 'opening'), pan: true } : {});
 
     return state;
 }
@@ -901,9 +902,12 @@ async function openPdf(host, source, view) {
     };
 
     wheelZoom(host, signal, () => viewer.currentScale, scaleTo);
-    touchZoom(host, signal, () => viewer.currentScale, scaleTo, () => {
-        pdf.opening = true;
-        fitOpening(viewer);
+    touchZoom(host, signal, () => viewer.currentScale, scaleTo, {
+        reset: () => {
+            pdf.opening = true;
+            fitOpening(viewer);
+        },
+        pan: true,
     });
 
     return count;
