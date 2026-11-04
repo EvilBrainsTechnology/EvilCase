@@ -3,7 +3,7 @@ using EvilBrains.EvilCase.Domain.Cases;
 namespace EvilBrains.EvilCase.Business.Export;
 
 /// <summary>
-/// !spis.json in the case's folder.
+/// case.json in the case's folder.
 /// </summary>
 internal sealed record ExportedCase
 {

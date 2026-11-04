@@ -14,23 +14,30 @@ internal static class TenantExportLayout
 
     public const string ManifestName = "export.json";
 
-    public const string CasesFolder = "Spisy";
+    /// <summary>
+    /// The root cases, and the sub-cases inside a case folder.
+    /// </summary>
+    public const string CasesFolder = "cases";
 
-    public const string ContactsFolder = "Kontakty";
+    public const string ActsFolder = "acts";
 
-    public const string LabelsFolder = "Štítky";
+    public const string FilesFolder = "files";
 
-    public const string CaseDocumentName = "!spis.json";
+    public const string ContactsFolder = "contacts";
 
-    public const string ActDocumentName = "!ukon.json";
+    public const string LabelsFolder = "labels";
 
-    public const string LabelsDocumentName = "!stitky.json";
+    public const string CaseDocumentName = "case.json";
 
-    public const string CaseFallback = "Spis";
+    public const string ActDocumentName = "act.json";
 
-    public const string ActFallback = "Úkon";
+    public const string LabelsDocumentName = "labels.json";
 
-    private const string ContactFallback = "Kontakt";
+    public const string CaseFallback = "case";
+
+    public const string ActFallback = "act";
+
+    private const string ContactFallback = "contact";
 
     private const int MaxTitleLength = 80;
 

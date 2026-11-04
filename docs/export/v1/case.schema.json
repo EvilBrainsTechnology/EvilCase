@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "EvilCase export v1, !spis.json of a case",
+  "title": "EvilCase export v1, case.json of a case",
   "type": "object",
   "additionalProperties": false,
   "required": [
