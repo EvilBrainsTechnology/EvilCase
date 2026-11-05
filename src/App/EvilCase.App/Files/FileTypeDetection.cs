@@ -20,7 +20,23 @@ internal static class FileTypeDetection
         ([0x4D, 0x4D, 0x00, 0x2A], "tif"),
         ("<?xml"u8.ToArray(), "xml"),
         ([0xEF, 0xBB, 0xBF, .. "<?xml"u8], "xml"),
+        ("{\\rtf"u8.ToArray(), "rtf"),
+        ("ID3"u8.ToArray(), "mp3"),
+        ("fLaC"u8.ToArray(), "flac"),
+        ("OggS"u8.ToArray(), "ogg"),
+        ([0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C], "7z"),
+        ([.. "Rar!"u8, 0x1A, 0x07], "rar"),
+        ([0x1F, 0x8B, 0x08], "gz"),
     ];
+
+    private static readonly byte[] EbmlPrefix = [0x1A, 0x45, 0xDF, 0xA3];
+
+    private static readonly Dictionary<string, string> RiffForms = new(StringComparer.Ordinal)
+    {
+        ["WEBP"] = "webp",
+        ["WAVE"] = "wav",
+        ["AVI "] = "avi",
+    };
 
     private static readonly byte[] OlePrefix = [0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1];
 
@@ -36,7 +52,8 @@ internal static class FileTypeDetection
         ("__substg1.0_", "msg"),
     ];
 
-    private static readonly Dictionary<string, string> HeifBrands = new(StringComparer.Ordinal)
+    // The major brand of an ISO media file.
+    private static readonly Dictionary<string, string> FtypBrands = new(StringComparer.Ordinal)
     {
         ["heic"] = "heic",
         ["heix"] = "heic",
@@ -48,6 +65,15 @@ internal static class FileTypeDetection
         ["msf1"] = "heic",
         ["avif"] = "avif",
         ["avis"] = "avif",
+        ["M4A "] = "m4a",
+        ["M4V "] = "m4v",
+        ["qt  "] = "mov",
+        ["isom"] = "mp4",
+        ["iso2"] = "mp4",
+        ["mp41"] = "mp4",
+        ["mp42"] = "mp4",
+        ["avc1"] = "mp4",
+        ["dash"] = "mp4",
     };
 
     private static readonly Dictionary<string, string> OpenDocumentTypes = new(StringComparer.Ordinal)
@@ -73,11 +99,15 @@ internal static class FileTypeDetection
                 return extension;
         }
 
-        if (head.Length >= 12 && head.StartsWith("RIFF"u8) && head[8..12].SequenceEqual("WEBP"u8))
-            return "webp";
+        if (head.Length >= 12 && head.StartsWith("RIFF"u8))
+            return RiffForms.GetValueOrDefault(Encoding.ASCII.GetString(head[8..12]));
 
         if (head.Length >= 12 && head[4..8].SequenceEqual("ftyp"u8))
-            return HeifBrands.GetValueOrDefault(Encoding.ASCII.GetString(head[8..12]));
+            return FtypBrands.GetValueOrDefault(Encoding.ASCII.GetString(head[8..12]));
+
+        // A Matroska file names its document type in its header.
+        if (head.StartsWith(EbmlPrefix))
+            return head[..Math.Min(head.Length, 64)].IndexOf("webm"u8) >= 0 ? "webm" : "mkv";
 
         // Two letters alone start many texts; a bitmap also has its four reserved bytes zero.
         if (head.Length >= 26 && head.StartsWith("BM"u8) && !head[6..10].ContainsAnyExcept((byte)0))
@@ -132,7 +162,9 @@ internal static class FileTypeDetection
         {
             using var root = RootStorage.Open(new MemoryStream(content, writable: false));
 
-            var names = root.EnumerateEntries().Select(static entry => entry.Name).ToList();
+            var names = root.EnumerateEntries()
+                .Select(static entry => entry.Name)
+                .ToList();
 
             return OleStreams.FirstOrDefault(stream => names.Exists(name => name.StartsWith(stream.Name, StringComparison.Ordinal))).Extension;
         }

@@ -40,7 +40,26 @@ public class FileTypeDetectionTests
         yield return Case([], extension: null);
     }
 
+    private static IEnumerable<TestCaseData> MediaAndArchives()
+    {
+        yield return Case([0, 0, 0, 0x18, .. "ftypisom"u8, 0, 0, 0, 0], "mp4");
+        yield return Case([0, 0, 0, 0x18, .. "ftypM4A "u8, 0, 0, 0, 0], "m4a");
+        yield return Case([0, 0, 0, 0x14, .. "ftypqt  "u8, 0, 0, 0, 0], "mov");
+        yield return Case("RIFF$\0\0\0WAVEfmt "u8.ToArray(), "wav");
+        yield return Case("RIFF$\0\0\0AVI LIST"u8.ToArray(), "avi");
+        yield return Case([0x1A, 0x45, 0xDF, 0xA3, 0x9F, 0x42, 0x82, 0x84, .. "webm"u8], "webm");
+        yield return Case([0x1A, 0x45, 0xDF, 0xA3, 0xA3, 0x42, 0x82, 0x88, .. "matroska"u8], "mkv");
+        yield return Case("ID3\u0004\0\0"u8.ToArray(), "mp3");
+        yield return Case("fLaC\0\0\0\u0022"u8.ToArray(), "flac");
+        yield return Case("OggS\0\u0002"u8.ToArray(), "ogg");
+        yield return Case("{\\rtf1\\ansi"u8.ToArray(), "rtf");
+        yield return Case([0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C, 0, 4], "7z");
+        yield return Case([.. "Rar!"u8, 0x1A, 0x07, 0x01, 0], "rar");
+        yield return Case([0x1F, 0x8B, 0x08, 0, 0, 0, 0, 0], "gz");
+    }
+
     [TestCaseSource(nameof(Contents))]
+    [TestCaseSource(nameof(MediaAndArchives))]
     public void TheContentShowsItsExtension(byte[] content, string? extension)
     {
         Assert.That(FileTypeDetection.ExtensionOrDefault(content), Is.EqualTo(extension));

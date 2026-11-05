@@ -148,7 +148,12 @@ public class EmailFileTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(message.Attachments.Select(static attachment => attachment.Name), Is.EqualTo(["příloha", "Rozhodnutí.pdf", "pozn.txt", "příloha"]), "a part without a name is a příloha");
-            Assert.That(message.Attachments.Select(static attachment => attachment.Size).Take(2), Is.EqualTo([3, 5]), "the size is that of the decoded content");
+            Assert.That(
+                message.Attachments
+                    .Select(static attachment => attachment.Size)
+                    .Take(2),
+                Is.EqualTo([3, 5]),
+                "the size is that of the decoded content");
         }
     }
 
