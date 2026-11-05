@@ -6,8 +6,10 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 
 public class MarkdownEditorLibraryTests
 {
-    // Opens each text read-only in the least DOM the Markdown library needs and prints the Markdown a save writes of it.
-    private const string WriteScript = """
+    // Opens each text read-only in the least DOM the Markdown library needs and prints the Markdown a save writes of it and
+    // the properties shown: [count, value] with a table as [[key, value]], a list as [value] and invalid YAML as
+    // { invalid: text }, or null without them.
+    private const string Script = """
         class Node {
             nodeType = 1; childNodes = []; parentNode = null; attributes = new Map(); style = {};
             classList = { add: (name) => this.setAttribute('class', (this.className + ' ' + name).trim()), remove() {}, contains: () => false };
@@ -45,12 +47,21 @@ public class MarkdownEditorLibraryTests
         for (const name of ['addEventListener', 'removeEventListener', 'dispatchEvent']) globalThis[name] = events[name].bind(events);
 
         const { createMarkdown } = await import(process.argv[1]);
-        const written = [];
+        const opened = [];
         for (const text of JSON.parse(process.argv[2])) {
-            const markdown = await createMarkdown(document.body.appendChild(new Node('div')), text, false, 'Text', () => {}, () => {}, () => {}, () => []);
-            written.push(markdown.text());
+            const parent = document.body.appendChild(new Node('div'));
+            const markdown = await createMarkdown(parent, text, false, 'Text', () => {}, () => {}, () => {}, () => []);
+            const find = (node) => (node.className.split(' ').includes('ec-markdown-properties') ? node : node.childNodes.map(find).find(Boolean));
+            const show = (node) => {
+                if (node.nodeName === 'TABLE') return node.firstChild.childNodes.map((row) => [row.childNodes[0].textContent, show(row.childNodes[1].firstChild)]);
+                if (node.nodeName === 'UL') return node.childNodes.map((item) => show(item.firstChild));
+                if (node.className === 'ec-markdown-properties-invalid') return { invalid: node.childNodes[1].textContent };
+                return node.textContent;
+            };
+            const section = find(parent);
+            opened.push({ text: markdown.text(), shown: section ? [section.firstChild.lastChild.textContent, show(section.childNodes[1].firstChild)] : null });
         }
-        console.log(JSON.stringify(written));
+        console.log(JSON.stringify(opened));
         """;
 
     [Test]
@@ -80,13 +91,70 @@ public class MarkdownEditorLibraryTests
             """;
         using var library = new ServedLibrary("/lib/milkdown/milkdown.min.js");
 
-        var written = JsonSerializer.Deserialize<string[]>(await library.Run(WriteScript, JsonSerializer.Serialize(new[] { valid + "# Žádost\n\nText.\n", invalid + "Text.\n" })))!;
+        var opened = await Open(library, valid + "# Žádost\n\nText.\n", invalid + "Text.\n");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(written[0], Does.StartWith(valid), "the front matter is written back as it stood in the file");
-            Assert.That(written[1], Does.StartWith(invalid), "a front matter that is not valid YAML is written back as it stood");
+            Assert.That(opened[0].GetProperty("text").GetString(), Does.StartWith(valid), "the front matter is written back as it stood in the file");
+            Assert.That(opened[1].GetProperty("text").GetString(), Does.StartWith(invalid), "a front matter that is not valid YAML is written back as it stood");
         }
+    }
+
+    [Test]
+    public async Task TheFrontMatterShowsItsValuesAsWrittenAndYamlThatIsNoMappingAsItsText()
+    {
+        const string valid = """
+            ---
+            nazev:   "Žádost o informace"
+            datum: 2026-01-05
+            cislo: 0012
+            prazdne:
+            stitky: [podání, lhůta]
+            ucastnici:
+              - jmeno: Petr Příklad
+                role: 'podatel'
+            spis:
+              znacka: SP 1/2026
+            ---
+
+            Text.
+
+            """;
+        const string notAMapping = """
+            ---
+            - podání
+            ---
+
+            Text.
+
+            """;
+        const string invalid = """
+            ---
+            nazev: [Žádost
+            ---
+
+            Text.
+
+            """;
+        using var library = new ServedLibrary("/lib/milkdown/milkdown.min.js");
+
+        var opened = await Open(library, valid, notAMapping, invalid, "Text.\n");
+        var shown = opened.Select(static (each) => each.GetProperty("shown").GetRawText()).ToArray();
+
+        string[] expected =
+        [
+            """["7",[["nazev","Žádost o informace"],["datum","2026-01-05"],["cislo","0012"],["prazdne",""],["stitky",["podání","lhůta"]],["ucastnici",[[["jmeno","Petr Příklad"],["role","podatel"]]]],["spis",[["znacka","SP 1/2026"]]]]]""",
+            """["",{"invalid":"- podání"}]""",
+            """["",{"invalid":"nazev: [Žádost"}]""",
+            "null",
+        ];
+
+        Assert.That(shown, Is.EqualTo(expected), "a value shows as written, a list as items, a mapping as a table, and YAML that is no mapping as its text");
+    }
+
+    private static async Task<JsonElement[]> Open(ServedLibrary library, params string[] texts)
+    {
+        return JsonSerializer.Deserialize<JsonElement[]>(await library.Run(Script, JsonSerializer.Serialize(texts)))!;
     }
 
     [Test]

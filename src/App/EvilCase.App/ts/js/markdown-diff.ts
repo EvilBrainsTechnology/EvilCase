@@ -325,6 +325,7 @@ function compareProperties(a: PropertiesBlock, b: PropertiesBlock, out: Differen
         return;
     }
     if (a.raw || b.raw) {
+        out.deletions.push({ at: b.node, node: a.node, wrap: [] });
         changed(a, b);
         return;
     }
