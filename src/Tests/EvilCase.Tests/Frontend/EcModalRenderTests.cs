@@ -117,6 +117,32 @@ public class EcModalRenderTests
         scrollLock.VerifyInvoke("release");
     }
 
+    [Test]
+    public async Task AMaximizedDialogOpenedAgainStartsAtTheNormalSize()
+    {
+        await using var ctx = new BunitContext();
+        ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var component = ctx.Render<EcModal>(static parameters => parameters
+            .Add(static modal => modal.Title, "Poznámky.txt")
+            .Add(static modal => modal.Large, value: true)
+            .Add(static modal => modal.Maximizable, value: true)
+            .Add(static modal => modal.Open, value: true));
+
+        await component.Find(".ec-modal-header button[aria-label=Maximalizovat]").ClickAsync(new MouseEventArgs());
+
+        var maximized = component.Find(".ec-modal-header button[aria-pressed]").GetAttribute("aria-label");
+
+        component.Render(static parameters => parameters.Add(static modal => modal.Open, value: false));
+        component.Render(static parameters => parameters.Add(static modal => modal.Open, value: true));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(maximized, Is.EqualTo("Obnovit velikost"));
+            Assert.That(component.Find(".ec-modal-header button[aria-pressed]").GetAttribute("aria-label"), Is.EqualTo("Maximalizovat"), "every opening starts at the normal size");
+        }
+    }
+
     private static IRenderedComponent<EcModal> RenderGuarded(BunitContext ctx, Action<bool> openChanged, Action closeRequest)
     {
         return ctx.Render<EcModal>(parameters => parameters

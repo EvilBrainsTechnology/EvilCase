@@ -22,7 +22,7 @@
     var preview = FileTypeDisplay.Preview(stagedName);
     var shownVersion = this.ShownVersionItem;
 
-    <EcModal Title="@shownName" Large Open="this.Open" OpenChanged="this.OpenChanged" OnCloseRequest="this.CloseRequest">
+    <EcModal Title="@shownName" Large Maximizable Open="this.Open" OpenChanged="this.OpenChanged" OnCloseRequest="this.CloseRequest">
         <Heading>
             @if (attachment is not null)
             {

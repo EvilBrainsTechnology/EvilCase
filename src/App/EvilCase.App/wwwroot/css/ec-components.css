@@ -1398,6 +1398,23 @@ html.ec-scroll-locked {
     height: var(--ec-control-md);
 }
 
+.ec-modal-maximize {
+    display: contents;
+}
+
+/* A maximized preview fills the window; below lg the preview always does. */
+@media (min-width: 992px) {
+    .ec-modal-large.ec-modal-maximized {
+        inset: 0;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+    }
+}
+
 .ec-modal-large .ec-modal-body {
     display: flex;
     flex: 1 1 auto;
@@ -5470,6 +5487,10 @@ html.ec-scroll-locked {
         width: var(--ec-touch-min);
         height: var(--ec-touch-min);
         padding: 0;
+    }
+
+    .ec-modal-maximize {
+        display: none;
     }
 
     .ec-modal-large .ec-modal-header > .ec-button-ghost {

@@ -255,6 +255,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   mobilu jsou Upravit, Nahrát novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat
   v nabídce ⋯ lišty náhledu.
 - Hlavička souboru karty nese hned za názvem hvězdu hlavního souboru, stejnou jako řádek.
+- Na počítači nese hlavička náhledu hned před zavřením tlačítko Maximalizovat. Maximalizovaný
+  náhled vyplní celou obrazovku a tlačítko se změní na Obnovit velikost; totéž přepne dvojklik na
+  hlavičku mimo její tlačítka, odkazy a pole. Velikost platí pro náhled, úpravy i porovnání verzí
+  a drží se i při listování; každé otevření náhledu začne v obvyklé velikosti. Na mobilu tlačítko
+  není.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
   Na mobilu je pruh jeden řádek bez e-mailu a bez textu o starší verzi a Zobrazit aktuální verzi
