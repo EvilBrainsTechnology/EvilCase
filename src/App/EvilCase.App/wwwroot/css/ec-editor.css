@@ -1,0 +1,707 @@
+/* The text editor (CodeMirror): its own classes styled only inside the editor; the token classes are the app's. */
+.ec-preview-unsaved {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    color: var(--ec-unsaved-text);
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-preview-unsaved::before {
+    content: "";
+    width: var(--ec-unsaved-dot);
+    height: var(--ec-unsaved-dot);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-unsaved-dot-color);
+}
+
+.ec-preview-edit-actions {
+    display: contents;
+}
+
+.ec-preview-alert .ec-alert-text {
+    flex: 1 1 auto;
+}
+
+.ec-text-editor-toolbar {
+    flex-wrap: nowrap;
+    gap: var(--ec-space-2);
+}
+
+.ec-text-editor-toolbar > .ec-toolbar-notes {
+    margin-left: var(--ec-space-4);
+}
+
+/* The editor's Změny: the switch, the version compared with, the steps between the changes and their summary. */
+.ec-editor-changes {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-editor-changes .ec-text-compare-version,
+.ec-editor-changes-bar .ec-text-compare-version {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-editor-changes .ec-text-compare-version-label {
+    font-weight: var(--ec-weight-regular);
+}
+
+.ec-editor-changes-version {
+    white-space: nowrap;
+}
+
+/* Below the toolbar of formatted Markdown editing: the version compared with, the steps, the summary and the legend. */
+.ec-editor-changes-bar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-editor-changes-bar .ec-markdown-compare-legend {
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+}
+
+.ec-preview-stage[hidden] {
+    display: none;
+}
+
+/* The text grows to its full height and the stage scrolls it, so the scrollbar stands at the edge of the preview. */
+.ec-text-editor-stage {
+    align-items: flex-start;
+    overflow: auto;
+}
+
+.ec-text-editor {
+    display: flex;
+    flex: 0 1 calc(var(--ec-preview-text-width) * var(--ec-preview-zoom, 1));
+    flex-direction: column;
+    min-width: 0;
+    min-height: 100%;
+}
+
+.ec-text-editor .cm-editor {
+    flex: 1 1 auto;
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-raised);
+}
+
+.ec-text-editor .cm-editor .cm-scroller {
+    flex: 1 1 auto;
+    font-family: var(--ec-font-mono);
+    font-size: calc(var(--ec-text-sm) * var(--ec-preview-zoom, 1));
+    line-height: var(--ec-preview-text-leading);
+    font-variant-ligatures: none;
+}
+
+.ec-text-editor .cm-editor.cm-focused {
+    outline: var(--ec-text-editor-focus-outline);
+    outline-offset: var(--ec-text-editor-focus-offset);
+}
+
+.ec-text-editor .cm-editor .cm-content {
+    padding: var(--ec-space-6) 0;
+    caret-color: var(--ec-accent);
+}
+
+.ec-text-editor .cm-editor .cm-line {
+    padding: 0 var(--ec-space-7) 0 var(--ec-space-3);
+}
+
+.ec-text-editor .cm-editor .cm-cursor {
+    border-left-color: var(--ec-accent);
+}
+
+.ec-text-editor .cm-editor .cm-gutters {
+    border-right: 0;
+    background: transparent;
+    color: var(--ec-text-faint);
+}
+
+.ec-text-editor .cm-editor .cm-lineNumbers .cm-gutterElement {
+    min-width: var(--ec-preview-gutter);
+    box-sizing: border-box;
+    padding: 0 var(--ec-space-3) 0 var(--ec-space-5);
+}
+
+/* Lines changed since the editor opened: a bar left of their numbers. The bar's column keeps its width without a bar,
+   so the text stands in the same place in the view and the editor. */
+.ec-text-editor .cm-editor .ec-text-editor-changes {
+    min-width: var(--ec-text-editor-changed-width);
+}
+
+.ec-text-editor .cm-editor .ec-text-editor-changes .cm-gutterElement {
+    width: var(--ec-text-editor-changed-width);
+}
+
+.ec-text-editor .cm-editor .ec-text-editor-changes .ec-text-editor-changed {
+    background: var(--ec-text-editor-changed);
+}
+
+.ec-text-editor .cm-editor .cm-activeLine,
+.ec-text-editor .cm-editor .cm-activeLineGutter {
+    background: var(--ec-text-editor-active-line);
+}
+
+.ec-text-editor .cm-editor .cm-searchMatch {
+    background: var(--ec-preview-hit);
+    outline: none;
+}
+
+.ec-text-editor .cm-editor .cm-searchMatch-selected {
+    background: var(--ec-preview-hit-current);
+}
+
+/* The matches of the read-only view's search; the match shown wins over a match around or inside it. */
+.ec-text-editor .cm-editor .ec-text-editor-hit {
+    background: var(--ec-preview-hit);
+}
+
+.ec-text-editor .cm-editor .ec-text-editor-hit-current,
+.ec-text-editor .cm-editor .ec-text-editor-hit-current .ec-text-editor-hit {
+    background: var(--ec-preview-hit-current);
+}
+
+/* The search panel only turns the highlights on; the app's own field drives the search. */
+.ec-text-editor .cm-editor .cm-panels {
+    display: none;
+}
+
+.ec-text-editor .ec-code-name {
+    color: var(--ec-code-name);
+}
+
+.ec-text-editor .ec-code-attribute {
+    color: var(--ec-code-attribute);
+}
+
+.ec-text-editor .ec-code-string {
+    color: var(--ec-code-string);
+}
+
+.ec-text-editor .ec-code-literal {
+    color: var(--ec-code-literal);
+}
+
+.ec-text-editor .ec-code-punctuation {
+    color: var(--ec-code-punctuation);
+}
+
+.ec-text-editor .ec-code-comment {
+    color: var(--ec-code-comment);
+    font-style: italic;
+}
+
+/* The compare of two versions: the stage scrolls both texts together. Side by side the older stands left, in one column
+   the removed lines stand above the added ones; the stylesheet shows one of the two layouts the script builds. */
+.ec-text-compare-card {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-raised);
+}
+
+.ec-text-compare-view-unified .ec-text-compare-card,
+.ec-text-compare-card-narrow {
+    flex: 0 1 var(--ec-compare-text-width);
+}
+
+/* The versions stand above the texts; their lists open over the gutters. */
+.ec-text-compare-versions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-5);
+    border-bottom: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg) var(--ec-radius-lg) 0 0;
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-text-compare-version {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-text-compare-version-label {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-text-compare-version-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-text-compare-version-meta {
+    display: none;
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+}
+
+.ec-text-compare-versions-arrow {
+    display: flex;
+    color: var(--ec-text-muted);
+}
+
+/* Side by side each version heads its column. */
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version {
+    padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow {
+    display: none;
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow + .ec-text-compare-version {
+    border-left: 1px solid var(--ec-border);
+}
+
+.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version-meta {
+    display: inline;
+}
+
+.ec-text-compare-toolbar {
+    gap: var(--ec-space-3) var(--ec-space-4);
+}
+
+/* The search narrows before it takes a row of its own. */
+.ec-text-compare-toolbar > .ec-preview-toolbar-search {
+    flex: 1 0 auto;
+    justify-content: flex-end;
+}
+
+.ec-text-compare-toolbar .ec-preview-toolbar-search-box {
+    flex: 1 1 auto;
+    width: var(--ec-preview-toolbar-search-mobile);
+    max-width: var(--ec-preview-toolbar-search-width);
+}
+
+.ec-text-compare-changes {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-text-compare-summary {
+    padding-left: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-text-compare-summary-added {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-compare-added-sign);
+}
+
+.ec-text-compare-summary-removed {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-compare-removed-sign);
+}
+
+/* The texts form their own layer, below the versions' lists. */
+.ec-text-editor.ec-text-compare {
+    position: relative;
+    z-index: 0;
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.ec-text-compare-unified,
+.ec-text-compare-view-unified .ec-text-compare-split {
+    display: none;
+}
+
+.ec-text-compare-view-unified .ec-text-compare-unified {
+    display: block;
+}
+
+.ec-text-compare .cm-editor {
+    border-radius: 0 0 var(--ec-radius-lg) var(--ec-radius-lg);
+    background: transparent;
+    box-shadow: none;
+}
+
+.ec-text-compare .cm-mergeView {
+    overflow: visible;
+}
+
+/* The texts split the width as the versions above them do. */
+.ec-text-compare .cm-mergeViewEditors {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.ec-text-compare .cm-mergeViewEditor + .cm-mergeViewEditor {
+    border-left: 1px solid var(--ec-border);
+}
+
+/* Every line of a compare, and of an editor showing its changes, keeps a column before its text for the sign of its
+   change. */
+.ec-text-compare .cm-editor .cm-line,
+.ec-text-editor .cm-editor.cm-merge-b .cm-line,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine {
+    position: relative;
+    padding: 0 var(--ec-space-7) 0 calc(var(--ec-space-3) + var(--ec-compare-sign-width));
+}
+
+.ec-text-editor .cm-editor .cm-changedLine::before,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine::before {
+    position: absolute;
+    left: var(--ec-space-1);
+    width: var(--ec-compare-sign-width);
+    font-weight: var(--ec-weight-semibold);
+    text-align: center;
+}
+
+.ec-text-editor .cm-editor.cm-merge-a .cm-changedLine,
+.ec-text-editor .cm-editor .cm-deletedChunk,
+.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-removed {
+    background: var(--ec-compare-removed-bg);
+}
+
+.ec-text-editor .cm-editor.cm-merge-a .cm-changedLine::before,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine::before {
+    content: "−";
+    color: var(--ec-compare-removed-sign);
+}
+
+.ec-text-editor .cm-editor.cm-merge-b .cm-changedLine,
+.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-added {
+    background: var(--ec-compare-added-bg);
+}
+
+.ec-text-editor .cm-editor.cm-merge-b .cm-changedLine::before {
+    content: "+";
+    color: var(--ec-compare-added-sign);
+}
+
+.ec-text-editor .cm-editor .cm-deletedChunk {
+    padding-left: 0;
+}
+
+.ec-text-editor .cm-editor.cm-merge-a .cm-line .cm-changedText,
+.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine .cm-deletedText {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-removed-word);
+}
+
+.ec-text-editor .cm-editor.cm-merge-b .cm-line .cm-changedText {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-added-word);
+}
+
+/* A line wholly added or removed marks no word. */
+.ec-text-editor .cm-editor .cm-line.ec-text-compare-whole .cm-changedText,
+.ec-text-editor .cm-editor .cm-deletedChunk:not(:has(+ .cm-changedLine)) .cm-deletedLine .cm-deletedText {
+    background: none;
+}
+
+/* A match of the search shows over a changed word. */
+.ec-text-editor .cm-editor .cm-line .ec-text-editor-hit .cm-changedText {
+    background: var(--ec-preview-hit);
+}
+
+.ec-text-editor .cm-editor .cm-line .ec-text-editor-hit-current .cm-changedText {
+    background: var(--ec-preview-hit-current);
+}
+
+.ec-text-editor .cm-editor .cm-mergeSpacer,
+.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-gap {
+    background: var(--ec-compare-gap);
+}
+
+.ec-text-editor .ec-text-compare-run {
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    width: 100%;
+    height: var(--ec-compare-run-height);
+    padding: 0 0 0 var(--ec-space-6);
+    border: 0;
+    border-block: 1px solid var(--ec-compare-run-border);
+    background: var(--ec-compare-run-bg);
+    color: var(--ec-accent-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-text-editor .ec-text-compare-run:hover {
+    background: var(--ec-compare-run-hover);
+}
+
+.ec-text-editor .ec-text-compare-run:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-text-compare-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-6);
+}
+
+.ec-text-compare-notice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    gap: var(--ec-space-4);
+    min-height: var(--ec-compare-notice-height);
+    padding: var(--ec-space-5);
+    border: 1px solid transparent;
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-preview-stage);
+    color: var(--ec-text);
+    text-align: center;
+}
+
+.ec-text-compare-notice-warning {
+    border-color: var(--ec-warning-border);
+    background: var(--ec-warning-bg);
+    color: var(--ec-warning-text);
+}
+
+.ec-text-compare-notice-danger {
+    border-color: var(--ec-danger-border);
+    background: var(--ec-danger-bg);
+    color: var(--ec-danger-text);
+}
+
+.ec-text-compare-notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-compare-notice-icon);
+    height: var(--ec-compare-notice-icon);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-surface);
+}
+
+.ec-text-compare-notice-same .ec-text-compare-notice-icon {
+    color: var(--ec-accent-text);
+}
+
+.ec-text-compare-notice-text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-text-compare-state > .ec-preview-message {
+    align-self: stretch;
+    min-height: var(--ec-compare-notice-height);
+}
+
+/* The previews of two versions side by side under the choice of versions, the older on the left; each keeps its own
+   toolbar. */
+.ec-version-sides {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ec-version-sides > .ec-text-compare-versions {
+    border-radius: 0;
+}
+
+.ec-version-sides-columns {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+}
+
+.ec-version-side {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ec-version-side + .ec-version-side {
+    border-left: 1px solid var(--ec-border);
+}
+
+/* What only the compare side by side offers, which stands from lg up. */
+.ec-compare-wide {
+    display: contents;
+}
+
+.ec-text-compare-notice-text p {
+    margin: 0;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-leading-body);
+}
+
+.ec-preview-message {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-4);
+    margin: 0;
+    text-align: center;
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-message-title {
+    margin: 0;
+    font-size: var(--ec-text-xl);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-preview-message-text {
+    max-width: var(--ec-preview-message-width);
+    margin: 0;
+    line-height: var(--ec-leading-body);
+}
+
+.ec-preview-markdown,
+.ec-preview-email {
+    width: min(var(--ec-preview-text-width), 100%);
+    box-sizing: border-box;
+    padding: var(--ec-space-8);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-raised);
+    line-height: var(--ec-leading-body);
+    overflow-wrap: anywhere;
+    zoom: var(--ec-preview-zoom, 1);
+}
+
+.ec-markdown-content > :first-child {
+    margin-top: 0;
+}
+
+.ec-markdown-content > :last-child {
+    margin-bottom: 0;
+}
+
+.ec-preview-markdown h1,
+.ec-preview-markdown h2,
+.ec-preview-markdown h3,
+.ec-preview-markdown h4 {
+    margin: var(--ec-space-7) 0 var(--ec-space-3);
+    line-height: var(--ec-leading-tight);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-markdown h1 {
+    font-size: var(--ec-title-mobile);
+}
+
+.ec-preview-markdown h2 {
+    font-size: var(--ec-text-xl);
+}
+
+.ec-preview-markdown h3,
+.ec-preview-markdown h4 {
+    font-size: var(--ec-text-lg);
+}
+
+.ec-preview-markdown p,
+.ec-preview-markdown ul,
+.ec-preview-markdown ol,
+.ec-preview-markdown blockquote,
+.ec-preview-markdown pre,
+.ec-preview-markdown table {
+    margin: 0 0 var(--ec-space-5);
+}
+
+.ec-preview-markdown ul,
+.ec-preview-markdown ol {
+    padding-left: var(--ec-space-7);
+}
+
+.ec-preview-markdown a {
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-markdown blockquote {
+    padding-left: var(--ec-space-5);
+    border-left: 3px solid var(--ec-border-strong);
+    color: var(--ec-text-soft);
+}
+
+.ec-preview-markdown code,
+.ec-preview-markdown pre {
+    border-radius: var(--ec-radius-sm);
+    background: var(--ec-surface-sunken);
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-preview-markdown code {
+    padding: 1px var(--ec-space-2);
+}
+
+.ec-preview-markdown pre {
+    padding: var(--ec-space-4) var(--ec-space-5);
+    overflow-x: auto;
+}
+
+.ec-preview-markdown pre code {
+    padding: 0;
+}
+
+.ec-preview-markdown table {
+    border-collapse: collapse;
+}
+
+.ec-preview-markdown th,
+.ec-preview-markdown td {
+    padding: var(--ec-space-2) var(--ec-space-4);
+    border: 1px solid var(--ec-border);
+    text-align: left;
+}
+
+.ec-preview-markdown th {
+    background: var(--ec-surface-header);
+    font-weight: var(--ec-weight-semibold);
+}

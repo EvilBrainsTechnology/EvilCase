@@ -1,0 +1,918 @@
+@media (max-width: 991.98px) {
+    .ec-button,
+    .ec-swatch,
+    .ec-copy {
+        min-height: var(--ec-touch-min);
+        min-width: var(--ec-touch-min);
+    }
+
+    .ec-page-title,
+    .ec-detail .ec-page-title,
+    .ec-contact-header .ec-page-title {
+        font-size: var(--ec-title-mobile);
+    }
+
+    /* The primary action stays at the right of the title row. */
+    .ec-page-header-row {
+        gap: var(--ec-space-3);
+    }
+
+    .ec-page-actions {
+        flex: none;
+        margin-left: auto;
+    }
+
+    /* One link back to the parent replaces the crumbs. */
+    .ec-crumbs {
+        display: none;
+    }
+
+    .ec-page-back {
+        display: flex;
+        align-items: center;
+        gap: var(--ec-space-1);
+        box-sizing: border-box;
+        width: fit-content;
+        max-width: calc(100% + var(--ec-space-3));
+        height: var(--ec-touch-min);
+        margin-left: calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-medium);
+        color: var(--ec-accent-text);
+    }
+
+    .ec-page-back .ec-icon {
+        flex: none;
+    }
+
+    .ec-page-back-text {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .ec-page > .ec-page-header:has(> .ec-page-back) {
+        gap: 0;
+        padding-top: var(--ec-space-1);
+    }
+
+    .ec-card-body:has(> .ec-detail) {
+        padding-top: var(--ec-space-1);
+    }
+
+    /* On a detail the title has the whole row; the status and the actions go below it. */
+    .ec-detail .ec-page-header-row > .ec-page-title {
+        flex: 1 0 100%;
+    }
+
+    .ec-detail .ec-page-title {
+        line-height: var(--ec-leading-title);
+    }
+
+    .ec-detail .ec-page-header {
+        gap: var(--ec-space-2);
+    }
+
+    .ec-detail .ec-page-header-row {
+        row-gap: var(--ec-space-3);
+    }
+
+    .ec-text-wide {
+        display: none;
+    }
+
+    .ec-form-layout,
+    .ec-form-row,
+    .ec-form-group-row,
+    .ec-detail-layout,
+    .ec-contact-occurrences {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* Údaje jdou do dvou sloupců; čáry mezi nimi kreslí mezera nad podkladem linky. */
+    .ec-detail-facts {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: row dense;
+        gap: var(--ec-hairline);
+        overflow: hidden;
+        background: var(--ec-border-subtle);
+    }
+
+    .ec-detail-fact {
+        border-right: 0;
+        background: var(--ec-surface);
+    }
+
+    /* Řádek sdílí jen krátké údaje; značka, odkaz a adresa mají celou šířku. */
+    .ec-detail-fact-wide,
+    .ec-detail-fact-labels,
+    .ec-detail-fact-copyable,
+    .ec-detail-fact:has(.ec-detail-fact-link) {
+        grid-column: 1 / -1;
+    }
+
+    .ec-detail-fact-mono {
+        overflow-wrap: break-word;
+    }
+
+    .ec-detail-fact-labels .ec-label-field > .ec-chip {
+        height: calc(var(--ec-space-7) + var(--ec-space-1));
+        font-size: var(--ec-text-sm);
+    }
+
+    .ec-detail-fact-labels .ec-label-field > .ec-chip .ec-chip-dot {
+        width: var(--ec-space-3);
+        height: var(--ec-space-3);
+    }
+
+    .ec-detail-fact-labels .ec-label-add {
+        font-size: var(--ec-text-sm);
+    }
+
+    /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
+    .ec-detail-fact-copy .ec-copy {
+        margin-block: calc((var(--ec-fact-line) - var(--ec-touch-min)) / 2);
+    }
+
+    .ec-card-footer {
+        flex-wrap: wrap;
+    }
+
+    .ec-form-note {
+        flex: 1 1 100%;
+    }
+
+    .ec-form-actions {
+        flex: 1 1 100%;
+        margin-left: 0;
+    }
+
+    /* Akce formuláře zůstávají na mobilu u spodního okraje okna. */
+    .ec-form-layout .ec-card-footer {
+        position: sticky;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        z-index: 1;
+        border-radius: 0 0 var(--ec-radius-card) var(--ec-radius-card);
+        background: var(--ec-surface);
+    }
+
+    .ec-form-layout .ec-form-actions .ec-button {
+        flex: 1 1 0;
+    }
+
+    .ec-page {
+        padding: var(--ec-space-5) var(--ec-space-5) var(--ec-space-7);
+    }
+
+    .ec-modal {
+        width: calc(100vw - 2 * var(--ec-space-4));
+    }
+
+    .ec-settings-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* The bottom bar names the page; the sections are one switch across the width. */
+    .ec-page:has(> .ec-settings-layout) > .ec-page-header {
+        position: absolute;
+        width: calc(var(--ec-space-1) / 4);
+        height: calc(var(--ec-space-1) / 4);
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .ec-settings-nav {
+        flex-direction: row;
+        gap: var(--ec-space-1);
+        padding: var(--ec-space-1);
+        border: 0;
+        border-radius: var(--ec-radius-lg);
+        background: var(--ec-surface-track);
+    }
+
+    .ec-settings-nav-item {
+        flex: 1 1 0;
+        justify-content: center;
+        height: var(--ec-touch-min);
+        border-radius: var(--ec-radius-md);
+        white-space: nowrap;
+    }
+
+    .ec-settings-nav-item[aria-current="page"] {
+        background: var(--ec-surface);
+        color: var(--ec-text);
+        box-shadow: var(--ec-shadow-raised);
+    }
+
+    /* The secret shows whole: a block of its own with the copy below. */
+    .ec-token-secret {
+        flex-direction: column;
+    }
+
+    .ec-token-secret .ec-input {
+        display: none;
+    }
+
+    .ec-token-secret-text {
+        display: block;
+        padding: var(--ec-space-3) var(--ec-space-4);
+        border: 1px solid var(--ec-border-strong);
+        border-radius: var(--ec-radius-md);
+        background: var(--ec-surface-sunken);
+        font-family: var(--ec-font-mono);
+        font-size: var(--ec-text-lg);
+        line-height: var(--ec-leading-body);
+        word-break: break-all;
+        user-select: all;
+    }
+
+    .ec-token-secret .ec-button {
+        justify-content: center;
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-export {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ec-export-action {
+        align-items: stretch;
+        padding-left: 0;
+        border-left: 0;
+        text-align: center;
+    }
+
+    .ec-export-action .ec-button {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-settings-nav-item .ec-icon,
+    .ec-token-cell-wide,
+    .ec-token-subtitle-long {
+        display: none;
+    }
+
+    .ec-token-subtitle-short {
+        display: inline;
+    }
+
+    .ec-token-meta {
+        display: flex;
+    }
+
+    .ec-token-meta .ec-token-chip {
+        height: var(--ec-token-chip-sm-height);
+        padding: 0 var(--ec-space-2);
+    }
+
+    .ec-token-meta .ec-token-expired::before {
+        display: none;
+    }
+
+    .ec-token-row .ec-settings-row-actions .ec-button {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-settings-layout .ec-card-heading {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .ec-settings-layout .ec-card-subtitle {
+        white-space: nowrap;
+    }
+
+    .ec-settings-new-more {
+        display: none;
+    }
+
+    .ec-settings-layout .ec-card-header-actions {
+        flex-shrink: 0;
+    }
+
+    .ec-settings-head,
+    .ec-settings-row-color,
+    .ec-settings-row-count {
+        display: none;
+    }
+
+    .ec-settings-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding: var(--ec-space-3) var(--ec-space-3) var(--ec-space-3) var(--ec-space-6);
+    }
+
+    .ec-settings-row-usage {
+        display: block;
+    }
+
+    .ec-timeline-all,
+    .ec-child-toggle,
+    .ec-comment-action {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec .ec-file-drop-hint,
+    .ec-split-button-text {
+        display: none;
+    }
+
+    /* Nahrát soubory široké karty nese jen ikonu; text zůstává jménem pro čtečku. */
+    .ec-file-card:not(.ec-file-card-compact) .ec-file-upload-text {
+        position: absolute;
+        width: calc(var(--ec-space-1) / 4);
+        height: calc(var(--ec-space-1) / 4);
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .ec-split-button > .ec-button,
+    .ec-file-card:not(.ec-file-card-compact) .ec-file-upload {
+        padding: 0;
+    }
+
+    /* Metadata souboru se lámou mezi velikostí a časem; oddělovač nahradí mezera. */
+    .ec-file-meta {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--ec-space-3);
+    }
+
+    .ec-file-meta .ec-sep {
+        display: none;
+    }
+
+    /* Název souboru dostane až dva řádky a láme se kdekoli; dotykovou plochu dává celý řádek. */
+    .ec-file-name,
+    .ec-file-name-static {
+        display: -webkit-box;
+        overflow-wrap: anywhere;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    .ec-modal-large {
+        box-sizing: border-box;
+        width: 100vw;
+        max-width: none;
+        height: var(--ec-viewport-height);
+        margin: 0;
+        padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-modal-large .ec-modal-header {
+        flex-wrap: wrap;
+        gap: var(--ec-space-3);
+        min-height: 0;
+        padding: var(--ec-space-2) var(--ec-space-2) var(--ec-space-2) var(--ec-space-4);
+    }
+
+    .ec-preview-meta-position {
+        display: inline;
+    }
+
+    /* The header keeps the name and the close; the file actions are the toolbar's, or a row of their own. */
+    .ec-preview-actions:has(+ .ec-preview-compact) {
+        display: none;
+    }
+
+    .ec-preview-compact,
+    .ec-preview-toolbar-actions {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ec-preview-compact:has(> :nth-child(3)) {
+        flex: 1 1 100%;
+        order: 1;
+        justify-content: flex-end;
+    }
+
+    .ec-modal-large:has(.ec-preview-toolbar-actions) .ec-modal-header .ec-preview-compact {
+        display: none;
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-compact .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-modal-maximize {
+        display: none;
+    }
+
+    .ec-modal-large .ec-modal-header > .ec-button-ghost {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+
+    /* The editor's header holds Zrušit and Uložit; Zrušit closes it. */
+    .ec-modal-large .ec-modal-header:has(> .ec-preview-edit-actions) > .ec-button-ghost {
+        display: none;
+    }
+
+    /* Beside them the file name gets two lines. */
+    .ec-modal-header:has(> .ec-preview-edit-actions) .ec-preview-name {
+        display: -webkit-box;
+        overflow-wrap: anywhere;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    .ec-modal-large .ec-modal-header > :is(.ec-preview-title, .ec-file-rename) {
+        flex: 1 1 0;
+    }
+
+    .ec-preview-actions {
+        display: flex;
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+        order: 1;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--ec-space-1);
+    }
+
+    .ec-preview-nav {
+        gap: var(--ec-space-1);
+    }
+
+    .ec-preview-position {
+        min-width: 0;
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-actions .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-preview-action-label {
+        display: none;
+    }
+
+    .ec-file-pick-label {
+        display: none;
+    }
+
+    .ec-modal-header .ec-file-pick {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+        justify-content: center;
+    }
+
+    .ec-preview-edit-actions {
+        display: flex;
+        flex: 0 0 auto;
+        gap: var(--ec-space-2);
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-edit-actions .ec-button {
+        height: var(--ec-touch-min);
+        justify-content: center;
+    }
+
+    .ec-preview-edit-version {
+        display: none;
+    }
+
+    .ec-file-meta .ec-badge {
+        margin-right: 0;
+    }
+
+    .ec-modal-sheet {
+        width: auto;
+        max-width: none;
+        max-height: calc(var(--ec-viewport-height) - var(--ec-space-8));
+        margin: auto 0 0;
+        border-bottom: 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+    }
+
+    .ec-modal-sheet .ec-modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+        padding-bottom: calc(var(--ec-space-5) + env(safe-area-inset-bottom));
+    }
+
+    .ec-versions-delete-more {
+        display: inline;
+    }
+
+    .ec-versions-row {
+        padding: var(--ec-space-3) var(--ec-space-6);
+    }
+
+    .ec-versions-actions .ec-button,
+    .ec-versions-delete-file .ec-button {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-versions-actions .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-versions-action-label {
+        display: none;
+    }
+
+    .ec-versions-delete-file .ec-button {
+        justify-content: center;
+    }
+
+    .ec-versions-delete-file {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* One row: the version picker and the way back to the current version. */
+    .ec-preview-versions {
+        flex-wrap: nowrap;
+        gap: var(--ec-space-2);
+        padding: var(--ec-space-2) var(--ec-space-3);
+    }
+
+    .ec-preview-versions-label,
+    .ec-preview-versions-note {
+        display: none;
+    }
+
+    .ec-preview-versions .ec-preview-versions-trigger {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-versions > .ec-button {
+        min-height: var(--ec-touch-min);
+        margin-left: auto;
+    }
+
+    .ec-text-narrow {
+        display: contents;
+    }
+
+    .ec-preview-versions-option,
+    .ec-preview-versions-manage {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-modal-large .ec-modal-header .ec-preview-back .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-preview-data-message .ec-preview-email-headers {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-preview-data-message .ec-preview-email-headers dd {
+        margin-bottom: var(--ec-space-2);
+    }
+
+    .ec-preview-data-message-attachment {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-data-message-attachment .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+    }
+
+    .ec-preview-data-message-event {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+    }
+
+    .ec-preview-signers {
+        padding: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-preview-signer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+    }
+
+    .ec-preview-signature {
+        padding: var(--ec-space-5);
+        gap: var(--ec-space-4);
+    }
+
+    .ec-preview-signature-title {
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-preview-signature-signer {
+        padding: var(--ec-space-4);
+    }
+
+    .ec-preview-signature-details {
+        grid-template-columns: minmax(0, 1fr);
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-preview-signature-details dd {
+        margin-bottom: var(--ec-space-2);
+    }
+
+    .ec-preview-signers-source .ec-button,
+    .ec-preview-signature-problem .ec-button {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-divider {
+        display: none;
+    }
+
+    .ec-preview-stage {
+        padding: var(--ec-space-4);
+    }
+
+    .ec-preview-sheet-view > .ec-preview-note,
+    .ec-preview-sheet-tabs {
+        padding-inline: var(--ec-space-4);
+    }
+    /* The toolbar keeps the page, the view switches, the search icon and the file actions; the search field opens on a row of its own. */
+    .ec-preview-toolbar {
+        gap: var(--ec-space-2) var(--ec-space-1);
+        padding: var(--ec-space-2) var(--ec-space-3);
+    }
+
+    .ec-preview-toolbar .ec-button {
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        padding: 0;
+    }
+
+    .ec-preview-toolbar-page-input,
+    .ec-preview-toolbar-search-box {
+        height: var(--ec-touch-min);
+    }
+
+    /* Two fingers zoom the preview; a double tap fits it to the width, an image whole. An image's toolbar holds only the zoom. */
+    .ec-preview-toolbar-page-word,
+    .ec-preview-toolbar-zoom,
+    .ec-preview-toolbar > .ec-preview-toolbar-separator,
+    .ec-preview-toolbar-label,
+    .ec-preview-view-image > .ec-preview-toolbar {
+        display: none;
+    }
+
+    .ec-preview-stage,
+    .ec-preview-pdf {
+        touch-action: pan-x pan-y;
+    }
+
+    .ec-preview-toolbar-search-toggle {
+        display: block;
+        margin-left: auto;
+    }
+
+    .ec-preview-toolbar-actions .ec-button-secondary,
+    .ec-preview-compact .ec-button-secondary,
+    .ec-preview-toolbar-search-toggle .ec-button-secondary {
+        border-color: transparent;
+        background: transparent;
+        color: var(--ec-text-soft);
+    }
+
+    .ec-preview-toolbar-search-collapsible {
+        display: none;
+        flex: 1 1 100%;
+        order: 1;
+        min-width: 0;
+    }
+
+    .ec-preview-toolbar-search-open {
+        display: flex;
+    }
+
+    .ec-preview-toolbar-search-box {
+        flex: 1 1 0;
+        width: auto;
+        min-width: 0;
+    }
+
+    .ec-preview-toolbar-matches {
+        min-width: 0;
+    }
+
+    /* The editor's toolbar stays one row: what does not fit scrolls sideways. An open search takes a row of its own. */
+    .ec-text-editor-toolbar {
+        overflow-x: auto;
+    }
+
+    .ec-text-editor-toolbar:has(> .ec-preview-toolbar-search-open) {
+        flex-wrap: wrap;
+    }
+
+    .ec-text-editor-toolbar > * {
+        flex: 0 0 auto;
+    }
+
+    .ec-text-editor-toolbar > .ec-toolbar-notes {
+        flex: 1 1 0;
+    }
+
+    .ec-text-editor-toolbar > .ec-preview-toolbar-search-open,
+    .ec-markdown-toolbar > .ec-preview-toolbar-search-open {
+        flex: 1 1 100%;
+    }
+
+    /* The Markdown editor: the history, the view and the search on the first row, the formatting scrolls on the second. */
+    .ec-markdown-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .ec-markdown-toolbar-buttons {
+        display: contents;
+    }
+
+    .ec-markdown-toolbar-format {
+        display: flex;
+        flex: 1 1 100%;
+        order: 2;
+        align-items: center;
+        gap: var(--ec-space-1);
+        margin: 0 calc(-1 * var(--ec-space-3));
+        padding: 0 var(--ec-space-3);
+        overflow-x: auto;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+    }
+
+    .ec-markdown-toolbar-format > .ec-preview-toolbar-separator:first-child {
+        display: none;
+    }
+
+    .ec-markdown-toolbar-format > .ec-button {
+        scroll-snap-align: start;
+    }
+
+    /* The version, the steps and the summary on one row, the legend on a short row below. */
+    .ec-editor-changes-bar {
+        gap: var(--ec-space-2);
+        padding: var(--ec-space-2) var(--ec-space-4);
+    }
+
+    .ec-editor-changes-bar .ec-text-compare-version-label {
+        display: none;
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend {
+        flex: 1 1 100%;
+        flex-wrap: nowrap;
+        gap: var(--ec-space-3);
+        margin-left: 0;
+        overflow-x: auto;
+        font-size: var(--ec-text-xs);
+        white-space: nowrap;
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend-item {
+        gap: var(--ec-space-1);
+    }
+
+    .ec-editor-changes-bar .ec-markdown-compare-legend-item > :first-child {
+        padding: 0 var(--ec-space-1);
+    }
+
+    .ec-markdown-mode-long {
+        display: none;
+    }
+
+    .ec-markdown-mode-short {
+        display: inline;
+    }
+
+    /* A narrow screen always compares in one column, with the versions side by side above the text. */
+    .ec-text-compare-layout,
+    .ec-text-compare-summary-unit,
+    .ec-text-compare-view .ec-text-compare-split,
+    .ec-text-compare-versions-arrow,
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version-meta,
+    .ec-text-compare-version-day,
+    .ec-text-compare-version .ec-preview-versions-trigger .ec-badge {
+        display: none;
+    }
+
+    .ec-text-compare-view .ec-text-compare-unified {
+        display: block;
+    }
+
+    .ec-text-compare-view .ec-text-compare-card {
+        flex: 1 1 auto;
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions,
+    .ec-text-compare-versions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: var(--ec-space-3);
+        padding: var(--ec-space-3) var(--ec-space-4);
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version,
+    .ec-text-compare-version {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--ec-space-1);
+        padding: 0;
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow + .ec-text-compare-version {
+        border-left: 0;
+    }
+
+    .ec-text-compare-version .ec-popover-anchor,
+    .ec-text-compare-version .ec-popover-trigger,
+    .ec-text-compare-version .ec-preview-versions-trigger {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .ec-text-compare-version .ec-preview-versions-trigger {
+        justify-content: space-between;
+        min-height: var(--ec-touch-min);
+    }
+
+    /* Starší and Novější stand inside their pickers. */
+    .ec-text-compare-versions .ec-text-compare-version {
+        display: grid;
+        align-items: center;
+        gap: 0;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version > * {
+        grid-area: 1 / 1;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-title {
+        margin-right: auto;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-label {
+        align-self: center;
+        position: relative;
+        z-index: 1;
+        padding-left: var(--ec-space-4);
+        font-size: var(--ec-text-xs);
+        font-weight: var(--ec-weight-regular);
+        color: var(--ec-text-muted);
+        pointer-events: none;
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version .ec-preview-versions-trigger {
+        padding-left: var(--ec-compare-version-label-mobile);
+    }
+
+    .ec-text-compare-versions .ec-text-compare-version-meta {
+        display: none;
+    }
+
+    .ec-text-compare .cm-editor .cm-line,
+    .ec-text-editor .cm-editor.cm-merge-b .cm-line,
+    .ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine {
+        padding-right: var(--ec-space-4);
+    }
+
+    .ec-text-compare-state {
+        padding: var(--ec-space-4);
+    }
+
+    .ec-compare-wide {
+        display: none;
+    }
+
+    .ec-preview-markdown.ec-markdown-compare-text {
+        padding: var(--ec-space-5);
+    }
+
+    .ec-text-compare-toolbar > .ec-preview-toolbar-search-collapsible {
+        flex: 1 1 100%;
+    }
+
+    .ec-text-compare-toolbar .ec-preview-toolbar-search-box {
+        flex: 1 1 0;
+        width: auto;
+        max-width: none;
+    }
+}

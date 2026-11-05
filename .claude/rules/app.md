@@ -6,10 +6,10 @@ paths:
 # Frontend
 
 `EvilCase.App` is Blazor WebAssembly. A screen composes the `Ec` primitives from `Components/Ec`,
-styled by `wwwroot/css/ec-components.css` over the values in `wwwroot/css/ec-tokens.css`. SDD-020
+styled by the stylesheets in `wwwroot/css/` over the values in `wwwroot/css/ec-tokens.css`. SDD-020
 rules the look, `docs/design/` is binding on values.
 
-- A style belongs in `ec-components.css` and a value in `ec-tokens.css`: no inline style, no
+- A style belongs in the stylesheet of its area and a value in `ec-tokens.css`: no inline style, no
   literal colour or size, no class of a foreign library.
 - Modal and date are native: `EcModal` over `dialog`, `input type="date"`.
 - `Icons/AppIcons.cs` is the only icon source and holds only the icons the app uses.

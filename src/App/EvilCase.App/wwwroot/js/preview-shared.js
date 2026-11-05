@@ -1,4 +1,4 @@
-// The zoom and the stylesheets the previews, the text view and the Markdown editor share.
+// The zoom, the stylesheets and the scripts the previews, the text view and the Markdown editor share.
 
 const zoomSteps = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4];
 
@@ -163,4 +163,29 @@ export function loadStylesheet(href) {
     }
 
     return stylesheets.get(href);
+}
+
+// A link stays a link only to a web or e-mail address.
+export const safeLink = /^(https?:|mailto:)/i;
+
+const loading = new Map();
+
+export function loadScript(path) {
+    if (!loading.has(path)) {
+        const promise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+
+            script.src = new URL(`../lib/${path}`, import.meta.url).href;
+            script.onload = () => resolve();
+            script.onerror = () => {
+                loading.delete(path);
+                reject(new Error(`The library ${path} did not load.`));
+            };
+            document.head.appendChild(script);
+        });
+
+        loading.set(path, promise);
+    }
+
+    return loading.get(path);
 }

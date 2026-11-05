@@ -1,0 +1,931 @@
+/* Seznam podle SDD-016 (docs/design/spisy.html): řádek je odkaz po celé šířce, patička seznamu na víc
+   stránek nese rozsah, počet a stránkování. Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
+.ec-table {
+    overflow: hidden;
+}
+
+.ec-table-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-5) var(--ec-space-6);
+}
+
+.ec-table-bar-sortonly {
+    display: none;
+}
+
+.ec-table-bar .ec-search {
+    width: var(--ec-list-search-width);
+    height: var(--ec-control-md);
+    margin-left: 0;
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-table-bar .ec-search-input {
+    font-size: var(--ec-text-sm);
+}
+
+.ec-table-bar .ec-check {
+    margin-left: auto;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-table-bar .ec-check-box {
+    width: var(--ec-icon-md);
+    height: var(--ec-icon-md);
+}
+
+.ec-table-head {
+    display: grid;
+    grid-template-columns: var(--ec-table-columns);
+    column-gap: var(--ec-space-5);
+    min-height: var(--ec-control-md);
+    padding: 0 var(--ec-space-6);
+    border-top: 1px solid var(--ec-border-subtle);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    background: var(--ec-surface-header);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-table-header {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.ec-sort {
+    font: inherit;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ec-text-muted);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-sort-active {
+    color: var(--ec-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-sort:focus-visible {
+    outline: none;
+    border-radius: var(--ec-radius-sm);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-sort-select {
+    display: none;
+}
+
+.ec-table-row {
+    display: grid;
+    grid-template-columns: var(--ec-table-columns);
+    column-gap: var(--ec-space-5);
+    min-height: var(--ec-list-row-height);
+    padding: 0 var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+.ec-table-row:hover {
+    background: var(--ec-bg);
+}
+
+.ec-table-row:focus-visible {
+    outline: none;
+    box-shadow: inset var(--ec-focus-ring);
+}
+
+.ec-table-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-soft);
+}
+
+.ec-table-cell .ec-badge {
+    box-sizing: border-box;
+    height: var(--ec-list-badge-height);
+    padding: 0 var(--ec-list-badge-pad);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-table-cell.ec-cell-stack {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: var(--ec-cell-stack-gap);
+}
+
+.ec-cell-line {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-table-cell-primary {
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text);
+}
+
+.ec-cell-text {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-cell-num {
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-cell-date {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-cell-mono {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-number);
+}
+
+.ec-cell-sub {
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-muted);
+}
+
+.ec-cell-mono .ec-cell-sub {
+    font-size: var(--ec-text-2xs);
+    color: var(--ec-text-subtle);
+}
+
+/* The main file of a case or an act: the files card's coloured type tile as a button, framed in the type's colour, opening the preview inside the row's link. */
+.ec-cell-main-file {
+    justify-content: center;
+}
+
+.ec-main-file {
+    display: inline-flex;
+    box-sizing: border-box;
+    width: var(--ec-file-icon-compact-size);
+    height: var(--ec-file-icon-compact-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: none;
+    cursor: pointer;
+}
+
+.ec-main-file:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-main-file .ec-file-icon {
+    width: 100%;
+    height: 100%;
+    border: var(--ec-hairline) solid currentColor;
+}
+
+.ec-main-file:hover .ec-file-icon {
+    background-image: linear-gradient(var(--ec-main-file-hover-shade), var(--ec-main-file-hover-shade));
+    box-shadow: inset 0 0 0 var(--ec-hairline) currentColor;
+}
+
+.ec-cell-empty {
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-faint);
+}
+
+.ec-table-range {
+    margin-right: auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-check {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec-check-box {
+    width: var(--ec-icon-lg);
+    height: var(--ec-icon-lg);
+    accent-color: var(--ec-accent);
+}
+
+/* Načítání, chyba a prázdno drží stejnou výšku jako plný seznam, aby obsah neposkakoval (SDD-020). */
+.ec-table .ec-card-state,
+.ec-table .ec-empty {
+    min-height: var(--ec-list-min-height);
+}
+
+.ec-table .ec-card-error {
+    min-height: var(--ec-list-min-height);
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 991.98px) {
+    .ec-table-bar-sortonly {
+        display: flex;
+    }
+
+    .ec-sort-select {
+        display: block;
+    }
+
+    .ec-table-bar .ec-search {
+        flex: 1 1 100%;
+        width: auto;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table-bar .ec-input,
+    .ec-table-bar .ec-select {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table-bar .ec-check {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-table-head {
+        display: none;
+    }
+
+    /* Bez místa jde odkaz v záhlaví seznamu pod nadpis, místo aby ho zalomil. */
+    .ec-table > .ec-card-header {
+        flex-wrap: wrap;
+        row-gap: 0;
+    }
+
+    .ec-table-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: var(--ec-space-4);
+        row-gap: var(--ec-space-1);
+        padding: var(--ec-space-4) var(--ec-space-5);
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-table-cell-primary {
+        flex: 1 0 100%;
+        order: -1;
+    }
+
+    .ec-table-row .ec-cell-stack {
+        flex: 1 0 100%;
+        flex-wrap: nowrap;
+    }
+
+    /* Název dostane až dva řádky a štítky jdou pod něj, místo aby ho ořízly. */
+    .ec-table-cell-primary,
+    .ec-table-cell-primary .ec-cell-line {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+    }
+
+    .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub),
+    .ec-table-cell-primary .ec-contact-name-text {
+        display: -webkit-box;
+        flex: 1 0 100%;
+        white-space: normal;
+        text-wrap: pretty;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    .ec-table-cell-primary .ec-chips {
+        flex-wrap: wrap;
+        row-gap: var(--ec-space-1);
+        max-width: none;
+    }
+
+    /* Prázdný údaj na mobilu řádek nenese. */
+    .ec-table-row > .ec-table-cell:has(> .ec-cell-empty:only-child) {
+        display: none;
+    }
+
+    /* The main file stands right of the title out of flow and takes its room from the title alone, so the details stay on one line; a row without one carries no cell. */
+    .ec-table-row:has(> .ec-cell-main-file .ec-main-file) {
+        position: relative;
+    }
+
+    .ec-table-row:has(> .ec-cell-main-file .ec-main-file) .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub) {
+        box-sizing: border-box;
+        padding-right: calc(var(--ec-control-sm) + var(--ec-space-4));
+    }
+
+    .ec-table-row > .ec-cell-main-file {
+        position: absolute;
+        top: var(--ec-space-2);
+        right: var(--ec-space-5);
+    }
+
+    .ec-table-row > .ec-cell-main-file:not(:has(.ec-main-file)) {
+        display: none;
+    }
+
+    .ec-main-file {
+        position: relative;
+        width: var(--ec-control-sm);
+        height: var(--ec-control-sm);
+    }
+
+    /* Dotyková plocha má plnou velikost, tlačítko vizuálně ne. */
+    .ec-main-file::before {
+        content: "";
+        position: absolute;
+        inset: calc((var(--ec-control-sm) - var(--ec-touch-min)) / 2);
+    }
+
+    /* Údaje kontaktu začínají pod jménem, ne pod monogramem. */
+    .ec-table-row:has(> .ec-table-cell-primary .ec-contact-monogram) {
+        padding-left: calc(var(--ec-space-5) + var(--ec-monogram-sm) + var(--ec-space-4));
+    }
+
+    .ec-table-row > .ec-table-cell-primary:has(.ec-contact-monogram) {
+        margin-left: calc(-1 * (var(--ec-monogram-sm) + var(--ec-space-4)));
+    }
+
+    /* Kontakt sdílí řádek s dalšími údaji a bez místa se zkrátí. */
+    .ec-table-row > .ec-cell-contact {
+        flex: 1 1 var(--ec-list-col-contact);
+        min-width: 0;
+    }
+
+    .ec-cell-contact .ec-cell-text {
+        min-width: 0;
+    }
+
+    .ec-table .ec-card-footer .ec-button {
+        flex: 1 1 0;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-table .ec-card-error .ec-button {
+        height: var(--ec-touch-min);
+    }
+}
+
+/* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */
+.ec-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ec-space-6);
+}
+
+.ec-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-5);
+    padding: var(--ec-stat-pad-y) var(--ec-stat-pad-x);
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-card);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+.ec-stat:hover {
+    border-color: var(--ec-border-dashed);
+}
+
+.ec-stat:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-stat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--ec-stat-icon);
+    height: var(--ec-stat-icon);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-stat-icon .ec-icon {
+    width: var(--ec-stat-glyph);
+    height: var(--ec-stat-glyph);
+}
+
+.ec-stat-icon-active {
+    background: var(--ec-active-bg);
+    color: var(--ec-active-text);
+}
+
+.ec-stat-icon-waiting {
+    background: var(--ec-waiting-bg);
+    color: var(--ec-waiting-text);
+}
+
+.ec-stat-icon-closed {
+    background: var(--ec-closed-bg);
+    color: var(--ec-closed-text);
+}
+
+.ec-stat-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--ec-stat-gap);
+    min-width: 0;
+}
+
+.ec-stat-value {
+    font-size: var(--ec-title);
+    font-weight: var(--ec-weight-semibold);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--ec-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-stat-label {
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-stat-more {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-stat:hover .ec-stat-more {
+    color: var(--ec-accent-text);
+}
+
+.ec-recent-cases {
+    --ec-list-col-date: var(--ec-recent-col-date);
+}
+
+.ec-recent-acts {
+    --ec-list-col-date: var(--ec-recent-col-date);
+    --ec-list-col-status: var(--ec-recent-col-direction);
+}
+
+@media (min-width: 992px) {
+    .ec-recent-acts {
+        --ec-list-col-contact: var(--ec-recent-col-contact);
+    }
+
+    /* A pair of texts that does not compare by content says why only below lg. */
+    .ec-compare-narrow {
+        display: none;
+    }
+}
+
+@media (max-width: 991.98px) {
+    /* Na mobilu jsou dlaždice jeden řádek tří stejných buněk: počet a popisek. */
+    .ec-tiles {
+        gap: 0;
+        border: 1px solid var(--ec-border);
+        border-radius: var(--ec-radius-card);
+        background: var(--ec-surface);
+        overflow: hidden;
+    }
+
+    .ec-stat {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        min-height: var(--ec-touch-min);
+        padding: var(--ec-space-4);
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-stat + .ec-stat {
+        border-left: 1px solid var(--ec-border-subtle);
+    }
+
+    .ec-stat:hover {
+        background: var(--ec-surface-sunken);
+    }
+
+    .ec-stat:focus-visible {
+        box-shadow: inset var(--ec-focus-ring);
+    }
+
+    .ec-stat-icon,
+    .ec-stat-more {
+        display: none;
+    }
+
+    .ec-stat-text {
+        flex: none;
+        max-width: 100%;
+    }
+
+    .ec-stat-value {
+        font-size: var(--ec-title-mobile);
+    }
+
+    .ec-stat-label {
+        font-size: var(--ec-text-sm);
+    }
+}
+
+/* Kontakty (docs/design/kontakty.html, docs/design/detail-kontaktu.html). */
+.ec-contact-name {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    min-width: 0;
+}
+
+.ec-contact-name-text {
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ec-contact-monogram {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-monogram-sm);
+    height: var(--ec-monogram-sm);
+    border-radius: var(--ec-monogram-radius-sm);
+    font-size: var(--ec-monogram-text-sm);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-contact-monogram-lg {
+    width: var(--ec-monogram-lg);
+    height: var(--ec-monogram-lg);
+    border-radius: var(--ec-monogram-radius-lg);
+    font-size: var(--ec-monogram-text-lg);
+}
+
+.ec-contact-monogram-authority {
+    background: var(--ec-authority-bg);
+    color: var(--ec-authority-text);
+}
+
+.ec-contact-monogram-official {
+    background: var(--ec-official-bg);
+    color: var(--ec-official-text);
+}
+
+.ec-contact-monogram-person {
+    background: var(--ec-person-bg);
+    color: var(--ec-person-text);
+}
+
+.ec-contact-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-5);
+}
+
+.ec-contact-header-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 0 1 auto;
+    gap: var(--ec-space-2) var(--ec-space-4);
+    min-width: 0;
+}
+
+.ec-contact-header .ec-page-title {
+    overflow-wrap: anywhere;
+}
+
+.ec-contact-facts {
+    align-self: flex-start;
+    max-width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .ec-contact-facts {
+        align-self: stretch;
+    }
+}
+
+/* Detail kontaktu (docs/design/detail-kontaktu.html): dva seznamy výskytů na půl šířky. */
+.ec-contact-occurrences {
+    --ec-list-badge-height: var(--ec-case-act-badge-height);
+    --ec-list-badge-pad: var(--ec-space-3);
+    --ec-list-col-date: var(--ec-case-act-col-date);
+    --ec-list-col-status: var(--ec-case-act-col-status);
+}
+
+/* Prázdný seznam vedle plného je jen tak vysoký, jak potřebuje jeho věta. */
+.ec-contact-occurrences .ec-table .ec-empty {
+    min-height: 0;
+}
+
+.ec-contact-occurrences .ec-table-bar {
+    padding: 0 var(--ec-space-6) var(--ec-space-4);
+}
+
+.ec-contact-occurrences .ec-table-bar .ec-search {
+    flex: 1 1 auto;
+    width: auto;
+    height: var(--ec-control-md);
+}
+
+.ec-contact-occurrences .ec-table-bar .ec-select {
+    height: var(--ec-control-md);
+}
+
+/* Detail spisu (docs/design/detail-spisu.html): úkony spisu, jejich lišta a filtry. */
+.ec-case-acts {
+    --ec-list-badge-height: var(--ec-case-act-badge-height);
+    --ec-list-badge-pad: var(--ec-space-3);
+    --ec-list-col-date: var(--ec-case-act-col-date);
+    --ec-list-col-status: var(--ec-case-act-col-direction);
+}
+
+.ec-case-acts .ec-card-header + .ec-table-bar {
+    padding-top: 0;
+}
+
+.ec-table-bar .ec-button-compact {
+    height: var(--ec-control-md);
+}
+
+.ec-table-bar .ec-search-grow {
+    flex: 1 1 auto;
+    width: auto;
+    height: var(--ec-control-md);
+}
+
+.ec-segmented-compact .ec-segment {
+    flex: 0 0 auto;
+    height: var(--ec-segment-compact-height);
+    padding: 0 var(--ec-space-4);
+    border-radius: var(--ec-radius-sm);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-segmented-compact .ec-segment[aria-pressed="true"] {
+    font-weight: var(--ec-weight-regular);
+}
+
+.ec-filter-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: var(--ec-filter-count-size);
+    height: var(--ec-filter-count-size);
+    padding: 0 var(--ec-space-1);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-accent);
+    font-size: var(--ec-text-2xs);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-on-accent);
+}
+
+.ec-filter-panel {
+    display: flex;
+    order: 1;
+    flex: 1 1 100%;
+    align-items: flex-end;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4);
+    border: 1px solid var(--ec-border-subtle);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-header);
+}
+
+.ec-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+}
+
+.ec-filter-field-grow {
+    position: relative;
+    flex: 0 1 var(--ec-filter-label-width);
+    min-width: 0;
+}
+
+.ec-filter-name {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-filter-panel .ec-input {
+    height: var(--ec-control-md);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-filter-date {
+    width: var(--ec-filter-date-width);
+}
+
+.ec-filter-clear {
+    height: var(--ec-control-md);
+    padding: 0 var(--ec-space-2);
+    border: 0;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    cursor: pointer;
+}
+
+.ec-filter-clear:hover {
+    color: var(--ec-text);
+}
+
+.ec-filter-clear:focus-visible {
+    outline: none;
+    border-radius: var(--ec-radius-sm);
+    box-shadow: var(--ec-focus-ring);
+}
+
+/* The parts of the filter sheet, which exists only below lg. */
+.ec-filter-backdrop,
+.ec-filter-sheet-title,
+.ec-filter-sheet-switches,
+.ec-filter-sheet-footer {
+    display: none;
+}
+
+/* The labels beside a title leave it its minimum width and clip instead of overflowing. */
+.ec-chips {
+    display: flex;
+    gap: var(--ec-space-3);
+    min-width: 0;
+    max-width: calc(100% - var(--ec-cell-title-min));
+    overflow: hidden;
+}
+
+.ec-chip-sm {
+    flex: 0 0 auto;
+    gap: var(--ec-space-1);
+    height: var(--ec-chip-sm-height);
+    padding: 0 var(--ec-space-2);
+    font-size: var(--ec-text-2xs);
+    font-weight: var(--ec-weight-regular);
+    white-space: nowrap;
+}
+
+.ec-chip-sm .ec-chip-dot {
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+}
+
+.ec-cell-muted {
+    color: var(--ec-text-muted);
+}
+
+.ec-cell-strong {
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text);
+}
+
+@media (max-width: 991.98px) {
+    .ec-table-bar .ec-search-grow {
+        flex: 1 1 100%;
+        height: var(--ec-touch-min);
+    }
+
+    .ec-segmented-compact .ec-segment,
+    .ec-filter-panel .ec-input {
+        height: var(--ec-touch-min);
+    }
+
+    .ec-filter-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ec-filter-date {
+        width: auto;
+    }
+
+    /* Přepínač drží jeden řádek; co se nevejde, odjede vodorovně. */
+    .ec-table-bar .ec-segmented {
+        flex: 1 1 100%;
+        flex-wrap: nowrap;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    /* Dokud jde přepínač posunout dál, jeho pravý okraj se ztrácí. */
+    @supports (animation-timeline: scroll()) {
+        .ec-table-bar .ec-segmented {
+            animation: ec-scroll-fade linear both;
+            animation-timeline: scroll(self inline);
+        }
+    }
+
+    .ec-table-bar .ec-segmented-compact .ec-segment {
+        flex: 1 0 auto;
+    }
+
+    /* Lišta seznamu má na mobilu jednu velikost písma, jako její select. */
+    .ec-table-bar :is(.ec-button, .ec-segment, .ec-check) {
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-filter-field-grow {
+        flex: 0 0 auto;
+    }
+
+    .ec-filter-clear {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-kbd {
+        display: none;
+    }
+
+    /* Fields have 16 px text below lg, in the preview and the editor too. */
+    .ec :is(.ec-input, .ec-select, .ec-textarea, .ec-search-input, .ec-label-input, .ec-topsearch-input,
+        .ec-preview-toolbar-page-input, .ec-preview-toolbar-search-input),
+    .ec-preview-markdown[contenteditable="true"],
+    .ec-preview-markdown [contenteditable="true"] {
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-text-editor .cm-editor .cm-content {
+        font-size: calc(var(--ec-text-lg) * var(--ec-preview-zoom, 1));
+    }
+
+    /* A quiet action has a 44 px touch area without growing its line. */
+    .ec-comment-action {
+        min-height: var(--ec-touch-min);
+        margin-block: calc((var(--ec-comment-action-height) - var(--ec-touch-min)) / 2);
+    }
+
+    .ec-detail-fact-link {
+        display: inline-block;
+        padding-block: var(--ec-space-4);
+        margin-block: calc(-1 * var(--ec-space-4));
+    }
+
+    .ec-timeline-item,
+    .ec-segment {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-combobox-option,
+    .ec-combobox-create {
+        min-height: var(--ec-touch-row);
+    }
+
+    .ec-topsearch-clear {
+        position: relative;
+    }
+
+    .ec-topsearch-clear::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
+    }
+
+    /* A contact's name in a list row takes the width beside the monogram and is clamped. */
+    .ec-table-cell-primary .ec-contact-name-text {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* A search result's labels take a line of their own below its details. */
+    .ec-sr-line {
+        display: contents;
+    }
+
+    .ec-sr-body > .ec-chips {
+        order: 1;
+        max-width: none;
+    }
+}

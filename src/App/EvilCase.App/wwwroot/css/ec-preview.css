@@ -1,0 +1,396 @@
+/* Náhled souboru (docs/design/detail-ukonu.html). */
+.ec-modal-large {
+    width: min(var(--ec-preview-width), calc(100vw - 2 * var(--ec-space-8)));
+    height: min(var(--ec-preview-height), calc(100vh - 2 * var(--ec-space-8)));
+    max-height: none;
+    overflow: hidden;
+}
+
+.ec-modal-large[open] {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-modal-large::backdrop {
+    background: var(--ec-overlay-strong);
+}
+
+.ec-modal-large .ec-modal-header {
+    flex: 0 0 auto;
+    min-height: var(--ec-preview-header-height);
+    box-sizing: border-box;
+    padding: 0 var(--ec-space-5) 0 var(--ec-space-6);
+}
+
+.ec-modal-large .ec-modal-header .ec-button:not(.ec-button-ghost) {
+    height: var(--ec-control-md);
+}
+
+.ec-modal-maximize {
+    display: contents;
+}
+
+/* A maximized preview fills the window; below lg the preview always does. */
+@media (min-width: 992px) {
+    .ec-modal-large.ec-modal-maximized {
+        inset: 0;
+        width: 100%;
+        max-width: none;
+        height: 100%;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+    }
+}
+
+.ec-modal-large .ec-modal-body {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 0;
+    background: var(--ec-preview-stage);
+    overflow: hidden;
+}
+
+.ec-preview-name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-preview-name-row .ec-badge {
+    flex: 0 0 auto;
+}
+
+.ec-preview-name {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: var(--ec-text-lg);
+    font-weight: var(--ec-weight-semibold);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
+.ec-preview-actions {
+    display: contents;
+}
+
+/* Below lg the file actions sit in the preview's toolbar and the file's position in the meta line. */
+.ec-preview-compact,
+.ec-preview-toolbar-actions,
+.ec-preview-meta-position {
+    display: none;
+}
+
+.ec-preview-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-preview-position {
+    min-width: var(--ec-preview-position-width);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-position strong {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-preview-divider,
+.ec-preview-toolbar-separator {
+    align-self: center;
+    height: var(--ec-space-7);
+    border-left: 1px solid var(--ec-border);
+}
+
+.ec-preview-back {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+/* Lišta náhledu nad jedinou posuvnou plochou; plochu PDF vlastní prohlížeč PDF.js, jehož styl se načte až s ním. */
+.ec-preview-view {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ec-preview-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-6);
+    padding: var(--ec-space-3) var(--ec-space-5);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface);
+}
+
+.ec-preview-toolbar-pages,
+.ec-preview-toolbar-zoom,
+.ec-preview-toolbar-search {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-preview-toolbar-pages {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-toolbar-page-input {
+    box-sizing: border-box;
+    width: var(--ec-preview-toolbar-page-input);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-2);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-toolbar-zoom-value {
+    min-width: var(--ec-preview-toolbar-zoom-value);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-preview-toolbar-fit {
+    display: contents;
+}
+
+.ec-preview-toolbar-format {
+    display: contents;
+}
+
+.ec-preview-toolbar-zoom .ec-button[aria-pressed="true"],
+.ec-preview-toolbar-format .ec-button[aria-pressed="true"],
+.ec-editor-changes .ec-button[aria-pressed="true"],
+.ec-markdown-toolbar .ec-button.ec-button-secondary[aria-pressed="true"],
+.ec-preview-actions .ec-button[aria-pressed="true"] {
+    background: var(--ec-accent-soft);
+    border-color: var(--ec-accent-ring);
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-toolbar-search-toggle {
+    display: none;
+}
+
+.ec-preview-toolbar-search {
+    margin-left: auto;
+}
+
+.ec-preview-toolbar-search-box {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    width: var(--ec-preview-toolbar-search-width);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-toolbar-search-box:focus-within {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-preview-toolbar-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text);
+}
+
+.ec-preview-toolbar-search-input::placeholder {
+    color: var(--ec-text-subtle);
+}
+
+.ec-preview-toolbar-matches {
+    flex: 0 0 auto;
+    min-width: var(--ec-preview-toolbar-matches);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Výskyty hledání v textu a dokumentu; dokument nese stejná pravidla ve svém stínovém kořeni. */
+::highlight(ec-preview-hit) {
+    background-color: var(--ec-preview-hit);
+}
+
+::highlight(ec-preview-hit-current) {
+    background-color: var(--ec-preview-hit-current);
+}
+
+.ec-preview-pdf-frame {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* PDF.js chce svůj kontejner absolutně umístěný; je to jediná posuvná plocha náhledu. */
+.ec-preview-pdf {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+}
+
+.ec-preview-pdf-loading {
+    position: absolute;
+    inset: 0;
+}
+
+.ec-preview-pdf .pdfViewer {
+    --page-margin: var(--ec-preview-pdf-page-margin);
+    --page-border: var(--ec-preview-pdf-page-border);
+    padding-top: var(--ec-space-3);
+}
+
+.ec-preview-pdf .pdfViewer .canvasWrapper {
+    box-shadow: var(--ec-shadow-page);
+}
+
+.ec-preview-pdf .textLayer .highlight {
+    --highlight-bg-color: var(--ec-preview-hit);
+    --highlight-selected-bg-color: var(--ec-preview-hit-current);
+}
+
+/* Vložené video nebo zvuk z PDF se nepřehrává. */
+.ec-preview-pdf .mediaAnnotation {
+    display: none;
+}
+
+.ec-preview-stage {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: var(--ec-space-7);
+}
+
+.ec-preview-stage-text {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--ec-space-4);
+    overflow: auto;
+}
+
+.ec-preview-image,
+.ec-preview-video {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-raised);
+}
+
+/* An image larger than the stage starts at its top left edge, a smaller one stands in the middle. */
+.ec-preview-stage-image {
+    align-items: flex-start;
+    justify-content: flex-start;
+    overflow: auto;
+}
+
+.ec-preview-stage-image .ec-preview-image {
+    margin: auto;
+}
+
+.ec-preview-image-zoomed {
+    flex: 0 0 auto;
+    width: calc(var(--ec-preview-image-width) * var(--ec-preview-zoom));
+    height: calc(var(--ec-preview-image-height) * var(--ec-preview-zoom));
+    max-width: none;
+    max-height: none;
+}
+
+.ec-preview-audio {
+    width: var(--ec-preview-audio-width);
+    max-width: 100%;
+}
+
+.ec-preview-note {
+    margin: 0;
+    padding: var(--ec-space-3) var(--ec-space-4);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-soft);
+}
+
+/* Notes on a toolbar take the room before the search; a note too long for it ends in an ellipsis. */
+.ec-toolbar-notes {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    gap: var(--ec-space-4);
+    min-width: var(--ec-toolbar-notes-min);
+}
+
+.ec-toolbar-notes:empty {
+    display: none;
+}
+
+.ec-toolbar-note {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-soft);
+}
+
+.ec-toolbar-note .ec-icon {
+    flex: 0 0 auto;
+}
+
+.ec-toolbar-note-text {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-toolbar-note-warning {
+    padding: var(--ec-space-1) var(--ec-space-3);
+    border: 1px solid var(--ec-warning-border);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-warning-bg);
+    color: var(--ec-warning-text);
+}

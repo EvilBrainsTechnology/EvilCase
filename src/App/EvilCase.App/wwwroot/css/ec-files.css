@@ -1,0 +1,400 @@
+.ec-file-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+}
+
+/* The name button stretches over the whole row, so the row is the control that opens the file. */
+.ec-file-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    box-sizing: border-box;
+    min-height: var(--ec-file-row-height);
+    padding: var(--ec-space-3) var(--ec-space-4);
+    border-bottom: 1px solid var(--ec-border-subtle);
+}
+
+.ec-file-row:first-child {
+    border-top-left-radius: var(--ec-radius-xl);
+    border-top-right-radius: var(--ec-radius-xl);
+}
+
+.ec-file-row:last-child {
+    border-bottom: 0;
+    border-bottom-left-radius: var(--ec-radius-xl);
+    border-bottom-right-radius: var(--ec-radius-xl);
+}
+
+.ec-file-row:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-file-row-renaming,
+.ec-file-row-renaming:hover {
+    background: var(--ec-surface-header);
+}
+
+.ec-file-row-fresh {
+    background: var(--ec-file-row-fresh-bg);
+}
+
+.ec-file-meta .ec-badge {
+    margin-right: var(--ec-space-3);
+    vertical-align: middle;
+}
+
+.ec-file-main,
+.ec-preview-title,
+.ec-versions-heading {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+}
+
+.ec-file-name,
+.ec-file-name-static {
+    align-self: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    font-weight: var(--ec-weight-medium);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-file-name {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-file-name::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.ec-file-row:hover .ec-file-name:enabled {
+    color: var(--ec-accent-text);
+}
+
+.ec-file-name:focus-visible {
+    outline: none;
+}
+
+.ec-file-name:focus-visible::after {
+    border-radius: var(--ec-radius-xl);
+    box-shadow: inset 0 0 0 2px var(--ec-accent);
+}
+
+.ec-file-name:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.ec-file-meta,
+.ec-preview-meta,
+.ec-versions-meta {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-field-detail {
+    font-weight: var(--ec-weight-regular);
+    color: var(--ec-text-muted);
+}
+
+.ec-file-moment {
+    white-space: nowrap;
+}
+
+/* Tečku obklopují mezery, aby čtečka nespojila části; okraj doplní mezeru na rozestup předlohy. */
+.ec-sep {
+    margin-inline: var(--ec-space-1);
+    color: var(--ec-text-faint);
+}
+
+:is(.ec-case-meta, .ec-timeline-meta, .ec-child-status) > .ec-sep {
+    margin-inline: 0;
+}
+
+.ec-file-actions,
+.ec-versions-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    gap: var(--ec-space-2);
+}
+
+.ec-file-actions:has([aria-expanded="true"]) {
+    z-index: 2;
+}
+
+.ec-versions-compare {
+    display: contents;
+}
+
+.ec-file-actions .ec-button {
+    height: var(--ec-control-md);
+}
+
+/* Hvězda hlavního souboru: plná u hlavního, prázdná u ostatních. */
+.ec-main-star {
+    position: relative;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ec-text-subtle);
+}
+
+.ec-main-star:hover:enabled {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
+/* A hovered file row is already surface-sunken, so the star hovers a shade darker. */
+.ec-file-row .ec-main-star:hover:enabled {
+    background: var(--ec-surface-track);
+}
+
+.ec-main-star-on {
+    color: var(--ec-text);
+}
+
+.ec-main-star-on .ec-icon {
+    fill: currentColor;
+}
+
+/* V hlavičce náhledu zabere hvězda jen výšku ikony, takže hlavičku nezvýší. */
+.ec-modal-large .ec-modal-header .ec-preview-name-row .ec-button.ec-main-star {
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 0;
+    height: var(--ec-control-sm);
+    margin-block: calc((var(--ec-icon-md) - var(--ec-control-sm)) / 2);
+}
+
+/* The row's menu from lg up; below lg the one that opens with the download. */
+.ec-file-menu-wide {
+    display: contents;
+}
+
+.ec-file-menu-narrow {
+    display: none;
+}
+
+.ec-file-upload {
+    cursor: pointer;
+}
+
+.ec-file-upload.ec-button-standard {
+    height: var(--ec-control-md);
+}
+
+/* The input the label opens is visually hidden, so the label carries its focus ring. */
+.ec-file-card:has(input[type="file"]:focus-visible) .ec-file-upload {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-file-drop-hint {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+/* Stáhnout vše a šipka jeho nabídky jsou jedno tlačítko o dvou částech. */
+.ec-split-button {
+    display: flex;
+}
+
+.ec-split-button .ec-button {
+    height: var(--ec-control-md);
+}
+
+.ec-split-button > .ec-button {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.ec-split-button .ec-menu-anchor > .ec-button {
+    aspect-ratio: auto;
+    padding: 0 var(--ec-space-2);
+    border-left-width: 0;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.ec-file-uploading {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-4);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-file-progress {
+    height: var(--ec-space-1);
+    accent-color: var(--ec-accent);
+}
+
+/* files.js puts "hover" on the card while a drag is over it. */
+.ec-file-card {
+    position: relative;
+}
+
+.ec-file-drop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-3);
+    border: 2px dashed var(--ec-accent);
+    border-radius: var(--ec-radius-card);
+    background: var(--ec-drop-overlay);
+    text-align: center;
+    pointer-events: none;
+}
+
+.ec-file-card.hover .ec-file-drop-overlay {
+    display: flex;
+}
+
+.ec-file-drop-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-drop-badge);
+    height: var(--ec-drop-badge);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-accent);
+    color: var(--ec-on-accent);
+}
+
+.ec-file-drop-title {
+    font-size: var(--ec-text-lg);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-accent-text);
+}
+
+.ec-file-drop-limits {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-soft);
+}
+
+/* Soubory v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
+.ec-file-card-compact .ec-file-row {
+    gap: var(--ec-space-3);
+    min-height: var(--ec-file-row-compact-height);
+    padding: var(--ec-space-3);
+}
+
+.ec-file-card-compact .ec-file-name {
+    font-size: var(--ec-text-sm);
+}
+
+.ec-file-card-compact .ec-file-meta {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-file-card-compact .ec-file-actions .ec-button {
+    height: var(--ec-control-sm);
+}
+
+.ec-file-card-compact .ec-card-header {
+    gap: var(--ec-space-3);
+}
+
+.ec-file-card .ec-card-title {
+    white-space: nowrap;
+}
+
+.ec-file-card-compact .ec-card-header-actions {
+    min-width: 0;
+}
+
+.ec-file-card-compact .ec-file-upload {
+    flex: 0 0 auto;
+    gap: var(--ec-space-2);
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-3);
+    font-size: var(--ec-text-sm);
+}
+
+/* Přejmenování souboru v řádku i v hlavičce náhledu. */
+.ec-file-rename {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    gap: var(--ec-space-3);
+    min-width: 0;
+}
+
+.ec-file-rename-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-3);
+}
+
+.ec-file-rename-box {
+    display: flex;
+    align-items: center;
+    flex: 1 1 calc(var(--ec-popover-width) / 2);
+    min-width: 0;
+    height: var(--ec-control-bar);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+}
+
+.ec-file-rename-box:focus-within {
+    border-color: var(--ec-accent);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-file-rename-input {
+    flex: 1 1 auto;
+    align-self: stretch;
+    min-width: 0;
+    padding: 0 var(--ec-space-3);
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-weight: var(--ec-weight-medium);
+}
+
+.ec-file-rename-ext {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    padding: 0 var(--ec-space-3);
+    border-left: 1px solid var(--ec-border);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text-muted);
+}
+
+.ec-file-rename .ec-button {
+    height: var(--ec-control-md);
+}
+
+.ec-file-card-compact .ec-file-rename-box {
+    flex-basis: 100%;
+}

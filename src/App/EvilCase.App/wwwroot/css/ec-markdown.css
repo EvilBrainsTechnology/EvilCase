@@ -1,0 +1,345 @@
+/* Markdown: formátovaný náhled i úpravy. */
+.ec-markdown-content {
+    outline: none;
+}
+
+.ec-markdown-content li > p,
+.ec-markdown-task-text > p,
+.ec-markdown-content th > p,
+.ec-markdown-content td > p {
+    margin: 0;
+}
+
+.ec-markdown-content li + li,
+.ec-markdown-content li > ul,
+.ec-markdown-content li > ol {
+    margin-top: var(--ec-space-1);
+}
+
+.ec-markdown-content li > ul,
+.ec-markdown-content li > ol {
+    margin-bottom: 0;
+}
+
+.ec-markdown-task {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+    margin-left: calc(-1 * var(--ec-space-6));
+    list-style: none;
+}
+
+.ec-markdown-task-mark {
+    display: inline-flex;
+    flex: 0 0 auto;
+    padding-top: var(--ec-space-1);
+}
+
+.ec-markdown-task-box {
+    width: var(--ec-markdown-task-box);
+    height: var(--ec-markdown-task-box);
+    margin: 0;
+    accent-color: var(--ec-accent);
+}
+
+.ec-markdown-task-box[aria-readonly="true"] {
+    cursor: default;
+}
+
+.ec-markdown-task-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-markdown-image {
+    padding: 0 var(--ec-space-1);
+    border: 1px dashed var(--ec-border-strong);
+    border-radius: var(--ec-radius-sm);
+    color: var(--ec-text-soft);
+    font-style: italic;
+}
+
+.ec-markdown-html {
+    color: var(--ec-text-soft);
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-markdown-content .tableWrapper {
+    margin: 0 0 var(--ec-space-5);
+    overflow-x: auto;
+}
+
+.ec-markdown-content .tableWrapper > table {
+    margin: 0;
+}
+
+.ec-markdown-content th,
+.ec-markdown-content td {
+    position: relative;
+}
+
+.ec-markdown-content .selectedCell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--ec-accent-soft);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.ec-markdown-content .column-resize-handle {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    bottom: 0;
+    width: var(--ec-space-1);
+    background: var(--ec-accent);
+    pointer-events: none;
+}
+
+.ec-markdown-content .ProseMirror-selectednode {
+    outline: 2px solid var(--ec-accent-ring);
+}
+
+/* The matches of the formatted editor's search; the selected match is drawn apart. */
+.ec-markdown-content .ec-markdown-hit {
+    background: var(--ec-preview-hit);
+}
+
+.ec-markdown-content .ec-markdown-hit-current {
+    background: var(--ec-preview-hit-current);
+}
+
+/* The formatted Markdown compare: side by side two texts in columns whose facing blocks stand level, in one column the
+   newer with what the older had in its place; a legend under them names the marks. */
+.ec-markdown-compare {
+    position: relative;
+    z-index: 0;
+}
+
+.ec-markdown-compare-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.ec-preview-markdown.ec-markdown-compare-text {
+    width: auto;
+    min-width: 0;
+    padding: var(--ec-compare-markdown-padding);
+    border-radius: 0;
+    box-shadow: none;
+    zoom: 1;
+}
+
+.ec-preview-markdown.ec-markdown-compare-text:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-markdown-compare-text + .ec-markdown-compare-text {
+    border-left: 1px solid var(--ec-border);
+}
+
+.ec-markdown-compare-spacer {
+    display: block;
+}
+
+.ec-markdown-compare-inserted,
+.ec-markdown-compare-added,
+.ec-markdown-compare-added :is(th, td) {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-inserted-bg);
+    color: var(--ec-compare-inserted-text);
+    text-decoration: underline var(--ec-compare-line-width) var(--ec-compare-inserted-line);
+    text-underline-offset: var(--ec-compare-underline-offset);
+}
+
+.ec-markdown-compare-deleted,
+.ec-markdown-compare-removed,
+.ec-markdown-compare-removed :is(th, td) {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-deleted-bg);
+    color: var(--ec-compare-deleted-text);
+    text-decoration: line-through var(--ec-compare-line-width) var(--ec-compare-deleted-line);
+}
+
+.ec-markdown-compare-older .ec-markdown-compare-changed {
+    background: var(--ec-compare-cell-removed);
+}
+
+.ec-markdown-compare-newer .ec-markdown-compare-changed {
+    background: var(--ec-compare-cell-added);
+}
+
+.ec-markdown-compare-format {
+    border-radius: var(--ec-compare-word-radius);
+    background: var(--ec-compare-format-bg);
+    color: var(--ec-compare-format-text);
+    outline: var(--ec-compare-format-outline);
+    outline-offset: 1px;
+}
+
+/* The one tooltip bubble, which ec-tooltip.js places beside its host and points its arrow at; data-side names the
+   host's side the bubble stands on. */
+.ec-tooltip {
+    inset: auto;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: var(--ec-tooltip-max-width);
+    min-height: var(--ec-tooltip-height);
+    margin: 0;
+    padding: var(--ec-space-1) var(--ec-space-4);
+    overflow: visible;
+    border: 0;
+    border-radius: var(--ec-radius-sm);
+    background: var(--ec-tooltip-bg);
+    box-shadow: var(--ec-shadow-overlay);
+    color: var(--ec-on-accent);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-xs);
+    font-style: normal;
+    font-weight: var(--ec-weight-medium);
+    text-align: start;
+    overflow-wrap: anywhere;
+    pointer-events: none;
+}
+
+.ec-tooltip:popover-open {
+    display: flex;
+    align-items: center;
+}
+
+.ec-tooltip-arrow {
+    position: absolute;
+    width: var(--ec-tooltip-arrow);
+    height: var(--ec-tooltip-arrow);
+    background: var(--ec-tooltip-bg);
+    transform: rotate(45deg);
+}
+
+.ec-tooltip[data-side="bottom"] .ec-tooltip-arrow {
+    top: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-tooltip[data-side="top"] .ec-tooltip-arrow {
+    bottom: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-tooltip[data-side="left"] .ec-tooltip-arrow {
+    right: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-tooltip[data-side="right"] .ec-tooltip-arrow {
+    left: calc(var(--ec-tooltip-arrow) / -2);
+}
+
+.ec-markdown-compare-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-6);
+    padding: var(--ec-space-3) var(--ec-space-5);
+    border-top: 1px solid var(--ec-border);
+    border-radius: 0 0 var(--ec-radius-lg) var(--ec-radius-lg);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-markdown-compare-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+}
+
+.ec-markdown-compare-legend-item > :first-child {
+    padding: 0 var(--ec-space-2);
+}
+
+.ec-preview-markdown.ec-markdown-editing:focus-within {
+    outline: var(--ec-text-editor-focus-outline);
+    outline-offset: var(--ec-text-editor-focus-offset);
+}
+
+/* The buttons scroll sideways in a strip; the search stays whole after them and takes a row of its own when it does not
+   fit beside them. */
+/* The format buttons scroll before the search leaves the row. */
+.ec-markdown-toolbar {
+    flex-wrap: nowrap;
+    gap: var(--ec-space-2);
+}
+
+.ec-markdown-toolbar-buttons {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+    margin: calc(-1 * var(--ec-space-1));
+    padding: var(--ec-space-1);
+    overflow-x: auto;
+}
+
+.ec-markdown-toolbar-buttons > *,
+.ec-markdown-toolbar-format > * {
+    flex: 0 0 auto;
+}
+
+.ec-markdown-toolbar-format {
+    display: contents;
+}
+
+.ec-markdown-toolbar-buttons > .ec-toolbar-notes {
+    flex: 1 1 0;
+    margin-left: var(--ec-space-4);
+}
+
+.ec-markdown-toolbar > .ec-preview-toolbar-search {
+    flex: 1 0 auto;
+    justify-content: flex-end;
+}
+
+.ec-markdown-toolbar .ec-preview-toolbar-matches {
+    min-width: 0;
+}
+
+.ec-markdown-toolbar .ec-preview-toolbar-search-box {
+    flex: 1 1 auto;
+    width: var(--ec-preview-toolbar-search-mobile);
+    max-width: var(--ec-preview-toolbar-search-width);
+}
+
+.ec-markdown-toolbar .ec-button[aria-pressed="true"] {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-markdown-toolbar-text {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-markdown-modes {
+    flex: 0 0 auto;
+}
+
+.ec-markdown-mode-short {
+    display: none;
+}
+
+.ec-text-editor .ec-code-heading {
+    color: var(--ec-code-name);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-text-editor .ec-code-strong {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-text-editor .ec-code-emphasis {
+    font-style: italic;
+}
+
+.ec-text-editor .ec-code-strikethrough {
+    text-decoration: line-through;
+}

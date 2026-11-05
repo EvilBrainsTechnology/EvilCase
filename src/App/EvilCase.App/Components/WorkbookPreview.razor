@@ -1,0 +1,67 @@
+@* A workbook: the table of the sheet chosen and the tabs of all its sheets. *@
+@if (this.Sheets.Count == 0)
+{
+    <p class="ec-preview-message">Sešit neobsahuje žádné listy.</p>
+}
+else
+{
+    var sheet = this.Sheets[this.activeSheet];
+
+    <div class="ec-preview-sheet-view">
+        @if (sheet.RowCount > sheet.Rows.Count)
+        {
+            <p class="ec-preview-note">Zobrazuje se jen prvních @NumberDisplay.Text(sheet.Rows.Count) řádků z @NumberDisplay.Text(sheet.RowCount).</p>
+        }
+        <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
+            <table class="ec-preview-sheet-table">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        @for (var column = 0; column < sheet.ColumnCount; column++)
+                        {
+                            <th scope="col">@ColumnName(column)</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var row = 0; row < sheet.Rows.Count; row++)
+                    {
+                        <tr>
+                            <th scope="row">@(row + 1)</th>
+                            @foreach (var cell in sheet.Rows[row])
+                            {
+                                <td>@cell</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="ec-preview-sheet-tabs" role="tablist" aria-label="Listy sešitu">
+            @for (var index = 0; index < this.Sheets.Count; index++)
+            {
+                var sheetIndex = index;
+
+                <button type="button" role="tab" class="ec-preview-sheet-tab" aria-selected="@(sheetIndex == this.activeSheet ? "true" : "false")"
+                        @onclick="() => this.activeSheet = sheetIndex">@this.Sheets[sheetIndex].Name</button>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private int activeSheet;
+
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<SheetPreview> Sheets { get; set; }
+
+    private static string ColumnName(int index)
+    {
+        var name = "";
+
+        for (var number = index + 1; number > 0; number = (number - 1) / 26)
+            name = (char)('A' + (number - 1) % 26) + name;
+
+        return name;
+    }
+}

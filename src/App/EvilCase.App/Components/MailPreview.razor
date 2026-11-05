@@ -1,0 +1,49 @@
+@* An e-mail: its headers, its body and the names of its attachments. *@
+<ReflowPreview>
+    <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @this.FileName">
+        <dl class="ec-preview-email-headers">
+            <dt>Od</dt>
+            <dd>@TextDisplay.OrDash(this.Message.From)</dd>
+            <dt>Komu</dt>
+            <dd>@TextDisplay.OrDash(string.Join(", ", this.Message.To))</dd>
+            @if (this.Message.Cc.Count > 0)
+            {
+                <dt>Kopie</dt>
+                <dd>@string.Join(", ", this.Message.Cc)</dd>
+            }
+            <dt>Předmět</dt>
+            <dd>@TextDisplay.OrDash(this.Message.Subject)</dd>
+            <dt>Datum</dt>
+            <dd>@MomentDisplay.Text(this.Message.Date?.UtcDateTime)</dd>
+        </dl>
+        @if (this.Message.Truncated)
+        {
+            <p class="ec-preview-note">Zpráva je delší, zobrazuje se jen její začátek.</p>
+        }
+        <div class="ec-preview-email-body">@this.Message.Body</div>
+        @if (this.Message.Attachments.Count > 0)
+        {
+            <section class="ec-preview-email-attachments" aria-label="Přílohy">
+                <h3 class="ec-preview-email-attachments-title">Přílohy (@this.Message.Attachments.Count)</h3>
+                <ul class="ec-preview-email-attachment-list">
+                    @foreach (var attachment in this.Message.Attachments)
+                    {
+                        <li class="ec-preview-email-attachment">
+                            <EcIcon Paths="@AppIcons.Paperclip" />
+                            <span class="ec-preview-email-attachment-name">@attachment.Name</span>
+                            <span class="ec-preview-email-attachment-size">@FileSizeDisplay.Text(attachment.Size)</span>
+                        </li>
+                    }
+                </ul>
+            </section>
+        }
+    </article>
+</ReflowPreview>
+
+@code {
+    [Parameter, EditorRequired]
+    public required EmailPreview Message { get; set; }
+
+    [Parameter, EditorRequired]
+    public required string FileName { get; set; }
+}

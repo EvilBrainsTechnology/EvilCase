@@ -1,0 +1,974 @@
+/*
+ * Primitiva Ec (SDD-020). Každou hodnotu berou z ec-tokens.css, rozsah otevírá třída ec na
+ * kořeni aplikace. Vizuální předlohy jsou v docs/design/.
+ */
+
+/* Cizí stylopis dokument už neresetuje (SDD-020). */
+body {
+    margin: 0;
+}
+
+/* Vyhradí místo pro svislý posuvník, i když ho stránka nepotřebuje: jinak se šířka obsahu mění
+   podle toho, jestli je stránka delší než okno (docs/design/prehled.html). */
+html {
+    scrollbar-gutter: stable;
+    background: var(--ec-bg);
+}
+
+:root {
+    color-scheme: light;
+}
+
+.ec {
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec a {
+    text-decoration: none;
+}
+
+/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty; odkaz s vlastní třídou ze své
+   třídy. */
+:where(.ec) a:where(:not(.ec-button)) {
+    color: var(--ec-accent-text);
+}
+
+/* Bez specificity, aby pravidlo s třídou pole vždy vyhrálo. */
+:where(.ec) :where(button, input, select, textarea) {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+:where(.ec) :where(button:not(.ec-button), input, select, textarea) {
+    color: inherit;
+}
+
+.ec-icon {
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ec-icon-sm {
+    width: var(--ec-icon-sm);
+    height: var(--ec-icon-sm);
+}
+
+.ec-icon-md {
+    width: var(--ec-icon-md);
+    height: var(--ec-icon-md);
+}
+
+.ec-icon-lg {
+    width: var(--ec-icon-lg);
+    height: var(--ec-icon-lg);
+}
+
+.ec-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    padding: 0 var(--ec-space-5);
+    border: 1px solid transparent;
+    border-radius: var(--ec-radius-lg);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    line-height: var(--ec-leading-tight);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ec-button:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-button:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.ec-button-compact {
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-4);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-button-standard {
+    height: var(--ec-control-lg);
+}
+
+.ec-button-form {
+    height: var(--ec-control-form);
+    padding: 0 var(--ec-space-6);
+}
+
+.ec-button-icon {
+    aspect-ratio: 1;
+    padding: 0 var(--ec-space-1);
+}
+
+.ec-button-primary {
+    background: var(--ec-accent);
+    border-color: var(--ec-accent);
+    color: var(--ec-on-accent);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-button-primary:hover:enabled {
+    background: var(--ec-accent-hover);
+    border-color: var(--ec-accent-hover);
+}
+
+.ec-button-secondary {
+    background: var(--ec-surface);
+    border-color: var(--ec-border-strong);
+    color: var(--ec-text);
+}
+
+.ec-button-secondary:hover:enabled {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-button-ghost {
+    background: transparent;
+    color: var(--ec-accent-text);
+}
+
+.ec-button-ghost:hover:enabled {
+    background: var(--ec-accent-soft);
+}
+
+.ec-button-danger {
+    background: var(--ec-danger-solid);
+    border-color: var(--ec-danger-solid);
+    color: var(--ec-on-accent);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-button-danger:hover:enabled {
+    background: var(--ec-danger-solid-hover);
+    border-color: var(--ec-danger-solid-hover);
+}
+
+.ec-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-card);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+}
+
+.ec-card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-5) var(--ec-space-6);
+}
+
+.ec-card-title {
+    margin: 0;
+    font-size: var(--ec-text-xl);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-card-body {
+    padding: var(--ec-space-5) var(--ec-space-6);
+}
+
+.ec-card-header + .ec-card-body {
+    padding-top: 0;
+}
+
+.ec-card-footer {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4) var(--ec-space-6);
+    border-top: 1px solid var(--ec-border-subtle);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-page-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-crumbs {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-crumb {
+    flex: 0 1 auto;
+    min-width: var(--ec-crumb-min);
+    max-width: var(--ec-crumb-max);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--ec-text-muted);
+    text-decoration: none;
+}
+
+.ec-crumb:first-child {
+    flex: none;
+}
+
+.ec-crumb:hover {
+    color: var(--ec-text);
+}
+
+.ec-crumb[aria-current="page"] {
+    color: var(--ec-text);
+}
+
+.ec-crumb-separator {
+    flex: none;
+    color: var(--ec-text-muted);
+}
+
+/* The link back to the parent replaces the crumbs only below lg. */
+.ec-page-back {
+    display: none;
+}
+
+/* Text a button drops below lg; from lg up it is part of the button's text. */
+.ec-text-wide {
+    display: contents;
+}
+
+/* Text a button carries only below lg. */
+.ec-text-narrow {
+    display: none;
+}
+
+.ec-page-header-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-5);
+}
+
+.ec-page-title {
+    margin: 0;
+    font-size: var(--ec-title-sm);
+    font-weight: var(--ec-weight-semibold);
+    letter-spacing: -0.02em;
+    text-wrap: pretty;
+}
+
+.ec-detail .ec-page-title,
+.ec-contact-header .ec-page-title {
+    font-size: var(--ec-title);
+    line-height: var(--ec-leading-tight);
+    text-wrap: balance;
+}
+
+.ec-page-actions,
+.ec-form-actions,
+.ec-card-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin-left: auto;
+}
+
+.ec-page-note {
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    padding: var(--ec-space-1) var(--ec-space-3);
+    border-radius: var(--ec-radius-pill);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-leading-tight);
+    white-space: nowrap;
+}
+
+.ec-badge-active {
+    --ec-badge-dot-color: var(--ec-active-dot);
+    background: var(--ec-active-bg);
+    color: var(--ec-active-text);
+}
+
+.ec-badge-waiting {
+    --ec-badge-dot-color: var(--ec-waiting-dot);
+    background: var(--ec-waiting-bg);
+    color: var(--ec-waiting-text);
+}
+
+.ec-badge-closed {
+    --ec-badge-dot-color: var(--ec-closed-dot);
+    background: var(--ec-closed-bg);
+    color: var(--ec-closed-text);
+}
+
+.ec-badge-incoming {
+    background: var(--ec-incoming-bg);
+    color: var(--ec-incoming-text);
+}
+
+.ec-badge-outgoing {
+    background: var(--ec-outgoing-bg);
+    color: var(--ec-outgoing-text);
+}
+
+.ec-badge-authority {
+    background: var(--ec-authority-bg);
+    color: var(--ec-authority-text);
+}
+
+.ec-badge-official {
+    background: var(--ec-official-bg);
+    color: var(--ec-official-text);
+}
+
+.ec-badge-person {
+    background: var(--ec-person-bg);
+    color: var(--ec-person-text);
+}
+
+.ec-badge-danger {
+    background: var(--ec-danger-bg);
+    color: var(--ec-danger-text);
+}
+
+.ec-badge-signature {
+    background: var(--ec-file-signature-bg);
+    color: var(--ec-file-signature-text);
+}
+
+.ec-badge-file-version {
+    background: var(--ec-closed-bg);
+    color: var(--ec-closed-text);
+}
+
+.ec-badge-fresh {
+    background: var(--ec-file-fresh-bg);
+    color: var(--ec-accent-text);
+}
+
+.ec-badge-current {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-badge-dot {
+    flex: 0 0 auto;
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-badge-dot-color, currentColor);
+}
+
+.ec-badge .ec-icon {
+    width: var(--ec-text-xs);
+    height: var(--ec-text-xs);
+}
+
+.ec-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+    box-sizing: border-box;
+    max-width: var(--ec-content-max);
+    margin: 0 auto;
+    padding: var(--ec-space-7) var(--ec-content-padding) var(--ec-content-padding);
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ec-sidebar-width);
+    gap: var(--ec-space-6);
+    align-items: start;
+}
+
+.ec-form-aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+}
+
+.ec-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+}
+
+.ec-form-row {
+    display: grid;
+    grid-template-columns: var(--ec-form-col) var(--ec-form-col) minmax(0, 1fr);
+    gap: var(--ec-space-5);
+}
+
+.ec-form-note {
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-muted);
+}
+
+.ec-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-field-name {
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text-soft);
+}
+
+.ec-field-mark {
+    margin-left: calc(var(--ec-space-1) / 2);
+    color: var(--ec-danger-text);
+}
+
+.ec-field-hint {
+    font-size: var(--ec-text-xs);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-muted);
+}
+
+/* Chyba nahradí nápovědu, aby stála hned pod polem. */
+.ec-field:has(.ec-field-error > *) .ec-field-hint {
+    display: none;
+}
+
+.ec-field-error {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-danger-text);
+}
+
+.ec-field-error .validation-message {
+    display: block;
+    margin: 0;
+}
+
+.ec-visually-hidden,
+.ec-select-labeled-name {
+    position: absolute;
+    width: calc(var(--ec-space-1) / 4);
+    height: calc(var(--ec-space-1) / 4);
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* A select with its name inside the frame (Stav, Řazení); from lg up the name is for screen readers only. */
+.ec-select-labeled {
+    display: contents;
+}
+
+/* Only below lg, where it replaces the switch. */
+.ec-select-narrow {
+    display: none;
+}
+
+.ec-input,
+.ec-select,
+.ec-textarea {
+    box-sizing: border-box;
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+}
+
+.ec-input,
+.ec-select {
+    height: var(--ec-control-form);
+    padding: 0 var(--ec-space-4);
+    text-overflow: ellipsis;
+}
+
+.ec-select {
+    appearance: none;
+    padding-right: calc(var(--ec-space-4) + var(--ec-icon-md) + var(--ec-space-2));
+    background-image: var(--ec-select-chevron);
+    background-repeat: no-repeat;
+    background-position: right var(--ec-space-4) center;
+    background-size: var(--ec-icon-md);
+}
+
+.ec-textarea {
+    padding: var(--ec-space-3) var(--ec-space-4);
+    min-height: calc(var(--ec-control-form) * 3);
+    line-height: var(--ec-leading-body);
+    resize: vertical;
+}
+
+.ec-input:focus-visible,
+.ec-select:focus-visible,
+.ec-textarea:focus-visible,
+.ec-preview-toolbar-page-input:focus-visible {
+    outline: none;
+    border-color: var(--ec-accent);
+    box-shadow: var(--ec-focus-ring);
+}
+
+/* Blazor značí pole, které neprošlo validací, třídou invalid a aria-invalid. */
+.ec-input:is(.invalid, [aria-invalid="true"]),
+.ec-select:is(.invalid, [aria-invalid="true"]),
+.ec-textarea:is(.invalid, [aria-invalid="true"]) {
+    border-color: var(--ec-danger-text);
+}
+
+.ec-input:is(.invalid, [aria-invalid="true"]):focus-visible,
+.ec-select:is(.invalid, [aria-invalid="true"]):focus-visible,
+.ec-textarea:is(.invalid, [aria-invalid="true"]):focus-visible {
+    border-color: var(--ec-danger-text);
+    box-shadow: var(--ec-focus-ring-danger);
+}
+
+.ec-input::placeholder,
+.ec-select::placeholder,
+.ec-textarea::placeholder {
+    color: var(--ec-text-subtle);
+}
+
+.ec-input:read-only {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-input-mono {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-combobox {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-combobox-selected {
+    display: flex;
+    gap: var(--ec-space-3);
+}
+
+.ec-combobox-selected .ec-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-combobox-search {
+    position: relative;
+    display: flex;
+}
+
+.ec-combobox-search .ec-input {
+    position: relative;
+    z-index: 11;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.ec-combobox-backdrop,
+.ec-topsearch-backdrop,
+.ec-menu-backdrop,
+.ec-popover-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+}
+
+.ec-combobox-menu {
+    position: absolute;
+    top: calc(100% + var(--ec-space-2));
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    max-height: var(--ec-combobox-max-height);
+    overflow-y: auto;
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-overlay);
+    padding: var(--ec-space-1);
+}
+
+.ec-combobox-option,
+.ec-combobox-create {
+    display: flex;
+    align-items: center;
+    min-height: var(--ec-control-lg);
+    gap: var(--ec-space-3);
+    padding: 0 var(--ec-space-3);
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: transparent;
+    text-align: left;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+    cursor: pointer;
+}
+
+.ec-combobox-create {
+    color: var(--ec-accent-text);
+    border-top: 1px solid var(--ec-border-subtle);
+}
+
+.ec-combobox-option:hover,
+.ec-combobox-option:focus-visible,
+.ec-combobox-create:hover,
+.ec-combobox-create:focus-visible {
+    background: var(--ec-surface-sunken);
+}
+
+/* Only below lg, where the open field is a sheet. */
+.ec-combobox-sheet-head {
+    display: none;
+}
+
+.ec-combobox-option-meta {
+    margin-left: auto;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    height: calc(var(--ec-space-7) + var(--ec-space-1));
+    padding: 0 var(--ec-space-3);
+    border-radius: var(--ec-radius-sm);
+    background: var(--ec-chip-soft);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-chip-strong);
+}
+
+.ec-chip-dot {
+    width: var(--ec-space-3);
+    height: var(--ec-space-3);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-chip-strong);
+}
+
+.ec-chip-remove {
+    display: inline-flex;
+    align-items: center;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.ec-chip-remove:hover {
+    opacity: 1;
+}
+
+.ec-chip-blue {
+    --ec-chip-color: var(--ec-label-blue);
+    --ec-chip-soft: var(--ec-label-blue-soft);
+    --ec-chip-strong: var(--ec-label-blue-strong);
+}
+.ec-chip-azure {
+    --ec-chip-color: var(--ec-label-azure);
+    --ec-chip-soft: var(--ec-label-azure-soft);
+    --ec-chip-strong: var(--ec-label-azure-strong);
+}
+.ec-chip-indigo {
+    --ec-chip-color: var(--ec-label-indigo);
+    --ec-chip-soft: var(--ec-label-indigo-soft);
+    --ec-chip-strong: var(--ec-label-indigo-strong);
+}
+.ec-chip-purple {
+    --ec-chip-color: var(--ec-label-purple);
+    --ec-chip-soft: var(--ec-label-purple-soft);
+    --ec-chip-strong: var(--ec-label-purple-strong);
+}
+.ec-chip-pink {
+    --ec-chip-color: var(--ec-label-pink);
+    --ec-chip-soft: var(--ec-label-pink-soft);
+    --ec-chip-strong: var(--ec-label-pink-strong);
+}
+.ec-chip-red {
+    --ec-chip-color: var(--ec-label-red);
+    --ec-chip-soft: var(--ec-label-red-soft);
+    --ec-chip-strong: var(--ec-label-red-strong);
+}
+.ec-chip-orange {
+    --ec-chip-color: var(--ec-label-orange);
+    --ec-chip-soft: var(--ec-label-orange-soft);
+    --ec-chip-strong: var(--ec-label-orange-strong);
+}
+.ec-chip-yellow {
+    --ec-chip-color: var(--ec-label-yellow);
+    --ec-chip-soft: var(--ec-label-yellow-soft);
+    --ec-chip-strong: var(--ec-label-yellow-strong);
+}
+.ec-chip-lime {
+    --ec-chip-color: var(--ec-label-lime);
+    --ec-chip-soft: var(--ec-label-lime-soft);
+    --ec-chip-strong: var(--ec-label-lime-strong);
+}
+.ec-chip-green {
+    --ec-chip-color: var(--ec-label-green);
+    --ec-chip-soft: var(--ec-label-green-soft);
+    --ec-chip-strong: var(--ec-label-green-strong);
+}
+.ec-chip-teal {
+    --ec-chip-color: var(--ec-label-teal);
+    --ec-chip-soft: var(--ec-label-teal-soft);
+    --ec-chip-strong: var(--ec-label-teal-strong);
+}
+.ec-chip-cyan {
+    --ec-chip-color: var(--ec-label-cyan);
+    --ec-chip-soft: var(--ec-label-cyan-soft);
+    --ec-chip-strong: var(--ec-label-cyan-strong);
+}
+.ec-chip-gray {
+    --ec-chip-color: var(--ec-label-gray);
+    --ec-chip-soft: var(--ec-label-gray-soft);
+    --ec-chip-strong: var(--ec-label-gray-strong);
+}
+
+.ec-modal {
+    width: min(var(--ec-modal-width), calc(100vw - 2 * var(--ec-space-5)));
+    max-height: calc(100vh - 2 * var(--ec-space-8));
+    padding: 0;
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-card);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-family: var(--ec-font);
+    box-shadow: var(--ec-shadow-overlay);
+}
+
+.ec-modal::backdrop {
+    background: var(--ec-overlay);
+}
+
+/* The page behind an open dialog does not scroll; the reserved scrollbar gutter keeps its width. */
+html.ec-scroll-locked {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+/* A scroll that reaches the end of the dialog stops there. */
+.ec-modal,
+.ec-modal-body,
+.ec-modal .ec-preview-stage {
+    overscroll-behavior: contain;
+}
+
+.ec-modal-frame {
+    display: contents;
+}
+
+.ec-modal-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-5) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border-subtle);
+}
+
+.ec-modal-title {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: var(--ec-text-xl);
+    font-weight: var(--ec-weight-semibold);
+}
+
+/* Zavírací křížek je tichý, nečte se jako akce (docs/design/nastaveni.html). */
+.ec-modal-header .ec-button-ghost {
+    color: var(--ec-text-soft);
+}
+
+.ec-modal-header .ec-button-ghost:hover:enabled {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
+.ec-modal-body {
+    padding: var(--ec-space-6);
+    overflow-y: auto;
+}
+
+.ec-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-5) var(--ec-space-6);
+    border-top: 1px solid var(--ec-border-subtle);
+}
+
+.ec-alert {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-4) var(--ec-space-5);
+    border: 1px solid var(--ec-danger-border);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-danger-bg);
+    color: var(--ec-danger-text);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-alert-text {
+    margin: 0;
+    line-height: var(--ec-leading-body);
+}
+
+.ec-state {
+    margin: 0;
+    padding: var(--ec-space-5);
+    color: var(--ec-text-muted);
+}
+
+.ec-card-text {
+    margin: var(--ec-space-3) 0 0;
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-muted);
+    text-wrap: pretty;
+}
+
+.ec-card-text:first-child {
+    margin-top: 0;
+}
+
+.ec-file-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: var(--ec-file-icon-size);
+    height: var(--ec-file-icon-size);
+    border-radius: var(--ec-radius-lg);
+}
+
+.ec-file-icon .ec-icon {
+    width: var(--ec-file-icon-glyph);
+    height: var(--ec-file-icon-glyph);
+}
+
+.ec-file-icon-compact {
+    width: var(--ec-file-icon-compact-size);
+    height: var(--ec-file-icon-compact-size);
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-file-icon-compact .ec-icon {
+    width: var(--ec-file-icon-compact-glyph);
+    height: var(--ec-file-icon-compact-glyph);
+}
+
+.ec-file-icon-large {
+    width: var(--ec-file-icon-large-size);
+    height: var(--ec-file-icon-large-size);
+    border-radius: var(--ec-file-icon-large-radius);
+}
+
+.ec-file-icon-large .ec-icon {
+    width: var(--ec-file-icon-large-glyph);
+    height: var(--ec-file-icon-large-glyph);
+}
+
+.ec-file-icon-pdf { background: var(--ec-file-pdf-bg); color: var(--ec-file-pdf-text); }
+.ec-file-icon-document { background: var(--ec-file-document-bg); color: var(--ec-file-document-text); }
+.ec-file-icon-sheet { background: var(--ec-file-sheet-bg); color: var(--ec-file-sheet-text); }
+.ec-file-icon-presentation { background: var(--ec-file-presentation-bg); color: var(--ec-file-presentation-text); }
+.ec-file-icon-text { background: var(--ec-file-text-bg); color: var(--ec-file-text-text); }
+.ec-file-icon-image { background: var(--ec-file-image-bg); color: var(--ec-file-image-text); }
+.ec-file-icon-audio { background: var(--ec-file-audio-bg); color: var(--ec-file-audio-text); }
+.ec-file-icon-video { background: var(--ec-file-video-bg); color: var(--ec-file-video-text); }
+.ec-file-icon-email { background: var(--ec-file-email-bg); color: var(--ec-file-email-text); }
+.ec-file-icon-message { background: var(--ec-file-message-bg); color: var(--ec-file-message-text); }
+.ec-file-icon-signature { background: var(--ec-file-signature-bg); color: var(--ec-file-signature-text); }
+.ec-file-icon-code { background: var(--ec-file-code-bg); color: var(--ec-file-code-text); }
+.ec-file-icon-archive { background: var(--ec-file-archive-bg); color: var(--ec-file-archive-text); }
+.ec-file-icon-other { background: var(--ec-file-other-bg); color: var(--ec-file-other-text); }
+
+.ec-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-7) var(--ec-space-5);
+    color: var(--ec-text-muted);
+    text-align: center;
+}
+
+.ec-empty-text {
+    margin: 0;
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
+}
+
+.ec-empty-hint {
+    margin: calc(var(--ec-space-3) * -1) 0 0;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+}
+
+.ec-card-count {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+/* Loading holds a height so the card does not jump once the rows arrive. */
+.ec-card-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(var(--ec-space-8) * 3);
+    margin: 0;
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-card-error {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+}

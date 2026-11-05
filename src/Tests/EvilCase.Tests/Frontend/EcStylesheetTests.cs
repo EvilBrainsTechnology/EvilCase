@@ -24,12 +24,22 @@ public partial class EcStylesheetTests
         this.host.Dispose();
     }
 
-    [TestCase("ec-tokens.css")]
-    [TestCase("ec-fonts.css")]
-    [TestCase("ec-components.css")]
-    public async Task AStylesheetLoadsEveryResourceFromTheApp(string stylesheet)
+    [Test]
+    public async Task AStylesheetLoadsEveryResourceFromTheApp()
     {
-        var css = await this.client.GetStringAsync(new Uri("/css/" + stylesheet, UriKind.Relative));
+        var page = await this.client.GetStringAsync(new Uri("/", UriKind.Relative));
+        var stylesheets = StylesheetPattern.Matches(page).Select(static match => match.Groups["href"].Value).ToList();
+
+        Assert.That(stylesheets, Is.Not.Empty, "the entry point links its stylesheets");
+
+        foreach (var stylesheet in stylesheets)
+            await this.AssertLoadsFromTheApp(stylesheet);
+    }
+
+    private async Task AssertLoadsFromTheApp(string stylesheet)
+    {
+        var stylesheetUri = new Uri(this.client.BaseAddress!, stylesheet);
+        var css = await this.client.GetStringAsync(stylesheetUri);
 
         using (Assert.EnterMultipleScope())
         {
@@ -39,11 +49,14 @@ public partial class EcStylesheetTests
 
         foreach (var url in UrlPattern.Matches(css).Select(static match => match.Groups["url"].Value))
         {
-            using var response = await this.client.GetAsync(new Uri(new Uri(this.client.BaseAddress!, "css/"), url));
+            using var response = await this.client.GetAsync(new Uri(stylesheetUri, url));
 
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), $"{url} is served by the app");
         }
     }
+
+    [GeneratedRegex("""<link rel="stylesheet" href="(?<href>[^"]+)" />""", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    private static partial Regex StylesheetPattern { get; }
 
     [GeneratedRegex("""url\(['"](?<url>[^'"]+)['"]\)""", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex UrlPattern { get; }
