@@ -2,8 +2,8 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JSRuntime
 
-<dialog class="@(this.Large ? "ec-modal ec-modal-large" : this.Sheet ? "ec-modal ec-modal-sheet" : "ec-modal")" @ref="this.dialog" aria-label="@this.Title"
-        data-ec-guarded="@this.OnCloseRequest.HasDelegate" @onpointerdown="this.PressBackdrop" @onclick="this.ClickBackdrop">
+<dialog class="@this.CssClass" @ref="this.dialog" aria-label="@this.Title" data-ec-guarded="@this.OnCloseRequest.HasDelegate"
+        data-ec-maximizable="@this.Maximizable" @onpointerdown="this.PressBackdrop" @onclick="this.ClickBackdrop">
     @* Events from the content stop here, so the dialog only sees presses and clicks on its backdrop. *@
     <div class="ec-modal-frame" @onpointerdown:stopPropagation @onclick:stopPropagation>
         <div class="ec-modal-header">
@@ -14,6 +14,15 @@
             else
             {
                 @this.Heading
+            }
+            @if (this.Maximizable)
+            {
+                var label = this.maximized ? "Obnovit velikost" : "Maximalizovat";
+
+                <span class="ec-modal-maximize">
+                    <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@(this.maximized ? AppIcons.Restore : AppIcons.Maximize)"
+                              AriaLabel="@label" data-tooltip="@label" aria-pressed="@(this.maximized ? "true" : "false")" OnClick="this.ToggleMaximized" />
+                </span>
             }
             <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" Icon="@AppIcons.X"
                       AriaLabel="Zavřít" OnClick="this.Close" />
@@ -48,6 +57,12 @@
     [Parameter]
     public bool Sheet { get; set; }
 
+    /// <summary>
+    /// A <see cref="Large"/> dialog offers on desktop to fill the whole window; every opening starts at the normal size.
+    /// </summary>
+    [Parameter]
+    public bool Maximizable { get; set; }
+
     [Parameter]
     public bool Open { get; set; }
 
@@ -80,6 +95,26 @@
     private bool disposed;
 
     private bool backdropPressed;
+
+    private bool maximized;
+
+    private string CssClass
+    {
+        get
+        {
+            var size = this.Large ? " ec-modal-large" : this.Sheet ? " ec-modal-sheet" : "";
+
+            return this.maximized ? $"ec-modal{size} ec-modal-maximized" : $"ec-modal{size}";
+        }
+    }
+
+    // A double-click on the header outside its controls toggles too.
+    [JSInvokable]
+    public void ToggleMaximized()
+    {
+        this.maximized = !this.maximized;
+        this.StateHasChanged();
+    }
 
     [JSInvokable]
     public async Task NotifyCloseRequested()
@@ -122,6 +157,12 @@
             await this.module.DisposeAsync();
 
         this.self?.Dispose();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!this.Open)
+            this.maximized = false;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

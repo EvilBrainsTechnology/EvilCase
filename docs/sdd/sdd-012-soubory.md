@@ -243,9 +243,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   ukáže pořadí „Soubor 2 z 5“. Náhled hlavního souboru otevřený ze seznamu úkonů (SDD-010) ukáže
   jen ten soubor a nelistuje; akce nese stejné jako náhled souboru karty. Listování souborů stojí
   v hlavičce vpravo za nabídkou ⋯, listování příloh za Stáhnout přílohu, obojí hned před
-  zavřením. Na mobilu stojí pořadí „soubor 2 z 5“ za okamžikem nahrání a listování souborů bez
-  pořadí na konci lišty náhledu se Stáhnout a nabídkou ⋯; náhled bez lišty je nese
-  v hlavičce. Listování příloh zůstává v hlavičce.
+  Maximalizovat a zavřením. Na mobilu stojí pořadí „soubor 2 z 5“ za okamžikem nahrání
+  a listování souborů bez pořadí na konci lišty náhledu se Stáhnout a nabídkou ⋯; náhled bez
+  lišty je nese v hlavičce. Listování příloh zůstává v hlavičce.
 - Hlavička souboru karty nese jako tlačítka u souboru s více verzemi Verze s počtem verzí, které
   ukáže a schová pruh verzí pod hlavičkou, a Porovnat, pak Stáhnout, které stáhne zobrazenou
   verzi. Za nimi stojí nabídka ⋯ s Upravit, Nahrát novou verzi, Přejmenovat a Smazat. Nahrát
@@ -255,6 +255,11 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   mobilu jsou Upravit, Nahrát novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat
   v nabídce ⋯ lišty náhledu.
 - Hlavička souboru karty nese hned za názvem hvězdu hlavního souboru, stejnou jako řádek.
+- Na počítači nese hlavička náhledu hned před zavřením tlačítko Maximalizovat. Maximalizovaný
+  náhled vyplní celou obrazovku a tlačítko se změní na Obnovit velikost; totéž přepne dvojklik na
+  hlavičku mimo její tlačítka, odkazy a pole. Velikost platí pro náhled, úpravy i porovnání verzí
+  a drží se i při listování; každé otevření náhledu začne v obvyklé velikosti. Na mobilu tlačítko
+  není.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
   Na mobilu je pruh jeden řádek bez e-mailu a bez textu o starší verzi a Zobrazit aktuální verzi
@@ -276,8 +281,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   náhled. Text sám neformátuje ani nedoplňuje. Upravit vymění náhled za editor na témže místě,
   stejně velký a ve 100 %. Kód se upravuje vždy v původní podobě; když ho náhled ukazoval naformátovaný, editor
   řekne „Upravuje se originál souboru, ne jeho naformátovaná podoba.“ Hlavička nese jen ikonu
-  a jméno souboru, „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit, Uložit
-  a zavření; listování soubory, Verze, Porovnat, Stáhnout a nabídka ⋯ se během úprav skryjí.
+  a jméno souboru, „Upravujete verzi 3“, po změně „Neuložené změny · upravujete verzi 3“, Zrušit,
+  Uložit, Maximalizovat a zavření; listování soubory, Verze, Porovnat, Stáhnout a nabídka ⋯ se
+  během úprav skryjí.
 - Lišta nad textem nese Zpět a Znovu, neaktivní, když není co vrátit, a hledání Hledat v textu
   uspořádané jako v náhledu: pořadí výskytu z počtu, pole a předchozí a další výskyt. Zpět
   a znovu jde i Ctrl+Z a Ctrl+Y, Cmd+Z a Cmd+Shift+Z. Hledání nerozlišuje velikost písmen,

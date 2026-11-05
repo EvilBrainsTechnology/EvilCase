@@ -1,6 +1,7 @@
 namespace EvilBrains.EvilCase.App.Icons;
 
-// The path data is copied from Tabler icons; the file type glyphs, the hand and the compare are drawn for the design.
+// The path data is copied from Tabler icons; the file type glyphs, the hand, the compare, the maximize and the restore are
+// drawn for the design.
 public static class AppIcons
 {
     public const string AlertTriangle = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
@@ -287,6 +288,12 @@ public static class AppIcons
         + "<path d='M9 12h12l-3 -3' />"
         + "<path d='M18 15l3 -3' />";
 
+    public const string Maximize = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M4 9V4h5' />"
+        + "<path d='M20 9V4h-5' />"
+        + "<path d='M4 15v5h5' />"
+        + "<path d='M20 15v5h-5' />";
+
     public const string Message = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M8 9h8' />"
         + "<path d='M8 13h6' />"
@@ -315,6 +322,12 @@ public static class AppIcons
     public const string Refresh = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4' />"
         + "<path d='M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4' />";
+
+    public const string Restore = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M9 4v5H4' />"
+        + "<path d='M15 4v5h5' />"
+        + "<path d='M9 20v-5H4' />"
+        + "<path d='M15 20v-5h5' />";
 
     public const string Scale = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 20l10 0' />"
