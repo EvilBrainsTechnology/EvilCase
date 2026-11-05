@@ -1,4 +1,7 @@
+using EvilBrains.EvilCase.Api.Contract.Labels;
+using EvilBrains.EvilCase.Business.Labels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EvilBrains.EvilCase.Tests.Data;
 
@@ -7,13 +10,26 @@ public class OwnerStampTests : TenantFixture
     private static readonly DateOnly Day = new(2026, 8, 21);
 
     [Test]
-    public async Task ACommentStampsItsCase()
+    public async Task ACommentAddedEditedAndDeletedStampsItsCase()
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        await this.Tenant.AddCaseComment(@case, "Poznámka");
+        var comment = await this.Tenant.AddCaseComment(@case, "Poznámka");
+        var afterAdd = await this.CaseUpdated(@case.Id);
 
-        Assert.That(await this.CaseUpdated(@case.Id), Is.Not.Null, "a comment written on a case stamps the case's Updated");
+        await this.Tenant.Context.Comments.Where(row => row.Id == comment.Id)
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static row => row.Body, "Upravená poznámka"));
+        var afterEdit = await this.CaseUpdated(@case.Id);
+
+        await this.Tenant.Context.Comments.Where(row => row.Id == comment.Id).ExecuteDeleteAsync();
+        var afterDelete = await this.CaseUpdated(@case.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(afterAdd, Is.Not.Null, "a comment written on a case stamps the case's Updated");
+            Assert.That(afterEdit, Is.GreaterThan(afterAdd.GetValueOrDefault()), "an edited comment stamps the Updated of its case");
+            Assert.That(afterDelete, Is.GreaterThan(afterEdit.GetValueOrDefault()), "a deleted comment stamps the Updated of its case");
+        }
     }
 
     [Test]
@@ -53,21 +69,51 @@ public class OwnerStampTests : TenantFixture
     }
 
     [Test]
-    public async Task ALabelAssignmentStampsItsCaseAndTheLabelsDeletionDoesNot()
+    public async Task ARenamedOrMainFileStampsItsAct()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var label = await this.Tenant.AddLabel("Naléhavé");
+        var act = await this.Tenant.AddAct(@case, Day);
+        var file = await this.Tenant.AddActFile(act);
+        var afterFile = await this.ActUpdated(act.Id);
 
-        await this.Tenant.AddCaseLabel(@case, label);
+        await this.Tenant.Context.FileAssets.Where(row => row.Id == file.Id)
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static row => row.FileName, "přejmenovaný.pdf"));
+        var afterRename = await this.ActUpdated(act.Id);
+
+        await this.Tenant.Context.FileAssets.Where(row => row.Id == file.Id)
+            .ExecuteUpdateAsync(static setters => setters.SetProperty(static row => row.IsMain, valueExpression: true));
+        var afterMain = await this.ActUpdated(act.Id);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(afterRename, Is.GreaterThan(afterFile.GetValueOrDefault()), "a renamed file stamps the Updated of its act");
+            Assert.That(afterMain, Is.GreaterThan(afterRename.GetValueOrDefault()), "a file made main stamps the Updated of its act");
+        }
+    }
+
+    [Test]
+    public async Task ALabelAddedOrTakenOffStampsItsCaseAndTheLabelsDeletionDoesNot()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var kept = await this.Tenant.AddLabel("Naléhavé");
+        var dropped = await this.Tenant.AddLabel("Soud");
+
+        await this.Tenant.AddCaseLabel(@case, kept);
+        await this.Tenant.AddCaseLabel(@case, dropped);
         var afterAssignment = await this.CaseUpdated(@case.Id);
 
-        await this.Tenant.Context.Labels.Where(row => row.Id == label.Id).ExecuteDeleteAsync();
+        var writer = new LabelAssignmentWriter(this.Tenant.Session, NullLogger<LabelAssignmentWriter>.Instance);
+        await writer.SetCaseLabels(@case.Id, new LabelAssignmentRequest { LabelIds = [kept.Id] }, CancellationToken.None);
+        var afterTakeOff = await this.CaseUpdated(@case.Id);
+
+        await this.Tenant.Context.Labels.Where(row => row.Id == kept.Id).ExecuteDeleteAsync();
         var afterLabelDeletion = await this.CaseUpdated(@case.Id);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(afterAssignment, Is.Not.Null, "a label assigned to a case stamps the case's Updated");
-            Assert.That(afterLabelDeletion, Is.EqualTo(afterAssignment), "a label deleted in settings takes its assignments without stamping their cases");
+            Assert.That(afterTakeOff, Is.GreaterThan(afterAssignment.GetValueOrDefault()), "a label taken off a case stamps the case's Updated");
+            Assert.That(afterLabelDeletion, Is.EqualTo(afterTakeOff), "a label deleted in settings takes its assignments without stamping their cases");
         }
     }
 

@@ -5,16 +5,24 @@
 namespace EvilBrains.EvilCase.Data.Migrations.Migrations;
 
 /// <summary>
-/// A write of a comment, a file, a file version or a label assignment stamps the Updated of its case or act: the
-/// update sets nothing itself, and stamp_timestamps sets the clock time on it.
+/// A write of a comment, a file, a file version or a label assignment stamps the Updated of its case or act.
 /// </summary>
 public partial class StampOwnerOnAttachedWrites : Migration
 {
     protected override void Up(MigrationBuilder migrationBuilder)
     {
-        CreateStampOwnerFunction(migrationBuilder);
-        CreateStampLabelledOwnerFunction(migrationBuilder);
-        CreateStampFileOwnerFunction(migrationBuilder);
+        migrationBuilder.Sql(
+            """
+            CREATE FUNCTION stamp_owner_of(case_id uuid, act_id uuid)
+            RETURNS void
+            LANGUAGE sql
+            AS $$
+                UPDATE "Cases" SET "Updated" = clock_timestamp() WHERE "Id" = case_id;
+                UPDATE "Acts" SET "Updated" = clock_timestamp() WHERE "Id" = act_id;
+            $$;
+            """);
+
+        CreateTriggerFunctions(migrationBuilder);
 
         migrationBuilder.Sql(
             """
@@ -37,10 +45,11 @@ public partial class StampOwnerOnAttachedWrites : Migration
             DROP FUNCTION stamp_owner();
             DROP FUNCTION stamp_labelled_owner();
             DROP FUNCTION stamp_file_owner();
+            DROP FUNCTION stamp_owner_of(uuid, uuid);
             """);
     }
 
-    private static void CreateStampOwnerFunction(MigrationBuilder migrationBuilder)
+    private static void CreateTriggerFunctions(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql(
             """
@@ -48,57 +57,37 @@ public partial class StampOwnerOnAttachedWrites : Migration
             RETURNS trigger
             LANGUAGE plpgsql
             AS $$
-            DECLARE
-                written record;
             BEGIN
                 IF TG_OP = 'DELETE' THEN
-                    written := OLD;
+                    PERFORM stamp_owner_of(OLD."CaseId", OLD."ActId");
                 ELSE
-                    written := NEW;
+                    PERFORM stamp_owner_of(NEW."CaseId", NEW."ActId");
                 END IF;
-
-                UPDATE "Cases" SET "Updated" = NULL WHERE "Id" = written."CaseId";
-                UPDATE "Acts" SET "Updated" = NULL WHERE "Id" = written."ActId";
 
                 RETURN NULL;
             END;
             $$;
             """);
-    }
 
-    // A label deleted in settings takes its assignments along and stamps nothing.
-    private static void CreateStampLabelledOwnerFunction(MigrationBuilder migrationBuilder)
-    {
+        // A label deleted in settings takes its assignments along and stamps nothing.
         migrationBuilder.Sql(
             """
             CREATE FUNCTION stamp_labelled_owner()
             RETURNS trigger
             LANGUAGE plpgsql
             AS $$
-            DECLARE
-                written record;
             BEGIN
-                IF TG_OP = 'DELETE' THEN
-                    IF NOT EXISTS (SELECT FROM "Labels" WHERE "Id" = OLD."LabelId") THEN
-                        RETURN NULL;
-                    END IF;
-
-                    written := OLD;
-                ELSE
-                    written := NEW;
+                IF TG_OP = 'INSERT' THEN
+                    PERFORM stamp_owner_of(NEW."CaseId", NEW."ActId");
+                ELSIF EXISTS (SELECT FROM "Labels" WHERE "Id" = OLD."LabelId") THEN
+                    PERFORM stamp_owner_of(OLD."CaseId", OLD."ActId");
                 END IF;
-
-                UPDATE "Cases" SET "Updated" = NULL WHERE "Id" = written."CaseId";
-                UPDATE "Acts" SET "Updated" = NULL WHERE "Id" = written."ActId";
 
                 RETURN NULL;
             END;
             $$;
             """);
-    }
 
-    private static void CreateStampFileOwnerFunction(MigrationBuilder migrationBuilder)
-    {
         migrationBuilder.Sql(
             """
             CREATE FUNCTION stamp_file_owner()
@@ -106,16 +95,14 @@ public partial class StampOwnerOnAttachedWrites : Migration
             LANGUAGE plpgsql
             AS $$
             DECLARE
-                written record;
+                case_id uuid;
+                act_id uuid;
             BEGIN
-                IF TG_OP = 'DELETE' THEN
-                    written := OLD;
-                ELSE
-                    written := NEW;
-                END IF;
+                SELECT "CaseId", "ActId" INTO case_id, act_id
+                FROM "FileAssets"
+                WHERE "Id" = CASE WHEN TG_OP = 'DELETE' THEN OLD."FileAssetId" ELSE NEW."FileAssetId" END;
 
-                UPDATE "Cases" SET "Updated" = NULL WHERE "Id" = (SELECT "CaseId" FROM "FileAssets" WHERE "Id" = written."FileAssetId");
-                UPDATE "Acts" SET "Updated" = NULL WHERE "Id" = (SELECT "ActId" FROM "FileAssets" WHERE "Id" = written."FileAssetId");
+                PERFORM stamp_owner_of(case_id, act_id);
 
                 RETURN NULL;
             END;
