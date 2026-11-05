@@ -16,14 +16,16 @@
   </ItemGroup>
 
   <!--
-    SkipFrontendLibs=true leaves wwwroot/lib and wwwroot/fonts to the caller (the Dockerfile's Node stage).
-    IncludeFrontendLibs adds them to Content again because the wwwroot glob may predate them.
+    SkipFrontendLibs=true leaves wwwroot/lib, wwwroot/fonts and wwwroot/js to the caller (the Dockerfile's Node stage)
+    and checks no types. IncludeFrontendLibs adds them to Content again because the wwwroot glob may predate them.
   -->
   <ItemGroup>
     <FrontendLibsInput Include="package.json;package-lock.json" />
     <FrontendLibsOutput Include="node_modules\.package-lock.json" />
-    <FrontendLibsBuildInput Include="package-lock.json;build-libs.mjs;lib-src\**\*.js" />
-    <FrontendLibsBuildOutput Include="node_modules\.build-libs.stamp;wwwroot\lib\pdfjs\pdf.min.mjs;wwwroot\fonts\instrument-sans-latin.woff2" />
+    <FrontendLibsBuildInput Include="package-lock.json;build-libs.mjs;ts\**\*.ts;ts\**\tsconfig.json" />
+    <FrontendLibsBuildOutput Include="node_modules\.build-libs.stamp;wwwroot\lib\pdfjs\pdf.min.mjs;wwwroot\fonts\instrument-sans-latin.woff2;wwwroot\js\early-refresh.js" />
+    <FrontendTypesInput Include="package.json;ts\**\*.ts;ts\**\tsconfig.json" />
+    <FrontendTypesOutput Include="node_modules\.typecheck.stamp" />
   </ItemGroup>
 
   <Target Name="InstallFrontendLibs" Condition="'$(SkipFrontendLibs)' != 'true'" Inputs="@(FrontendLibsInput)" Outputs="@(FrontendLibsOutput)">
@@ -36,10 +38,15 @@
     <Touch Files="node_modules\.build-libs.stamp" AlwaysCreate="true" />
   </Target>
 
-  <Target Name="IncludeFrontendLibs" DependsOnTargets="GenerateFrontendLibs" BeforeTargets="ResolveProjectStaticWebAssets;AssignTargetPaths">
+  <Target Name="CheckFrontendTypes" Condition="'$(SkipFrontendLibs)' != 'true'" DependsOnTargets="InstallFrontendLibs" Inputs="@(FrontendTypesInput);@(FrontendLibsOutput)" Outputs="@(FrontendTypesOutput)">
+    <Exec Command="npm run --silent typecheck" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Touch Files="@(FrontendTypesOutput)" AlwaysCreate="true" />
+  </Target>
+
+  <Target Name="IncludeFrontendLibs" DependsOnTargets="GenerateFrontendLibs;CheckFrontendTypes" BeforeTargets="ResolveProjectStaticWebAssets;AssignTargetPaths">
     <ItemGroup>
-      <Content Remove="wwwroot\lib\**;wwwroot\fonts\**" />
-      <Content Include="wwwroot\lib\**;wwwroot\fonts\**" />
+      <Content Remove="wwwroot\lib\**;wwwroot\fonts\**;wwwroot\js\**" />
+      <Content Include="wwwroot\lib\**;wwwroot\fonts\**;wwwroot\js\**" />
     </ItemGroup>
   </Target>
 

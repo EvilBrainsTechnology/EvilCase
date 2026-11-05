@@ -6,7 +6,8 @@ The application runs as a single container image published to `ghcr.io/evilbrain
 
 Built from the repository root `Dockerfile`; the build context is the root and the solution lives in `src/`. `.dockerignore` excludes everything outside `src/` except `LICENSE.txt`.
 
-- `sdk:10.0` restores and publishes `EvilCase.Host`. The Blazor WebAssembly bundle comes with it, there is no separate frontend step.
+- `node:22-alpine` runs `build-libs.mjs`: the frontend libraries, fonts and the modules compiled from `src/App/EvilCase.App/ts`, into `wwwroot`. It checks no types; CI's build does.
+- `sdk:10.0` restores and publishes `EvilCase.Host` with `SkipFrontendLibs=true`, taking `wwwroot` from the Node stage. The Blazor WebAssembly bundle comes with it.
 - `aspnet:10.0-alpine` runs it as the image's non-root user on port 8080. Entry point `EvilBrains.EvilCase.Host.dll` — `src/Directory.Build.props` renames the assembly.
 - `HEALTHCHECK` calls `/health/live` through `curl`.
 - `tzdata` carries `Europe/Prague`, the zone of the times in a file archive; the host does not start without it.

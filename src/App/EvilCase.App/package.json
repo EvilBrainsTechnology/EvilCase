@@ -2,9 +2,12 @@
   "name": "evilcase-app-libs",
   "version": "0.0.0",
   "private": true,
-  "description": "Third-party browser libraries and fonts of the frontend, copied into wwwroot by build-libs.mjs.",
+  "description": "Third-party browser libraries and fonts of the frontend and the compiler of its TypeScript, built into wwwroot by build-libs.mjs.",
   "engines": {
     "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ts/tsconfig.json && tsc -p ts/worker/tsconfig.json"
   },
   "dependencies": {
     "@codemirror/commands": "6.11.1",
@@ -36,6 +39,7 @@
   },
   "devDependencies": {
     "buffer": "6.0.3",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "typescript": "7.0.2"
   }
 }
