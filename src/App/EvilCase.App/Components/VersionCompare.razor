@@ -3,9 +3,10 @@
 @implements IDisposable
 @inject ILogger<VersionCompare> Logger
 
-@* The compare of two versions of a text, code or Markdown file, the older on the left; Markdown formatted or as its
-   source. A side over 1 MB or not in UTF-8 says why it does not compare; versions equal but for their line breaks say
-   only that they are equal. *@
+@* The compare of two versions, the older on the left. A text, code or Markdown file compares by content, Markdown
+   formatted or as its source; versions equal but for their line breaks say only that they are equal. Any other file, and
+   a text with a side over 1 MB or not in UTF-8, shows the two previews side by side; below lg that text says why it does
+   not compare. *@
 @if (this.Versions is null || this.Item(this.Older) is not { } older || this.Item(this.Newer) is not { } newer)
 {
     <div class="ec-preview-stage ec-text-compare-stage">
@@ -22,7 +23,11 @@
         </div>
     </div>
 }
-else if (this.Texts(older, newer) is ({ } olderText, { } newerText) && !this.unavailable && !SameText(olderText, newerText))
+else if (!FileTypeDisplay.ComparesByContent(this.File.FileName))
+{
+    @this.Sides(older, newer)
+}
+else if (this.ComparesByContent(older, newer) && this.Texts(older, newer) is ({ } olderText, { } newerText) && !this.unavailable && !SameText(olderText, newerText))
 {
     var preview = FileTypeDisplay.Preview(this.File.FileName);
     var language = preview switch
@@ -50,7 +55,13 @@ else if (this.Texts(older, newer) is ({ } olderText, { } newerText) && !this.una
 }
 else
 {
-    <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
+    var sideBySide = !this.ComparesByContent(older, newer);
+
+    if (sideBySide)
+    {
+        <div class="ec-compare-wide">@this.Sides(older, newer)</div>
+    }
+    <div class="@(sideBySide ? "ec-preview-stage ec-text-editor-stage ec-text-compare-stage ec-compare-narrow" : "ec-preview-stage ec-text-editor-stage ec-text-compare-stage")">
         <div class="ec-text-compare-card ec-text-compare-card-narrow">
             @this.Pickers(older, newer)
             <div class="ec-text-compare-state">
@@ -149,9 +160,18 @@ else
     [Parameter, EditorRequired]
     public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
 
+    /// <summary>
+    /// Raised with the number of a version to download.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> OnDownload { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnOpenFile { get; set; }
+
     protected override async Task OnParametersSetAsync()
     {
-        if (this.Versions is null || (this.Older, this.Newer) == this.loadedPair)
+        if (this.Versions is null || (this.Older, this.Newer) == this.loadedPair || !FileTypeDisplay.ComparesByContent(this.File.FileName))
             return;
 
         this.loadedPair = (this.Older, this.Newer);
@@ -222,6 +242,17 @@ else
         return (this.texts.GetValueOrDefault((older.Number, older.Created)), this.texts.GetValueOrDefault((newer.Number, newer.Created)));
     }
 
+    // A version not read yet counts as UTF-8 until it is.
+    private bool ComparesByContent(FileVersionItem older, FileVersionItem newer)
+    {
+        return FileTypeDisplay.ComparesByContent(this.File.FileName, older.SizeBytes, newer.SizeBytes, utf8: !this.NotUtf8(older) && !this.NotUtf8(newer));
+    }
+
+    private bool NotUtf8(FileVersionItem version)
+    {
+        return this.texts.TryGetValue((version.Number, version.Created), out var text) && text is null;
+    }
+
     // Why each side, the newer first, does not compare.
     private List<string> Problems(FileVersionItem older, FileVersionItem newer)
     {
@@ -231,7 +262,7 @@ else
         {
             if (version.SizeBytes > FileTypeDisplay.MaxTextBytes)
                 problems.Add($"Verzi {version.Number} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(FileTypeDisplay.MaxTextBytes)}");
-            else if (this.texts.TryGetValue((version.Number, version.Created), out var text) && text is null)
+            else if (this.NotUtf8(version))
                 problems.Add($"Verzi {version.Number} nelze porovnat: soubor není v kódování UTF-8");
         }
 
@@ -257,6 +288,25 @@ else
     private RenderFragment MarkdownModes(bool source)
     {
         return @<MarkdownModeSwitch Editing="false" Source="source" OnSwitch="shown => this.source = shown" />;
+    }
+
+    // Each side loads and shows the preview of its version with its own toolbar.
+    private RenderFragment Sides(FileVersionItem older, FileVersionItem newer)
+    {
+        return @<div class="ec-version-sides">
+            @this.Pickers(older, newer)
+            <div class="ec-version-sides-columns">
+                @foreach (var side in new[] { older, newer })
+                {
+                    var number = side.Number;
+
+                    <div class="ec-version-side" @key="(side.Number, side.Created)">
+                        <FileContentPreview File="this.File" Version="@(number == this.File.Version ? null : number)" SizeBytes="side.SizeBytes" LoadContent="this.LoadContent"
+                                            Compared OnDownload="() => this.OnDownload.InvokeAsync(number)" OnOpenFile="this.OnOpenFile" />
+                    </div>
+                }
+            </div>
+        </div>;
     }
 
     private RenderFragment Pickers(FileVersionItem older, FileVersionItem newer)

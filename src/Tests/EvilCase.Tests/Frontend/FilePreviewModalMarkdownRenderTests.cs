@@ -158,7 +158,6 @@ public class FilePreviewModalMarkdownRenderTests
 
         await component.WaitForAssertionAsync(() => Assert.That(previews.OpenedTextViews, Is.EqualTo(1)));
 
-        await component.Instance.DisposeAsync();
         await ctx.DisposeAsync();
 
         using (Assert.EnterMultipleScope())

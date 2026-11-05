@@ -53,8 +53,15 @@
 
                             <li class="ec-preview-data-message-attachment">
                                 <EcFileIcon FileName="@item.Name" Size="EcFileIconSize.Compact" />
-                                <button type="button" class="ec-preview-data-message-attachment-open" data-tooltip="Otevřít náhled"
-                                        @onclick="() => this.OnOpenAttachment.InvokeAsync((message, attachmentIndex))">@item.Name</button>
+                                @if (this.OnOpenAttachment.HasDelegate)
+                                {
+                                    <button type="button" class="ec-preview-data-message-attachment-open" data-tooltip="Otevřít náhled"
+                                            @onclick="() => this.OnOpenAttachment.InvokeAsync((message, attachmentIndex))">@item.Name</button>
+                                }
+                                else
+                                {
+                                    <span class="ec-preview-data-message-attachment-name">@item.Name</span>
+                                }
                                 <span class="ec-preview-data-message-attachment-size">@FileSizeDisplay.Text(item.Content.Length)</span>
                                 <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                           AriaLabel="@($"Stáhnout {item.Name}")" data-tooltip="Stáhnout" OnClick="() => this.DownloadAttachment(item)" />
@@ -107,7 +114,7 @@
     public int? Version { get; set; }
 
     /// <summary>
-    /// Raised with the parsed message and the index of the attachment to preview.
+    /// Raised with the parsed message and the index of the attachment to preview; without it the attachments do not open.
     /// </summary>
     [Parameter]
     public EventCallback<(DataMessage Message, int Index)> OnOpenAttachment { get; set; }

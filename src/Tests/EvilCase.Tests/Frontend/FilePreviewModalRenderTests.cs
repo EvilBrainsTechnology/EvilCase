@@ -91,13 +91,13 @@ public class FilePreviewModalRenderTests
     [Test]
     public async Task ClosingAStreamedPreviewStopsKeepingTheSessionFresh()
     {
-        await using var ctx = NewContext(out _);
+        var ctx = NewContext(out _);
 
         var file = File("a.mp4");
-        var component = Render(ctx, [file], file.FileId);
+        Render(ctx, [file], file.FileId);
         var session = ctx.Services.GetRequiredService<StubAuthSession>();
 
-        await component.Instance.DisposeAsync();
+        await ctx.DisposeAsync();
 
         Assert.That(session.KeptFresh.Single().IsCancellationRequested, Is.True);
     }
@@ -268,12 +268,12 @@ public class FilePreviewModalRenderTests
     [Test]
     public async Task ClosingTheModalRevokesTheBlob()
     {
-        await using var ctx = NewContext(out var files);
+        var ctx = NewContext(out var files);
 
         var file = File("a.svg");
-        var component = Render(ctx, [file], file.FileId);
+        Render(ctx, [file], file.FileId);
 
-        await component.Instance.DisposeAsync();
+        await ctx.DisposeAsync();
 
         Assert.That(files.Revoked, Is.EqualTo(["blob:test/0"]));
     }

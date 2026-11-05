@@ -62,7 +62,6 @@ const highlightRules = `::highlight(${hitName}) { background-color: var(--ec-pre
 ::highlight(${currentHitName}) { background-color: var(--ec-preview-hit-current); }`;
 // Text in two of these never forms one match.
 const blocks = 'address, article, blockquote, dd, div, dl, dt, figcaption, h1, h2, h3, h4, h5, h6, li, ol, p, pre, section, table, td, th, tr, ul';
-let highlighted = null;
 
 function release() {
     for (const [host, urls] of documentUrls) {
@@ -555,15 +554,26 @@ function rangeOf(index, start, end) {
     return range;
 }
 
+// The views shown side by side share the two highlights; each adds and removes only its own matches.
+function sharedHighlight(name) {
+    if (!highlights.has(name)) {
+        highlights.set(name, new Highlight());
+    }
+
+    return highlights.get(name);
+}
+
 function clearSearch(state) {
     clearTimeout(state.typing);
-    state.search = null;
 
-    if (highlighted === state) {
-        highlights?.delete(hitName);
-        highlights?.delete(currentHitName);
-        highlighted = null;
+    if (state.search?.painted && highlights) {
+        for (const range of state.search.ranges) {
+            highlights.get(hitName)?.delete(range);
+            highlights.get(currentHitName)?.delete(range);
+        }
     }
+
+    state.search = null;
 }
 
 // The match shown is drawn apart from the rest and scrolled to the middle of the stage when it is out of view.
@@ -575,25 +585,19 @@ function showMatch(state, number) {
     search.current = number;
 
     if (highlights) {
-        if (highlighted !== state) {
-            highlights.set(hitName, new Highlight());
-            highlights.set(currentHitName, new Highlight());
-            highlighted = state;
-        }
-
-        const hits = highlights.get(hitName);
+        const hits = sharedHighlight(hitName);
+        const currentHits = sharedHighlight(currentHitName);
 
         if (search.painted) {
             hits.add(previous);
+            currentHits.delete(previous);
         } else {
-            hits.clear();
             search.ranges.forEach(each => hits.add(each));
             search.painted = true;
         }
 
         hits.delete(range);
-        highlights.get(currentHitName).clear();
-        highlights.get(currentHitName).add(range);
+        currentHits.add(range);
     }
 
     // A code block scrolls sideways on its own, so the match first comes into its view; its scroll offset is

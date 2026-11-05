@@ -1114,6 +1114,10 @@ html.ec-scroll-locked {
     z-index: 2;
 }
 
+.ec-versions-compare {
+    display: contents;
+}
+
 .ec-file-actions .ec-button {
     height: var(--ec-control-md);
 }
@@ -2302,6 +2306,43 @@ html.ec-scroll-locked {
     min-height: var(--ec-compare-notice-height);
 }
 
+/* The previews of two versions side by side under the choice of versions, the older on the left; each keeps its own
+   toolbar. */
+.ec-version-sides {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ec-version-sides > .ec-text-compare-versions {
+    border-radius: 0;
+}
+
+.ec-version-sides-columns {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    min-height: 0;
+}
+
+.ec-version-side {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+}
+
+.ec-version-side + .ec-version-side {
+    border-left: 1px solid var(--ec-border);
+}
+
+/* What only the compare side by side offers, which stands from lg up. */
+.ec-compare-wide {
+    display: contents;
+}
+
 .ec-text-compare-notice-text p {
     margin: 0;
     font-size: var(--ec-text-md);
@@ -3026,8 +3067,16 @@ html.ec-scroll-locked {
     border-bottom: 0;
 }
 
-.ec-preview-data-message-attachment:hover {
+.ec-preview-data-message-attachment:has(.ec-preview-data-message-attachment-open):hover {
     background: var(--ec-surface-sunken);
+}
+
+.ec-preview-data-message-attachment-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .ec-preview-data-message-attachment-open {
@@ -5978,6 +6027,10 @@ html.ec-scroll-locked {
         padding: var(--ec-space-4);
     }
 
+    .ec-compare-wide {
+        display: none;
+    }
+
     .ec-preview-markdown.ec-markdown-compare-text {
         padding: var(--ec-space-5);
     }
@@ -7609,6 +7662,11 @@ html:has(.ec-gate) {
 @media (min-width: 992px) {
     .ec-recent-acts {
         --ec-list-col-contact: var(--ec-recent-col-contact);
+    }
+
+    /* A pair of texts that does not compare by content says why only below lg. */
+    .ec-compare-narrow {
+        display: none;
     }
 }
 
