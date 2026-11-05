@@ -44,6 +44,30 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
+    public async Task AMaximizedPreviewStaysMaximizedInTheCompareAndInTheEditor()
+    {
+        await using var ctx = NewContext(out _, out _);
+
+        var file = File("a.txt", 3);
+        var component = Render(ctx, file, Texts("a\n", "b\n", "c\n"));
+
+        await component.Find($"{Header} button[aria-label='Maximalizovat']").ClickAsync(new MouseEventArgs());
+        await component.Find("button[aria-label='Porovnat']").ClickAsync(new MouseEventArgs());
+
+        var inCompare = Maximized(component);
+
+        await component.Find("button[aria-label='Zavřít porovnání']").ClickAsync(new MouseEventArgs());
+        await FilePreviewHeaderMenu.Select(component, "Upravit");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(inCompare, Is.True, "the compare keeps the size of the open preview");
+            Assert.That(Maximized(component), Is.True, "the editor keeps the size of the open preview");
+            Assert.That(component.FindAll($"{Header} .ec-preview-edit-actions"), Has.Count.EqualTo(1));
+        }
+    }
+
+    [Test]
     public async Task PorovnatOnAnOlderVersionComparesItWithTheCurrentOneAndClosingReturnsToIt()
     {
         await using var ctx = NewContext(out var compares, out _);
@@ -327,6 +351,11 @@ public class FilePreviewModalCompareRenderTests
             .FindAll(".ec-text-compare-version")
             .Single(version => string.Equals(version.QuerySelector(".ec-text-compare-version-label")!.TextContent, side, StringComparison.Ordinal))
             .QuerySelector(".ec-popover-trigger")!;
+    }
+
+    private static bool Maximized(IRenderedComponent<FilePreviewModal> component)
+    {
+        return component.FindAll($"{Header} button[aria-label='Obnovit velikost'][aria-pressed=true]").Count == 1;
     }
 
     private static byte[][] Texts(params string[] texts)
