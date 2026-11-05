@@ -337,7 +337,8 @@
     --ec-preview-message-width: 420px;
     --ec-preview-position-width: 84px;
     --ec-preview-sheet-gutter: 48px;
-    --ec-preview-sheet-cell: 320px;
+    --ec-preview-sheet-row: 20px;
+    --ec-preview-sheet-indent: 9px;
     --ec-preview-email-label: 72px;
     --ec-preview-data-message-label: 160px;
     --ec-preview-signature-width: 760px;

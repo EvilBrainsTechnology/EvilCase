@@ -12,7 +12,11 @@ public partial class FileContentPreview
 {
     private const int MaxSheetRows = 1000;
 
-    private static readonly string[] WorkbookAssemblies = ["ExcelDataReader.wasm", "ExcelNumberFormat.wasm", "System.Text.Encoding.CodePages.wasm"];
+    private static readonly string[] WorkbookAssemblies =
+    [
+        "DocumentFormat.OpenXml.wasm", "DocumentFormat.OpenXml.Framework.wasm", "System.IO.Packaging.wasm", "ExcelDataReader.wasm",
+        "ExcelNumberFormat.wasm", "System.Text.Encoding.CodePages.wasm",
+    ];
 
     private CancellationTokenSource? loadToken;
 

@@ -43,21 +43,37 @@
     overflow: auto;
 }
 
+/* Columns take the widths the workbook gives them; a cell clips what does not fit, as Excel does. */
 .ec-preview-sheet-table {
+    width: max-content;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
     font-size: var(--ec-text-sm);
 }
 
+.ec-preview-sheet-table .ec-preview-sheet-gutter {
+    width: var(--ec-preview-sheet-gutter);
+}
+
+.ec-preview-sheet-table tr {
+    height: var(--ec-preview-sheet-row);
+}
+
 .ec-preview-sheet-table th,
 .ec-preview-sheet-table td {
-    max-width: var(--ec-preview-sheet-cell);
-    padding: var(--ec-space-2) var(--ec-space-4);
+    padding: 0 var(--ec-space-1);
     border-right: 1px solid var(--ec-border-subtle);
     border-bottom: 1px solid var(--ec-border-subtle);
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* Excel's general alignment: text at the bottom left, an indent level pads the side the text is aligned to. */
+.ec-preview-sheet-table td {
+    padding-left: calc(var(--ec-space-1) + var(--ec-preview-sheet-cell-indent, 0) * var(--ec-preview-sheet-indent));
+    text-align: left;
+    vertical-align: bottom;
 }
 
 .ec-preview-sheet-table thead th {
@@ -72,16 +88,62 @@
 .ec-preview-sheet-table tbody th {
     position: sticky;
     left: 0;
-    min-width: var(--ec-preview-sheet-gutter);
     background: var(--ec-surface-header);
     color: var(--ec-text-faint);
     font-weight: var(--ec-weight-regular);
-    text-align: right;
+    text-align: center;
 }
 
 .ec-preview-sheet-table thead th:first-child {
     left: 0;
     z-index: 1;
+}
+
+.ec-preview-sheet-table .ec-preview-sheet-center {
+    text-align: center;
+}
+
+.ec-preview-sheet-table .ec-preview-sheet-right {
+    padding-right: calc(var(--ec-space-1) + var(--ec-preview-sheet-cell-indent, 0) * var(--ec-preview-sheet-indent));
+    padding-left: var(--ec-space-1);
+    text-align: right;
+}
+
+.ec-preview-sheet-table .ec-preview-sheet-justify {
+    text-align: justify;
+}
+
+.ec-preview-sheet-table .ec-preview-sheet-top {
+    vertical-align: top;
+}
+
+.ec-preview-sheet-table .ec-preview-sheet-middle {
+    vertical-align: middle;
+}
+
+.ec-preview-sheet-table .ec-preview-sheet-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ec-preview-sheet-bold {
+    font-weight: var(--ec-weight-bold);
+}
+
+.ec-preview-sheet-italic {
+    font-style: italic;
+}
+
+.ec-preview-sheet-underline {
+    text-decoration-line: underline;
+}
+
+.ec-preview-sheet-strike {
+    text-decoration-line: line-through;
+}
+
+.ec-preview-sheet-underline.ec-preview-sheet-strike {
+    text-decoration-line: underline line-through;
 }
 
 .ec-preview-sheet-tabs {
