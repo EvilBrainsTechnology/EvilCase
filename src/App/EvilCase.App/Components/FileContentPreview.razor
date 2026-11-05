@@ -2,8 +2,10 @@
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.AspNetCore.Components.WebAssembly.Services
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
+@inject LazyAssemblyLoader Assemblies
 @inject IAuthSession Session
 @inject IBrowserFiles BrowserFiles
 @inject IFilePreviews Previews

@@ -94,18 +94,9 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : JsModule(jsRuntime, "
         return await this.Invoke<IReadOnlyList<SheetPreview>>("readWorkbook", token, streamRef, maxRows);
     }
 
-    public async Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token)
+    public async Task<string> HtmlToText(string html, CancellationToken token)
     {
-        using var streamRef = new DotNetStreamReference(content);
-
-        return await this.Invoke<EmailPreview>("readEmail", token, fileName, streamRef);
-    }
-
-    public async Task<string?> DetectExtension(Stream content, CancellationToken token)
-    {
-        using var streamRef = new DotNetStreamReference(content);
-
-        return await this.Invoke<string?>("detectExtension", token, streamRef);
+        return await this.Invoke<string>("htmlToText", token, html);
     }
 
     internal static string LanguageValue(CodeLanguage language)

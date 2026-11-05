@@ -41,13 +41,6 @@ internal sealed class StubFilePreviews : IFilePreviews
     public int DisposedViews { get; private set; }
 
     /// <summary>
-    /// The extension the library finds in any content.
-    /// </summary>
-    public string? DetectedExtension { get; set; }
-
-    public List<byte[]> Detected { get; } = [];
-
-    /// <summary>
     /// What a library does with a file it cannot parse.
     /// </summary>
     public bool Fails { get; set; }
@@ -158,23 +151,11 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.FromResult<IReadOnlyList<SheetPreview>>([]);
     }
 
-    public Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token)
+    public Task<string> HtmlToText(string html, CancellationToken token)
     {
         this.ThrowWhenFailing();
 
-        return Task.FromResult(new EmailPreview(From: "", To: [], Cc: [], Subject: "", Date: null, Body: "", Truncated: false, Attachments: []));
-    }
-
-    public async Task<string?> DetectExtension(Stream content, CancellationToken token)
-    {
-        this.ThrowWhenFailing();
-
-        await using var bytes = new MemoryStream();
-
-        await content.CopyToAsync(bytes, token);
-        this.Detected.Add(bytes.ToArray());
-
-        return this.DetectedExtension;
+        return Task.FromResult(html);
     }
 
     private void ThrowWhenFailing()

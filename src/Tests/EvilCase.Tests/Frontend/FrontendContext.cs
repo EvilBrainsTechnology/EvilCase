@@ -3,6 +3,7 @@ using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Clipboard;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Navigation;
+using Microsoft.AspNetCore.Components.WebAssembly.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
@@ -27,6 +28,7 @@ internal static class FrontendContext
         AddStub<IBrowserHistory, StubBrowserHistory>(ctx);
         AddStub<IClipboardWriter, StubClipboardWriter>(ctx);
         AddStub<IAuthSession, StubAuthSession>(ctx);
+        ctx.Services.AddSingleton<LazyAssemblyLoader>();
 
         return ctx;
     }

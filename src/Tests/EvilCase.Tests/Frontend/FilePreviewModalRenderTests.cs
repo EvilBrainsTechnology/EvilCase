@@ -122,6 +122,17 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
+    public async Task AnEmailItsReaderCannotReadShowsThatThePreviewIsUnavailable()
+    {
+        await using var ctx = NewContext(out _);
+
+        var file = File("Zpráva.msg");
+        var component = Render(ctx, [file], file.FileId, content: "Žádná zpráva Outlooku.");
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici")));
+    }
+
+    [Test]
     public void ACodeFileThatFailsToFormatForAnotherReasonShowsTheOriginalWithTheSwitchDisabled()
     {
         using var ctx = NewContext(out _, out _, out var editors);

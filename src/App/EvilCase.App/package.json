@@ -24,21 +24,17 @@
     "@floating-ui/dom": "1.8.0",
     "@fontsource-variable/instrument-sans": "5.3.0",
     "@fontsource-variable/jetbrains-mono": "5.3.0",
-    "@kenjiuno/msgreader": "1.29.0",
     "@lezer/highlight": "1.2.5",
     "@milkdown/kit": "7.23.0",
     "@prettier/plugin-xml": "3.4.2",
     "docx-preview": "0.4.1",
-    "file-type": "22.2.0",
     "jszip": "3.10.2",
     "libheif-js": "1.23.5",
     "pdfjs-dist": "6.4.299",
-    "postal-mime": "4.1.4",
     "prettier": "3.9.10",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
-    "buffer": "6.0.3",
     "esbuild": "0.28.2",
     "typescript": "7.0.2"
   }

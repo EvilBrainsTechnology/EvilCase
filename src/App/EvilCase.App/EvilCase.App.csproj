@@ -7,6 +7,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="MimeKitLite" />
+    <PackageReference Include="MsgReader" />
+    <!-- MsgReader's own dependency, raised to the patched version. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+
+  <!-- The e-mail readers download when the first e-mail opens; EmailFile.Assemblies names the same files. -->
+  <ItemGroup>
+    <BlazorWebAssemblyLazyLoad Include="MimeKitLite.wasm;MsgReader.wasm;RtfPipe.wasm;UtfUnknown.wasm;Microsoft.Maui.Graphics.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="Microsoft.IO.RecyclableMemoryStream.wasm;System.Security.Cryptography.Pkcs.wasm;System.Text.Encoding.CodePages.wasm" />
   </ItemGroup>
 
   <ItemGroup>

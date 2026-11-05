@@ -82,11 +82,8 @@ internal interface IFilePreviews
     /// </summary>
     public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token);
 
-    public Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token);
-
     /// <summary>
-    /// The extension, without the dot, of the type the content shows, or <see langword="null"/> when it shows none, as
-    /// for plain text.
+    /// The text of an HTML e-mail body, read in an inert document so nothing in it runs or loads.
     /// </summary>
-    public Task<string?> DetectExtension(Stream content, CancellationToken token);
+    public Task<string> HtmlToText(string html, CancellationToken token);
 }
