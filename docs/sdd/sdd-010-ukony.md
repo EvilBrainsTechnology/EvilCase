@@ -39,8 +39,8 @@ kontakt. Zadává se na editaci úkonu.
 
 ### Stránky a řazení
 
-- `/acts` — seznam úkonů napříč spisy: datum úkonu, název se spisem, směr, stav, kontakt,
-  okamžik poslední změny a hlavní soubor. Hledací pole hledá v názvu, popisu, čísle úkonu
+- `/acts` — seznam úkonů napříč spisy: datum úkonu, název se spisem, hlavní soubor, směr, stav,
+  kontakt a okamžik poslední změny. Hledací pole hledá v názvu, popisu, čísle úkonu
   a externím čísle úkonu. Zužuje se hledáním, směrem, stavem (Vše, Bez stavu, Rozpracováno,
   Odesláno), rozsahem dat a štítkem; zúžení stavem nese jen tento seznam. Volba „Jen z otevřených spisů“ je
   ve výchozím stavu zapnutá a vynechá úkony uzavřených spisů. Výchozí řazení je podle data úkonu
@@ -58,10 +58,10 @@ kontakt. Zadává se na editaci úkonu.
 - Založení i editace nesou stav jako přepínač Rozpracováno / Odesláno; klik na vybraný stav ho
   zruší.
 - Seznam úkonů jde napříč spisy a zužuje se spisem, stavem spisu, kontaktem, štítkem, směrem,
-  stavem a rozsahem dat; v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, směr,
-  stav, kontakt, okamžik poslední změny, štítky (SDD-019) a hlavní soubor; podobu v detailu
+  stavem a rozsahem dat; v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, štítky (SDD-019), hlavní
+  soubor, směr, stav, kontakt a okamžik poslední změny; podobu v detailu
   spisu řídí SDD-009.
-- Každý seznam úkonů nese za Změněno úzký sloupec Soubor s hlavním souborem úkonu (SDD-012):
+- Každý seznam úkonů nese hned za názvem úzký sloupec Soubor s hlavním souborem úkonu (SDD-012):
   tlačítko v podobě barevné dlaždice typu souboru jako v kartě souborů, orámované barvou typu,
   které najetí myší ztmaví; jeho popisek a tooltip jmenují soubor; tooltip je bublina jako u porovnání verzí. Klik otevře náhled
   hlavního souboru se všemi jeho akcemi, bez listování ostatními soubory úkonu, a do detailu
