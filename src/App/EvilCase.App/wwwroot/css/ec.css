@@ -1,18 +1,21 @@
-/* The app stylesheets in their cascade order; build-styles.mjs bundles them into wwwroot/lib/ec.min.css. */
-@import "ec-fonts.css";
-@import "ec-tokens.css";
-@import "ec-base.css";
-@import "ec-files.css";
-@import "ec-preview.css";
-@import "ec-editor.css";
-@import "ec-markdown.css";
-@import "ec-preview-formats.css";
-@import "ec-versions.css";
-@import "ec-comments.css";
-@import "ec-settings.css";
-@import "ec-detail.css";
-@import "ec-mobile.css";
-@import "ec-shell.css";
-@import "ec-topbar.css";
-@import "ec-lists.css";
-@import "ec-mobile-edge-to-edge.css";
+/* The app stylesheets in their cascade order; build-styles.mjs bundles them into wwwroot/lib/ec.min.css. The
+   third-party stylesheets loaded at runtime sit in the vendor layer, below every layer of the app. */
+@layer vendor, tokens, base, components, mobile;
+
+@import "ec-fonts.css" layer(tokens);
+@import "ec-tokens.css" layer(tokens);
+@import "ec-base.css" layer(base);
+@import "ec-files.css" layer(components);
+@import "ec-preview.css" layer(components);
+@import "ec-editor.css" layer(components);
+@import "ec-markdown.css" layer(components);
+@import "ec-preview-formats.css" layer(components);
+@import "ec-versions.css" layer(components);
+@import "ec-comments.css" layer(components);
+@import "ec-settings.css" layer(components);
+@import "ec-detail.css" layer(components);
+@import "ec-shell.css" layer(components);
+@import "ec-topbar.css" layer(components);
+@import "ec-lists.css" layer(components);
+@import "ec-mobile.css" layer(mobile);
+@import "ec-mobile-edge-to-edge.css" layer(mobile);

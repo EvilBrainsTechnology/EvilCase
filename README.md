@@ -21,7 +21,7 @@ Full project map: [CLAUDE.md](CLAUDE.md); conventions: `.claude/rules/`. Deploym
 ### Prerequisites
 
 - .NET SDK per `src/global.json`
-- Node.js 22 or newer with npm: the .NET build runs `npm ci`, generates `wwwroot/lib` and `wwwroot/fonts` from `src/App/EvilCase.App/package.json`, compiles the frontend's TypeScript in `src/App/EvilCase.App/ts` into `wwwroot/js`, bundles the stylesheets of `wwwroot/css` into `wwwroot/lib/ec.min.css` in the order `wwwroot/css/ec.css` imports them and fails on a type error. It needs network access to `registry.npmjs.org`.
+- Node.js 22 or newer with npm: the .NET build runs `npm ci`, generates `wwwroot/lib` and `wwwroot/fonts` from `src/App/EvilCase.App/package.json`, compiles the frontend's TypeScript in `src/App/EvilCase.App/ts` into `wwwroot/js`, bundles the stylesheets of `wwwroot/css` into `wwwroot/lib/ec.min.css` in the order and cascade layers `wwwroot/css/ec.css` gives them and fails on a type error. It needs network access to `registry.npmjs.org`.
 - Docker, for `dotnet r test`. The tests start their own PostgreSQL through Testcontainers, as a container named evilcase-test-db-<slug>, and take it down when the run ends.
 - A reachable PostgreSQL, for running the app. The host migrates the database on startup and does not retry, so an unreachable server stops it. Set `EvilBrains__EvilCase__Database__MigrateOnStartup=false` to start without one. A throwaway one, matching the connection string in `.env.example`:
 

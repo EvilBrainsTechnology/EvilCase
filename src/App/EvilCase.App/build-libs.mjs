@@ -6,8 +6,8 @@
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib, wwwroot/fonts and wwwroot/js; all three are gitignored.
-// Exits 1 when node_modules is missing, a source file or license file is missing, a module does not compile, or a
-// package that ships in the output has a license outside the allow-list.
+// Exits 1 when node_modules is missing, a source file or license file is missing, a module does not compile, a bundle
+// holds two copies of a package, or a package that ships in the output has a license outside the allow-list.
 
 import { build, transform } from 'esbuild';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -110,7 +110,7 @@ async function bundle(name, options) {
     mkdirSync(outDir, { recursive: true });
     writeFileSync(join(outDir, `${name}.min.js`), result.outputFiles[0].contents);
 
-    const bundled = new Set();
+    const bundled = new Map();
 
     for (const input of Object.keys(result.metafile.inputs)) {
         const parts = resolve(root, input).split(sep);
@@ -118,18 +118,35 @@ async function bundle(name, options) {
 
         if (index >= 0) {
             const scoped = parts[index + 1].startsWith('@');
-            bundled.add(parts.slice(index + 1, index + (scoped ? 3 : 2)).join('/'));
+            const end = index + (scoped ? 3 : 2);
+            const bundledName = parts.slice(index + 1, end).join('/');
+            const bundledRoot = parts.slice(0, end).join(sep);
+
+            // A second copy would escape what ts/lib-src patches on the first, such as style-mod in codemirror.ts.
+            if ((bundled.get(bundledName) ?? bundledRoot) !== bundledRoot) {
+                fail(`${name} bundles two copies of ${bundledName}; align the versions in package.json.`);
+            }
+
+            bundled.set(bundledName, bundledRoot);
         }
     }
 
     const licenses = [];
 
-    for (const bundledName of [...bundled].sort()) {
+    for (const bundledName of [...bundled.keys()].sort()) {
         checkLicense(bundledName);
         licenses.push(`===== ${bundledName} ${readPackage(bundledName).version} =====\n${readFileSync(licenseOf(packageRoot(bundledName)), 'utf8').trim()}\n`);
     }
 
     writeFileSync(join(outDir, 'LICENSE.txt'), licenses.join('\n'));
+}
+
+// Minifies a third-party stylesheet into the vendor layer, which the app's stylesheet declares below its own layers.
+async function vendorStylesheet(from, to) {
+    const { code } = await transform(readFileSync(from, 'utf8'), { loader: 'css', minify: true });
+
+    mkdirSync(dirname(to), { recursive: true });
+    writeFileSync(to, `@layer vendor{${code}}`);
 }
 
 if (!existsSync(modules)) {
@@ -164,7 +181,7 @@ copy('pdfjs-dist', 'standard_fonts', join(lib, 'pdfjs', 'standard_fonts'));
 copy('pdfjs-dist', 'wasm', join(lib, 'pdfjs', 'wasm'), (file) => !basename(file).startsWith('quickjs-eval'));
 // The viewer component of the same build, without the viewer application; its stylesheet reads the images beside it.
 writeFileSync(join(lib, 'pdfjs', 'pdf_viewer.mjs'), (await transform(readFileSync(source('pdfjs-dist', 'legacy', 'web', 'pdf_viewer.mjs'), 'utf8'), { minify: true, format: 'esm', target: 'es2022' })).code);
-writeFileSync(join(lib, 'pdfjs', 'pdf_viewer.css'), (await transform(readFileSync(source('pdfjs-dist', 'legacy', 'web', 'pdf_viewer.css'), 'utf8'), { loader: 'css', minify: true })).code);
+await vendorStylesheet(source('pdfjs-dist', 'legacy', 'web', 'pdf_viewer.css'), join(lib, 'pdfjs', 'pdf_viewer.css'));
 copy('pdfjs-dist', 'legacy/web/images', join(lib, 'pdfjs', 'images'));
 copyLicense('pdfjs-dist', join(lib, 'pdfjs', 'LICENSE'));
 
@@ -172,8 +189,8 @@ await bundle('code-preview');
 await bundle('codemirror');
 await bundle('milkdown');
 await bundle('floating-ui');
-// The base rules of an editable ProseMirror text; the app's stylesheet loads after it and wins. tables.css is not used.
-copy('@milkdown/prose', 'lib/style/prosemirror.css', join(lib, 'milkdown', 'prosemirror.css'));
+// The base rules of an editable ProseMirror text, below the app's rules. tables.css is not used.
+await vendorStylesheet(source('@milkdown/prose', 'lib', 'style', 'prosemirror.css'), join(lib, 'milkdown', 'prosemirror.css'));
 
 for (const [family, name] of [['instrument-sans', '@fontsource-variable/instrument-sans'], ['jetbrains-mono', '@fontsource-variable/jetbrains-mono']]) {
     for (const subset of ['latin', 'latin-ext']) {

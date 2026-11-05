@@ -1,5 +1,6 @@
 @media (max-width: 991.98px) {
-    .ec-button,
+    /* The star in the preview's header keeps the size of its icon (ec-files.css). */
+    .ec-button:where(:not(.ec-preview-name-row .ec-main-star)),
     .ec-swatch,
     .ec-copy {
         min-height: var(--ec-touch-min);
@@ -694,15 +695,25 @@
     .ec-preview-compact .ec-button-secondary,
     .ec-preview-toolbar-search-toggle .ec-button-secondary {
         border-color: transparent;
-        background: transparent;
         color: var(--ec-text-soft);
+    }
+
+    /* A hovered one keeps the hover of a secondary button. */
+    .ec-preview-toolbar-actions .ec-button-secondary:where(:not(:hover:enabled)),
+    .ec-preview-compact .ec-button-secondary:where(:not(:hover:enabled)),
+    .ec-preview-toolbar-search-toggle .ec-button-secondary:where(:not(:hover:enabled)) {
+        background: transparent;
     }
 
     .ec-preview-toolbar-search-collapsible {
         display: none;
-        flex: 1 1 100%;
         order: 1;
         min-width: 0;
+    }
+
+    /* The Markdown toolbar sizes its search itself (ec-markdown.css). */
+    .ec-preview-toolbar-search-collapsible:where(:not(.ec-markdown-toolbar > *)) {
+        flex: 1 1 100%;
     }
 
     .ec-preview-toolbar-search-open {
@@ -710,9 +721,13 @@
     }
 
     .ec-preview-toolbar-search-box {
+        min-width: 0;
+    }
+
+    /* The Markdown toolbar sizes its search itself (ec-markdown.css). */
+    .ec-preview-toolbar-search-box:where(:not(.ec-markdown-toolbar *)) {
         flex: 1 1 0;
         width: auto;
-        min-width: 0;
     }
 
     .ec-preview-toolbar-matches {
@@ -834,11 +849,16 @@
         padding: var(--ec-space-3) var(--ec-space-4);
     }
 
+    /* The version of an editor's changes keeps its row (ec-editor.css). */
     .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version,
-    .ec-text-compare-version {
+    .ec-text-compare-version:where(:not(:is(.ec-editor-changes, .ec-editor-changes-bar) *)) {
         flex-direction: column;
         align-items: stretch;
         gap: var(--ec-space-1);
+    }
+
+    .ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version,
+    .ec-text-compare-version {
         padding: 0;
     }
 

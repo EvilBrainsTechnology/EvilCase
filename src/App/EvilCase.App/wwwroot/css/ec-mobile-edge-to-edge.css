@@ -42,7 +42,8 @@
         padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
     }
 
-    .ec-card-body,
+    /* The settings cards inset their rows themselves (ec-settings.css). */
+    .ec-card-body:where(:not(.ec-settings-layout *)),
     .ec-card-footer {
         padding-inline: var(--ec-space-5);
     }
@@ -123,10 +124,16 @@
         border-radius: 0;
     }
 
-    .ec-file-row,
+    /* A middle row of the compact card keeps its own padding and height (ec-files.css). */
+    .ec-file-row:where(:not(.ec-file-card-compact *)),
     .ec-file-row:first-child,
     .ec-file-row:last-child {
         padding: var(--ec-space-3) var(--ec-space-1) var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-file-row,
+    .ec-file-row:first-child,
+    .ec-file-row:last-child {
         border-top: 1px solid var(--ec-border-subtle);
         border-bottom: 0;
         border-radius: 0;
@@ -725,7 +732,7 @@
 /* The file row and the menus below lg (SDD-020): a file carries only a quiet ⋯ with Stáhnout on top; a menu
    and the version picker are edge-to-edge sheets. */
 @media (max-width: 991.98px) {
-    .ec-file-row,
+    .ec-file-row:where(:not(.ec-file-card-compact *)),
     .ec-file-row:first-child,
     .ec-file-row:last-child {
         min-height: var(--ec-file-row-mobile);
@@ -789,10 +796,15 @@
         z-index: 51;
         max-height: calc(var(--ec-viewport-height) * 0.8);
         overflow-y: auto;
-        padding: var(--ec-space-3) 0;
         border-width: 1px 0 0;
         border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
         box-shadow: var(--ec-shadow-sheet);
+    }
+
+    /* The versions panel keeps its own padding (ec-versions.css). */
+    .ec-menu.ec-menu-popup,
+    .ec-popover:where(:not(.ec-preview-versions-panel)) {
+        padding: var(--ec-space-3) 0;
     }
 
     .ec-modal :is(.ec-popover, .ec-menu.ec-menu-popup) {

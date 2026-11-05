@@ -534,8 +534,7 @@ html {
 
 .ec-input:focus-visible,
 .ec-select:focus-visible,
-.ec-textarea:focus-visible,
-.ec-preview-toolbar-page-input:focus-visible {
+.ec-textarea:focus-visible {
     outline: none;
     border-color: var(--ec-accent);
     box-shadow: var(--ec-focus-ring);

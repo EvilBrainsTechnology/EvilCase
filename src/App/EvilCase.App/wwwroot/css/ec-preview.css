@@ -165,6 +165,12 @@
     font-size: var(--ec-text-sm);
     text-align: center;
     font-variant-numeric: tabular-nums;
+
+    &:focus-visible {
+        outline: none;
+        border-color: var(--ec-accent);
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-preview-toolbar-zoom-value {
