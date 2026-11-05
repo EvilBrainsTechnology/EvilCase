@@ -5,7 +5,7 @@ using ExcelNumberFormat;
 namespace EvilBrains.EvilCase.App.Files;
 
 /// <summary>
-/// Reads the shown sheets of an XLSX, XLS or ODS workbook for the preview, told apart by the content. Each sheet starts
+/// Reads the shown sheets of an XLSX or XLS workbook for the preview, told apart by the content. Each sheet starts
 /// at A1 and shows at most 100 columns.
 /// </summary>
 internal static partial class WorkbookReader
@@ -39,12 +39,6 @@ internal static partial class WorkbookReader
 
         try
         {
-            if (isZip && OpenSpreadsheet(content) is { } spreadsheet)
-            {
-                using (spreadsheet)
-                    return ReadOpenDocument(spreadsheet, maxRows);
-            }
-
             return ReadExcel(content, isZip, maxRows);
         }
         catch (Exception)

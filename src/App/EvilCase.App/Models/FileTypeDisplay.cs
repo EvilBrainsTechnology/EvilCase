@@ -97,7 +97,6 @@ public static class FileTypeDisplay
         ["docx"] = FilePreviewKind.Document,
         ["xlsx"] = FilePreviewKind.Workbook,
         ["xls"] = FilePreviewKind.Workbook,
-        ["ods"] = FilePreviewKind.Workbook,
         ["eml"] = FilePreviewKind.Email,
         ["msg"] = FilePreviewKind.Email,
         ["zfo"] = FilePreviewKind.DataMessage,
