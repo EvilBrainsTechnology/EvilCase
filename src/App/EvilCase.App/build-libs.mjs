@@ -152,9 +152,6 @@ copyLicense('docx-preview', join(lib, 'docx-preview', 'LICENSE'));
 copy('jszip', 'dist/jszip.min.js', join(lib, 'jszip', 'jszip.min.js'));
 copyLicense('jszip', join(lib, 'jszip', 'LICENSE.txt'));
 
-copy('xlsx', 'dist/xlsx.full.min.js', join(lib, 'sheetjs', 'xlsx.full.min.js'));
-copyLicense('xlsx', join(lib, 'sheetjs', 'LICENSE.txt'));
-
 copy('libheif-js', 'libheif-wasm/libheif-bundle.js', join(lib, 'libheif', 'libheif-bundle.js'));
 copyLicense('libheif-js', join(lib, 'libheif', 'LICENSE-libheif-js.txt'));
 copyLicense('libheif-js', join(lib, 'libheif', 'LICENSE-libheif.txt'), 'libheif-wasm', 'LICENSE');

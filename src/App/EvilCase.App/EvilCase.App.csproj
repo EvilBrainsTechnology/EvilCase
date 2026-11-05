@@ -5,8 +5,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="ExcelDataReader" />
+    <PackageReference Include="ExcelNumberFormat" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+  </ItemGroup>
+
+  <!-- The workbook preview loads its readers on first use. -->
+  <ItemGroup>
+    <BlazorWebAssemblyLazyLoad Include="DocumentFormat.OpenXml.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="DocumentFormat.OpenXml.Framework.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="System.IO.Packaging.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="ExcelDataReader.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="ExcelNumberFormat.wasm" />
+    <BlazorWebAssemblyLazyLoad Include="System.Text.Encoding.CodePages.wasm" />
   </ItemGroup>
 
   <ItemGroup>

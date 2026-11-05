@@ -122,6 +122,17 @@ public class FilePreviewModalRenderTests
     }
 
     [Test]
+    public void AWorkbookThatIsNoneFallsBackToTheMessageWithTheDownload()
+    {
+        using var ctx = NewContext(out _);
+
+        var file = File("Tabulka.xlsx");
+        var component = Render(ctx, [file], file.FileId, content: "Sloupec;Hodnota");
+
+        component.WaitForAssertion(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo("Náhled tohoto typu souboru není k dispozici")));
+    }
+
+    [Test]
     public void ACodeFileThatFailsToFormatForAnotherReasonShowsTheOriginalWithTheSwitchDisabled()
     {
         using var ctx = NewContext(out _, out _, out var editors);

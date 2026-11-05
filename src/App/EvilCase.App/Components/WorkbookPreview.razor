@@ -1,4 +1,5 @@
-@* A workbook: the table of the sheet chosen and the tabs of all its sheets. *@
+@* A workbook: the table of the sheet chosen and the tabs of all its sheets. The widths, heights, colours and borders the
+   workbook gives its cells are its content and come as style attributes. *@
 @if (this.Sheets.Count == 0)
 {
     <p class="ec-preview-message">Sešit neobsahuje žádné listy.</p>
@@ -8,29 +9,42 @@ else
     var sheet = this.Sheets[this.activeSheet];
 
     <div class="ec-preview-sheet-view">
-        @if (sheet.RowCount > sheet.Rows.Count)
+        @if (sheet.RowCount > sheet.RowsRead)
         {
-            <p class="ec-preview-note">Zobrazuje se jen prvních @NumberDisplay.Text(sheet.Rows.Count) řádků z @NumberDisplay.Text(sheet.RowCount).</p>
+            <p class="ec-preview-note">Zobrazuje se jen prvních @NumberDisplay.Text(sheet.RowsRead) řádků z @NumberDisplay.Text(sheet.RowCount).</p>
         }
         <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
             <table class="ec-preview-sheet-table">
+                <colgroup>
+                    <col class="ec-preview-sheet-gutter" />
+                    @foreach (var column in sheet.Columns)
+                    {
+                        <col style="@($"width:{column.Width}px")" />
+                    }
+                </colgroup>
                 <thead>
                     <tr>
                         <th scope="col"></th>
-                        @for (var column = 0; column < sheet.ColumnCount; column++)
+                        @foreach (var column in sheet.Columns)
                         {
-                            <th scope="col">@ColumnName(column)</th>
+                            <th scope="col">@ColumnName(column.Index)</th>
                         }
                     </tr>
                 </thead>
                 <tbody>
-                    @for (var row = 0; row < sheet.Rows.Count; row++)
+                    @foreach (var row in sheet.Rows)
                     {
-                        <tr>
-                            <th scope="row">@(row + 1)</th>
-                            @foreach (var cell in sheet.Rows[row])
+                        <tr style="@(row.Height is { } height ? $"height:{height}px" : null)">
+                            <th scope="row">@(row.Index + 1)</th>
+                            @foreach (var cell in row.Cells)
                             {
-                                <td>@cell</td>
+                                if (cell is not null)
+                                {
+                                    var style = sheet.Styles[cell.Style];
+
+                                    <td class="@(style.ClassName.Length > 0 ? style.ClassName : null)" style="@style.Css"
+                                        colspan="@(cell.ColumnSpan > 1 ? cell.ColumnSpan : null)" rowspan="@(cell.RowSpan > 1 ? cell.RowSpan : null)">@cell.Text</td>
+                                }
                             }
                         </tr>
                     }

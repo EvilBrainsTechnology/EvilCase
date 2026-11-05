@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <None Include="..\..\..\docs\export\**\*.schema.json" LinkBase="ExportSchemas" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Frontend\Workbooks\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
