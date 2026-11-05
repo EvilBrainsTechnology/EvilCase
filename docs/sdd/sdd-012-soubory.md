@@ -252,8 +252,8 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   novou verzi nahraje novou verzi jako akce řádku a pak ukáže aktuální verzi; náhled hlášku
   o nahrané verzi neukazuje, vypíše ji karta. Smazat otevře nad náhledem potvrzení smazání
   souboru; náhled se zavře až po smazání, Zrušit ho nechá na souboru a verzi, které ukazoval. Na
-  mobilu jsou Upravit, Nahrát novou verzi, Verze (3), Porovnat, Přejmenovat a na konci Smazat
-  v nabídce ⋯ lišty náhledu.
+  mobilu jsou Upravit, Nahrát novou verzi, Verze (3), u textu, kódu a Markdownu Porovnat,
+  Přejmenovat a na konci Smazat v nabídce ⋯ lišty náhledu.
 - Hlavička souboru karty nese hned za názvem hvězdu hlavního souboru, stejnou jako řádek.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
@@ -342,10 +342,12 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 
 ### Porovnání verzí
 
-- Verze textu, kódu a Markdownu jde porovnat v náhledu. Hlavička náhledu souboru karty s více
-  verzemi nese za Verze tlačítko Porovnat, které porovná aktuální verzi s předchozí a zobrazenou
-  starší verzi s aktuální. Porovnat s předchozí v okně Verze souboru otevře náhled s porovnáním té
-  verze s předchozí; na mobilu nese jen ikonu.
+- Verze každého souboru s náhledem jde porovnat v náhledu; soubor bez náhledu Porovnat nenabízí.
+  Text, kód a Markdown se porovnávají obsahově, ostatní soubory vedle sebe (Porovnání vedle
+  sebe). Hlavička náhledu souboru karty s více verzemi nese za Verze tlačítko Porovnat, které
+  porovná aktuální verzi s předchozí a zobrazenou starší verzi s aktuální. Porovnat s předchozí
+  v okně Verze souboru otevře náhled s porovnáním té verze s předchozí; na mobilu nese jen ikonu.
+  Na mobilu nabízejí Porovnat i Porovnat s předchozí jen text, kód a Markdown.
 - Během porovnání nese hlavička ikonu a jméno souboru, „Porovnání verze 2 s verzí 3“, Zavřít
   porovnání, Stáhnout a listování soubory; Verze a nabídka ⋯ souboru se skryjí.
   Stáhnout stáhne novější z porovnávaných verzí. Zavřít porovnání vrátí náhled k verzi, kterou
@@ -385,9 +387,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   výskyt ve sbaleném úseku úsek rozbalí. V jednom sloupci hledá jen v novější verzi. Porovnání
   nemá zvětšení.
 - Rozdíl jen v koncích řádků (CRLF, LF nebo CR) se nepočítá; verze, které se jinak neliší, ukážou
-  jen „Verze jsou shodné“. Verze větší než 1 MB nebo neplatná v UTF-8 se neporovná a porovnání
-  řekne proč („Verzi 3 nelze porovnat: soubor je větší než 1 MB“); Porovnat zůstává aktivní.
-  Verze, kterou se nepodaří načíst, ukáže chybu se Zkusit znovu.
+  jen „Verze jsou shodné“. Když je některá z verzí větší než 1 MB nebo neplatná v UTF-8, ukážou se
+  obě verze vedle sebe; na mobilu porovnání řekne proč („Verzi 3 nelze porovnat: soubor je větší
+  než 1 MB“) a Porovnat zůstává aktivní. Verze, kterou se nepodaří načíst, ukáže chybu se Zkusit
+  znovu.
 - Lišta úprav textu, kódu a Markdownu nese přepínač Změny, na začátku úprav vypnutý. Změny
   porovnají upravený text s verzí, která se upravuje, vždy v původní podobě a v jednom sloupci jako
   porovnání verzí. Za Změny stojí „proti“ s výběrem kterékoli verze souboru, Předchozí změna
@@ -402,6 +405,21 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   Zpět, Znovu, přepínač, Uložit a hledání, které hledá v porovnání, fungují.
 - Verze větší než 1 MB nebo neplatná v UTF-8 se ve Změnách neporovná a řekne proč; verze, kterou
   se nepodaří načíst, ukáže chybu se Zkusit znovu. Upravovaný text zůstává vidět a jde měnit.
+
+### Porovnání vedle sebe
+
+- PDF, obrázek, dokument, sešit, e-mail, datová zpráva, podepsaný dokument, zvuk a video se
+  porovnají vedle sebe, stejně jako text, kód a Markdown, které se obsahově neporovnají: starší
+  verze vlevo, novější vpravo, oddělené čarou. Každá strana ukáže náhled své verze s jeho lištou
+  (zvětšení, stránky, hledání, listy sešitu), který se ovládá nezávisle na druhé straně;
+  posouvání ani zvětšení se nepropojuje.
+- Nad stranami stojí výběr Starší a Novější verze se šipkou jako u textu; hlavička, Stáhnout
+  a listování soubory platí jako u porovnání textu.
+- Každá strana načítá svou verzi sama a ukáže „Načítám…“, chybu se Zkusit znovu, nebo když náhled
+  nejde zobrazit, stejnou hlášku se Stáhnout soubor jako náhled.
+- Podepsaný dokument ukáže dokument, který nese, bez pruhu podpisů. Datová zpráva ukáže zprávu;
+  její přílohy se z porovnání neotevírají. Shodnost verzí se nezjišťuje.
+- Porovnání vedle sebe je jen na širokém okně; na mobilu se nenabízí.
 
 ### Podpis datové zprávy
 
@@ -544,7 +562,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Seznam úkolů v náhledu: políčka měnitelná / neměnná. Platí neměnná.
 - Úprava naformátovaného kódu: naformátovaný text / originál. Platí originál.
 - Řádky náhledu textu a kódu: nejvýše 5 000 / bez limitu. Platí bez limitu, jen první 1 MB.
-- Limit porovnání verzí: bez limitu / 1 MB. Platí 1 MB na verzi.
+- Limit obsahového porovnání verzí: bez limitu / 1 MB. Platí 1 MB na verzi; nad ním se verze
+  porovnají vedle sebe.
+- Porovnání souborů, které nejsou text, kód ani Markdown: žádné / vedle sebe. Platí vedle sebe,
+  jen na širokém okně.
 - Porovnání kódu: původní / naformátovaný. Platí naformátovaný, když jdou naformátovat obě verze
   a naformátované se liší.
 - Konce řádků v porovnání: rozdíl / žádný rozdíl. Platí žádný rozdíl.

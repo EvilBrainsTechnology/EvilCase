@@ -142,15 +142,32 @@ public static class FileTypeDisplay
     /// </summary>
     public static bool Editable(string fileName, long sizeBytes)
     {
-        return Compares(fileName) && sizeBytes <= MaxTextBytes;
+        return ComparesByContent(fileName) && sizeBytes <= MaxTextBytes;
     }
 
     /// <summary>
-    /// Whether the versions of a file of this name compare: a text, code or Markdown file.
+    /// Whether the versions of a file of this name compare: any file with a preview.
     /// </summary>
     public static bool Compares(string fileName)
     {
+        return Preview(fileName) != FilePreviewKind.None;
+    }
+
+    /// <summary>
+    /// Whether the versions of a file of this name compare by their content: a text, code or Markdown file.
+    /// </summary>
+    public static bool ComparesByContent(string fileName)
+    {
         return Preview(fileName) is FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown;
+    }
+
+    /// <summary>
+    /// Whether two versions of a file compare by their content: a text, code or Markdown file whose versions are both
+    /// within <see cref="MaxTextBytes"/> and valid UTF-8. Any other pair shows the two previews side by side.
+    /// </summary>
+    public static bool ComparesByContent(string fileName, long olderBytes, long newerBytes, bool utf8)
+    {
+        return ComparesByContent(fileName) && olderBytes <= MaxTextBytes && newerBytes <= MaxTextBytes && utf8;
     }
 
     public static bool HasKnownExtension(string fileName)

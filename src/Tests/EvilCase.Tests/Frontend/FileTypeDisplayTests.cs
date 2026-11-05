@@ -22,4 +22,17 @@ public class FileTypeDisplayTests
     {
         return FileTypeDisplay.Editable(fileName, sizeBytes);
     }
+
+    [TestCase("Poznámky.txt", FileTypeDisplay.MaxTextBytes, 10, true, ExpectedResult = true)]
+    [TestCase("data.JSON", 10, 10, true, ExpectedResult = true)]
+    [TestCase("README.md", 10, FileTypeDisplay.MaxTextBytes, true, ExpectedResult = true)]
+    [TestCase("Poznámky.txt", FileTypeDisplay.MaxTextBytes + 1, 10, true, ExpectedResult = false)]
+    [TestCase("README.md", 10, FileTypeDisplay.MaxTextBytes + 1, true, ExpectedResult = false)]
+    [TestCase("data.json", 10, 10, false, ExpectedResult = false)]
+    [TestCase("Smlouva.pdf", 10, 10, true, ExpectedResult = false)]
+    [TestCase("Fotka.png", 10, 10, true, ExpectedResult = false)]
+    public bool OnlyTextCodeAndMarkdownVersionsWithinTheLimitAndInUtf8CompareByContent(string fileName, long olderBytes, long newerBytes, bool utf8)
+    {
+        return FileTypeDisplay.ComparesByContent(fileName, olderBytes, newerBytes, utf8);
+    }
 }
