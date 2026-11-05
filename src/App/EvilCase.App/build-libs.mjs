@@ -1,15 +1,16 @@
-// Generates wwwroot/lib and wwwroot/fonts from node_modules: copies the browser builds and their
-// license files, and bundles each module of lib-src with esbuild: postal-mime, @kenjiuno/msgreader, file-type, the code
+// Generates wwwroot/lib, wwwroot/fonts and wwwroot/js: copies the browser builds of node_modules and their license
+// files, bundles each module of ts/lib-src with esbuild: postal-mime, @kenjiuno/msgreader, file-type, the code
 // formatting (Prettier with @prettier/plugin-xml), the text editor (CodeMirror), the Markdown view and editor (Milkdown)
-// and the tooltip placement (Floating UI).
+// and the tooltip placement (Floating UI), and compiles each module of ts/js and ts/worker on its own into wwwroot/js,
+// with its source map. It does not check the types; `npm run typecheck` does.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
-// Replaces wwwroot/lib and wwwroot/fonts; both are gitignored.
-// Exits 1 when node_modules is missing, a source file or license file is missing, or a package that
-// ships in the output has a license outside the allow-list.
+// Replaces wwwroot/lib, wwwroot/fonts and wwwroot/js; all three are gitignored.
+// Exits 1 when node_modules is missing, a source file or license file is missing, a module does not compile, or a
+// package that ships in the output has a license outside the allow-list.
 
 import { build, transform } from 'esbuild';
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,6 +18,8 @@ const root = dirname(fileURLToPath(import.meta.url));
 const modules = join(root, 'node_modules');
 const lib = join(root, 'wwwroot', 'lib');
 const fonts = join(root, 'wwwroot', 'fonts');
+const js = join(root, 'wwwroot', 'js');
+const sources = join(root, 'ts');
 
 const allowedLicenses = [/^MIT(-0)?$/, /^Apache-2\.0$/, /^BSD-/, /^ISC$/, /^OFL-1\.1$/, /^LGPL-3\.0(-only|-or-later)?$/, /^Zlib$/];
 const licenseFiles = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'LICENSE.markdown', 'LICENCE', 'license', 'license.md'];
@@ -86,12 +89,12 @@ function copyLicense(name, to, ...path) {
     cpSync(path.length ? source(name, ...path) : licenseOf(packageRoot(name)), to);
 }
 
-// Bundles lib-src/<name>.js into lib/<name>/<name>.min.js and writes the licenses of every package that went into
+// Bundles ts/lib-src/<name>.ts into lib/<name>/<name>.min.js and writes the licenses of every package that went into
 // the bundle next to it.
 async function bundle(name, options) {
     const outDir = join(lib, name);
     const result = await build({
-        entryPoints: [join(root, 'lib-src', `${name}.js`)],
+        entryPoints: [join(sources, 'lib-src', `${name}.ts`)],
         bundle: true,
         minify: true,
         platform: 'browser',
@@ -141,6 +144,7 @@ for (const name of Object.keys(manifest.dependencies)) {
 
 rmSync(lib, { recursive: true, force: true });
 rmSync(fonts, { recursive: true, force: true });
+rmSync(js, { recursive: true, force: true });
 
 copy('docx-preview', 'dist/docx-preview.min.js', join(lib, 'docx-preview', 'docx-preview.min.js'));
 copyLicense('docx-preview', join(lib, 'docx-preview', 'LICENSE'));
@@ -184,3 +188,17 @@ for (const [family, name] of [['instrument-sans', '@fontsource-variable/instrume
 
     copyLicense(name, join(fonts, `${family}-OFL.txt`));
 }
+
+// The app's own modules stay one module each at the paths the app imports; their imports stay as written.
+await build({
+    entryPoints: [
+        ...readdirSync(join(sources, 'js')).filter((file) => file.endsWith('.ts')).map((file) => join(sources, 'js', file)),
+        join(sources, 'worker', 'code-preview-worker.ts'),
+    ].map((file) => ({ in: file, out: basename(file, '.ts') })),
+    outdir: js,
+    format: 'esm',
+    target: 'es2022',
+    sourcemap: true,
+    logLevel: 'error',
+    absWorkingDir: root,
+});

@@ -8,7 +8,8 @@
 .env*
 !.env.example
 
-# Frontend libraries and fonts: installed by npm and generated into wwwroot by build-libs.mjs
+# Frontend libraries, fonts and compiled modules: installed by npm and generated into wwwroot by build-libs.mjs
 node_modules/
 src/App/EvilCase.App/wwwroot/lib/
 src/App/EvilCase.App/wwwroot/fonts/
+src/App/EvilCase.App/wwwroot/js/
