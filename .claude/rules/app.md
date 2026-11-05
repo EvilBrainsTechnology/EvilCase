@@ -19,9 +19,9 @@ rules the look, `docs/design/` is binding on values.
 
 - Desktop is primary. A screen used daily is first-class on mobile, the rest must only not break.
 - One breakpoint: `lg` (992 px), never mixed with `md`; never branch layout in C# or JS by viewport.
-- Data lists never scroll horizontally: below `lg` a row reflows onto two or three lines and
-  sorting moves into a select in the toolbar.
+- Data lists never scroll horizontally: below `lg` a row reflows onto 2–3 lines, sorting is a select.
 - Touch targets ≥ 44 px below `lg`. Form action buttons sticky at the bottom,
   `env(safe-area-inset-bottom)` on fixed bottom elements. A tooltip never carries information alone,
   except the names of format and block-type changes in the version compare.
-- Unavoidable JS goes through an `IJSObjectReference` disposed in `IAsyncDisposable`.
+- Unavoidable JS is strict TypeScript in `ts/`, without `any` or `@ts-ignore`, and goes through an
+  `IJSObjectReference` disposed in `IAsyncDisposable`.
