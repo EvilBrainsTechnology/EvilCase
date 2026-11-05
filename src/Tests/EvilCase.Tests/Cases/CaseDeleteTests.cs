@@ -21,7 +21,7 @@ public class CaseDeleteTests : TenantFixture
     }
 
     [Test]
-    public async Task DeletingACaseTakesItsActsCommentsAndFiles()
+    public async Task DeletingACaseTakesItsActsCommentsFilesAndLabels()
     {
         var seeded = await this.Tenant.AddCase(Day, "Přestupek");
         var act = await this.Tenant.AddAct(seeded, Day);
@@ -29,6 +29,9 @@ public class CaseDeleteTests : TenantFixture
         var actComment = await this.Tenant.AddActComment(act, "Poznámka k úkonu");
         var caseFile = await this.Tenant.AddCaseFile(seeded);
         var actFile = await this.Tenant.AddActFile(act);
+        var label = await this.Tenant.AddLabel("Naléhavé");
+        await this.Tenant.AddCaseLabel(seeded, label);
+        await this.Tenant.AddActLabel(act, label);
 
         var result = await this.writer.DeleteCase(seeded.Id, CancellationToken.None);
 
@@ -39,6 +42,7 @@ public class CaseDeleteTests : TenantFixture
         var commentsExist = await this.Tenant.Context.Comments.AnyAsync(row => row.Id == caseComment.Id || row.Id == actComment.Id);
         var filesExist = await this.Tenant.Context.FileAssets.AnyAsync(row => row.Id == caseFile.Id || row.Id == actFile.Id);
         var versionsExist = await this.Tenant.Context.FileVersions.AnyAsync(row => row.FileAssetId == caseFile.Id || row.FileAssetId == actFile.Id);
+        var assignmentsExist = await this.Tenant.Context.LabelAssignments.AnyAsync(row => row.LabelId == label.Id);
 
         using (Assert.EnterMultipleScope())
         {
@@ -48,6 +52,7 @@ public class CaseDeleteTests : TenantFixture
             Assert.That(commentsExist, Is.False, "the cascade takes the comments of the case and of its acts");
             Assert.That(filesExist, Is.False, "the cascade takes the files of the case and of its acts");
             Assert.That(versionsExist, Is.False, "the cascade takes the files' versions");
+            Assert.That(assignmentsExist, Is.False, "the cascade takes the labels of the case and of its acts");
         }
     }
 
