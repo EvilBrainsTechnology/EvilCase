@@ -396,6 +396,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   který otevře najetí myší nebo klepnutí a klepnutí jinam zavře. Přidaný blok je celý zelený, odebraný celý
   červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
   se první buňky v každé z tabulek liší. Pod porovnáním stojí legenda barev.
+- Vlastnosti se porovnají po klíčích. Přidaná vlastnost je zelená v novější verzi, odebraná
+  červená ve starší; u změněné jsou zvýrazněné obě a v textové hodnotě i vložený a smazaný text.
+  Každá vlastnost, která se liší, je v souhrnu jeden blok a jedna změna pro Předchozí a Další
+  změnu. Když se vlastnosti liší, blok Vlastnosti se v porovnání rozbalí, jinak zůstane sbalený.
 - Vedle sebe stojí protější bloky na stejné výšce. V jednom sloupci stojí odebraný obsah tam, kde
   byl, i odebrané řádky tabulky a položky seznamu. Souhrn počítá bloky („+3 −2 bloky“): změněný
   blok na obou stranách, řádek tabulky jako blok. Nezměněné úseky se nesbalují. Obrázky se

@@ -1,6 +1,6 @@
 // The differences of two formatted Markdown texts as the compare shows them, read from the blocks of each document in
 // order (blocksOf of the Markdown library). It needs no browser.
-import type { Block, Blocks, ChainEntry, Change, DifferenceMark, Differences, Marks, TableBlock, TableRow, TextBlock } from '../lib-src/milkdown/compare.js';
+import type { Block, Blocks, ChainEntry, Change, DifferenceMark, Differences, Marks, PropertiesBlock, PropertyEntry, TableBlock, TableRow, TextBlock } from '../lib-src/milkdown/compare.js';
 
 // A change of b against a, as the text editor's library diffs two texts.
 interface TextChange {
@@ -309,12 +309,84 @@ function compareTables(a: TableBlock, b: TableBlock, out: Differences, diff: Dif
     return found;
 }
 
+// Compares two front matters property by property, a property known by its key; each property that differs is a change
+// of its own and counts as a block on each side it stands on. A text value is compared word by word, any other value
+// whole. A front matter that is not valid YAML compares as text.
+function compareProperties(a: PropertiesBlock, b: PropertiesBlock, out: Differences, diff: DiffTexts) {
+    const changed = (older: { node: number; end: number }, newer: { node: number; end: number }) => {
+        out.older.push({ node: older.node, end: older.end, type: 'changed' });
+        out.newer.push({ node: newer.node, end: newer.end, type: 'changed' });
+        out.changes.push({ older: older.node, newer: newer.node, at: newer.node });
+        out.added++;
+        out.removed++;
+    };
+    if (a.raw && b.raw) {
+        if (compareBlocks(a.raw, b.raw, out, diff, false)) changed(a, b);
+        return;
+    }
+    if (a.raw || b.raw) {
+        changed(a, b);
+        return;
+    }
+    const keys = new Map<string, number>();
+    a.entries.forEach((entry, index) => {
+        if (!keys.has(entry.key)) keys.set(entry.key, index);
+    });
+    const kept = new Set(b.entries.map((entry) => entry.key));
+    let next = 0;
+    // The removed properties before index of the older stand before at in the newer.
+    const removeUntil = (index: number, at: number) => {
+        for (; next < index; next++) {
+            const entry = a.entries[next];
+            if (kept.has(entry.key)) continue;
+            out.older.push({ node: entry.node, end: entry.end, type: 'removed' });
+            out.deletions.push({ at, node: entry.node, wrap: [] });
+            out.changes.push({ older: entry.node, newer: null, at });
+            out.removed++;
+        }
+    };
+    const compare = (older: PropertyEntry, newer: PropertyEntry) => {
+        if (older.value === newer.value) return;
+        if (older.text && newer.text) {
+            compareBlocks(older.text, newer.text, out, diff, false);
+        } else {
+            out.deletions.push({ at: newer.node, node: older.node, wrap: [] });
+        }
+        changed(older, newer);
+    };
+    for (const entry of b.entries) {
+        const index = keys.get(entry.key);
+        if (index === undefined) {
+            out.newer.push({ node: entry.node, end: entry.end, type: 'added' });
+            out.changes.push({ older: null, newer: entry.node, at: entry.node });
+            out.added++;
+            continue;
+        }
+        keys.delete(entry.key);
+        if (index >= next) {
+            removeUntil(index, entry.node);
+            next = index + 1;
+        }
+        compare(a.entries[index], entry);
+    }
+    removeUntil(a.entries.length, b.table);
+}
+
 // The differences of newer against older ({ size, blocks } of blocksOf), diff(a, b) answering [{ fromA, toA, fromB, toB }].
 // Answers the marks of each document (older, newer: { from, to } of text, { node, end } of a block, row or cell), the
 // deletions one column shows at { at }, the facing blocks' pairs, the changes in order and the blocks added and removed.
 export function diffMarkdown(older: Blocks, newer: Blocks, diff: DiffTexts) {
     const out: Differences = { older: [], newer: [], deletions: [], pairs: [], changes: [], added: 0, removed: 0 };
-    const key = (block: Block) => (block.type === 'table' ? (block as TableBlock).rows.map((row) => row.cells.map((cell) => cell.block.text).join(' ')).join(' ') : (block as TextBlock).text);
+    // The front matters face each other.
+    const key = (block: Block) => {
+        if (block.type === 'properties') return '\uFFFF';
+        return block.type === 'table' ? (block as TableBlock).rows.map((row) => row.cells.map((cell) => cell.block.text).join(' ')).join(' ') : (block as TextBlock).text;
+    };
+    const kind = (block: Block) => (block.type === 'table' || block.type === 'properties' ? block.type : 'text');
+    const count = (block: Block) => {
+        if (block.type === 'table') return (block as TableBlock).rows.length;
+        return block.type === 'properties' ? Math.max((block as PropertiesBlock).entries.length, 1) : 1;
+    };
     const steps = align(older.blocks.map(key), newer.blocks.map(key), diff);
     const after = following(steps, newer.blocks);
     let change: Change | null = null;
@@ -324,10 +396,12 @@ export function diffMarkdown(older: Blocks, newer: Blocks, diff: DiffTexts) {
         const b = j >= 0 ? newer.blocks[j] : null;
         let found: Change | null = null;
 
-        if (a && b && (a.type === 'table') === (b.type === 'table')) {
+        if (a && b && kind(a) === kind(b)) {
             out.pairs.push([a.node, b.node]);
             if (a.type === 'table') {
                 found = compareTables(a as TableBlock, b as TableBlock, out, diff);
+            } else if (a.type === 'properties') {
+                compareProperties(a as PropertiesBlock, b as PropertiesBlock, out, diff);
             } else if (compareBlocks(a as TextBlock, b as TextBlock, out, diff, true)) {
                 found = { older: a.node, newer: b.node, at: b.node };
                 out.added++;
@@ -340,11 +414,11 @@ export function diffMarkdown(older: Blocks, newer: Blocks, diff: DiffTexts) {
                 found.at ??= at;
                 out.older.push({ node: a.node, end: a.end, type: 'removed' });
                 out.deletions.push({ at, node: a.node, wrap });
-                out.removed += a.type === 'table' ? (a as TableBlock).rows.length : 1;
+                out.removed += count(a);
             }
             if (b) {
                 out.newer.push({ node: b.node, end: b.end, type: 'added' });
-                out.added += b.type === 'table' ? (b as TableBlock).rows.length : 1;
+                out.added += count(b);
             }
         }
 
