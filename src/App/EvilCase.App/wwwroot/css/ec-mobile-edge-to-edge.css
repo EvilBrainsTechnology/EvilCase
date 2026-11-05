@@ -42,7 +42,8 @@
         padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
     }
 
-    .ec-card-body,
+    /* The settings cards inset their rows themselves (ec-settings.css). */
+    .ec-card-body:where(:not(.ec-settings-layout *)),
     .ec-card-footer {
         padding-inline: var(--ec-space-5);
     }
@@ -123,10 +124,16 @@
         border-radius: 0;
     }
 
-    .ec-file-row,
+    /* A middle row of the compact card keeps its own padding and height (ec-files.css). */
+    .ec-file-row:where(:not(.ec-file-card-compact *)),
     .ec-file-row:first-child,
     .ec-file-row:last-child {
         padding: var(--ec-space-3) var(--ec-space-1) var(--ec-space-3) var(--ec-space-5);
+    }
+
+    .ec-file-row,
+    .ec-file-row:first-child,
+    .ec-file-row:last-child {
         border-top: 1px solid var(--ec-border-subtle);
         border-bottom: 0;
         border-radius: 0;
@@ -148,24 +155,26 @@
         display: contents;
     }
 
-    .ec-contact-header .ec-contact-monogram-lg {
-        width: var(--ec-monogram-mobile);
-        height: var(--ec-monogram-mobile);
-        border-radius: var(--ec-radius-pill);
-        font-size: var(--ec-monogram-text-mobile);
-    }
+    .ec-contact-header {
+        & .ec-contact-monogram-lg {
+            width: var(--ec-monogram-mobile);
+            height: var(--ec-monogram-mobile);
+            border-radius: var(--ec-radius-pill);
+            font-size: var(--ec-monogram-text-mobile);
+        }
 
-    .ec-contact-header .ec-page-title {
-        grid-column: 2 / -1;
-    }
+        & .ec-page-title {
+            grid-column: 2 / -1;
+        }
 
-    .ec-contact-header .ec-badge {
-        grid-column: 1 / 3;
-        justify-self: start;
-    }
+        & .ec-badge {
+            grid-column: 1 / 3;
+            justify-self: start;
+        }
 
-    .ec-contact-header .ec-page-actions {
-        grid-column: 3;
+        & .ec-page-actions {
+            grid-column: 3;
+        }
     }
 
     /* A sheet's items are full-width rows. */
@@ -230,26 +239,28 @@
     }
 
     /* A select replaces each switch; the checkboxes are in the filter sheet. */
-    .ec-table-bar .ec-segmented,
-    .ec-table-bar:has(> [aria-controls$="-filters"]) > .ec-check {
-        display: none;
-    }
+    .ec-table-bar {
+        & .ec-segmented,
+        &:has(> [aria-controls$="-filters"]) > .ec-check {
+            display: none;
+        }
 
-    .ec-table-bar > [aria-controls$="-filters"] {
-        position: relative;
-        order: 1;
-        flex: none;
-        width: var(--ec-touch-min);
-        height: var(--ec-touch-min);
-        padding: 0;
-        border-color: var(--ec-border-strong);
-        border-radius: var(--ec-radius-lg);
-    }
+        & > [aria-controls$="-filters"] {
+            position: relative;
+            order: 1;
+            flex: none;
+            width: var(--ec-touch-min);
+            height: var(--ec-touch-min);
+            padding: 0;
+            border-color: var(--ec-border-strong);
+            border-radius: var(--ec-radius-lg);
+        }
 
-    .ec-table-bar > [aria-controls$="-filters"] .ec-filter-count {
-        position: absolute;
-        top: calc(-1 * var(--ec-space-1));
-        right: calc(-1 * var(--ec-space-1));
+        & > [aria-controls$="-filters"] .ec-filter-count {
+            position: absolute;
+            top: calc(-1 * var(--ec-space-1));
+            right: calc(-1 * var(--ec-space-1));
+        }
     }
 
     .ec-filter-backdrop {
@@ -342,27 +353,29 @@
         column-gap: var(--ec-space-3);
     }
 
-    .ec-table-cell-primary:has(> .ec-chips, > .ec-cell-line),
-    .ec-table-cell-primary > .ec-cell-line {
-        display: contents;
-    }
+    .ec-table-cell-primary {
+        &:has(> .ec-chips, > .ec-cell-line),
+        & > .ec-cell-line {
+            display: contents;
+        }
 
-    .ec-table-cell-primary > .ec-cell-text:not(.ec-cell-sub),
-    .ec-table-cell-primary > .ec-cell-line > .ec-cell-text {
-        order: -2;
-        font-size: var(--ec-list-title-mobile);
-    }
+        & > .ec-cell-text:not(.ec-cell-sub),
+        & > .ec-cell-line > .ec-cell-text {
+            order: -2;
+            font-size: var(--ec-list-title-mobile);
+        }
 
-    .ec-table-cell-primary > .ec-cell-sub {
-        flex: 1 0 100%;
-        order: -1;
-    }
+        & > .ec-cell-sub {
+            flex: 1 0 100%;
+            order: -1;
+        }
 
-    .ec-table-cell-primary > .ec-chips,
-    .ec-table-cell-primary > .ec-cell-line > .ec-chips {
-        flex: 1 0 100%;
-        order: 1;
-        padding-top: var(--ec-space-1);
+        & > .ec-chips,
+        & > .ec-cell-line > .ec-chips {
+            flex: 1 0 100%;
+            order: 1;
+            padding-top: var(--ec-space-1);
+        }
     }
 
     .ec-table-row .ec-chip-sm {
@@ -416,14 +429,14 @@
 
     .ec-detail-fact-labels {
         align-items: start;
-    }
 
-    .ec-detail-fact-labels .ec-detail-fact-name {
-        line-height: calc(var(--ec-space-7) + var(--ec-space-1));
-    }
+        & .ec-detail-fact-name {
+            line-height: calc(var(--ec-space-7) + var(--ec-space-1));
+        }
 
-    .ec-detail-fact-labels .ec-alert {
-        grid-column: 1 / -1;
+        & .ec-alert {
+            grid-column: 1 / -1;
+        }
     }
 
     /* Labels are chips without a remove button; one button opens the sheet that edits them. */
@@ -477,14 +490,14 @@
 
     .ec-label-toggle {
         justify-content: space-between;
-    }
 
-    .ec-label-toggle .ec-icon {
-        color: var(--ec-border-strong);
-    }
+        & .ec-icon {
+            color: var(--ec-border-strong);
+        }
 
-    .ec-label-toggle[aria-selected="true"] .ec-icon {
-        color: var(--ec-accent);
+        &[aria-selected="true"] .ec-icon {
+            color: var(--ec-accent);
+        }
     }
 
     /* The section anchors below the detail header; the row scrolls sideways. */
@@ -513,17 +526,17 @@
         color: var(--ec-text);
         text-decoration: none;
         white-space: nowrap;
-    }
 
-    .ec-anchor::after {
-        content: "";
-        position: absolute;
-        inset: calc((var(--ec-anchor-height) - var(--ec-touch-min)) / 2) 0;
-    }
+        &::after {
+            content: "";
+            position: absolute;
+            inset: calc((var(--ec-anchor-height) - var(--ec-touch-min)) / 2) 0;
+        }
 
-    .ec-anchor:focus-visible {
-        outline: none;
-        box-shadow: var(--ec-focus-ring);
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--ec-focus-ring);
+        }
     }
 
     .ec-anchor-count {
@@ -719,7 +732,7 @@
 /* The file row and the menus below lg (SDD-020): a file carries only a quiet ⋯ with Stáhnout on top; a menu
    and the version picker are edge-to-edge sheets. */
 @media (max-width: 991.98px) {
-    .ec-file-row,
+    .ec-file-row:where(:not(.ec-file-card-compact *)),
     .ec-file-row:first-child,
     .ec-file-row:last-child {
         min-height: var(--ec-file-row-mobile);
@@ -759,14 +772,14 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-    }
 
-    .ec-file-meta .ec-sep {
-        display: inline;
-    }
+        & .ec-sep {
+            display: inline;
+        }
 
-    .ec-file-meta .ec-badge {
-        margin-right: var(--ec-space-2);
+        & .ec-badge {
+            margin-right: var(--ec-space-2);
+        }
     }
 
     .ec-menu-backdrop:has(+ .ec-menu-popup),
@@ -783,10 +796,15 @@
         z-index: 51;
         max-height: calc(var(--ec-viewport-height) * 0.8);
         overflow-y: auto;
-        padding: var(--ec-space-3) 0;
         border-width: 1px 0 0;
         border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
         box-shadow: var(--ec-shadow-sheet);
+    }
+
+    /* The versions panel keeps its own padding (ec-versions.css). */
+    .ec-menu.ec-menu-popup,
+    .ec-popover:where(:not(.ec-preview-versions-panel)) {
+        padding: var(--ec-space-3) 0;
     }
 
     .ec-modal :is(.ec-popover, .ec-menu.ec-menu-popup) {

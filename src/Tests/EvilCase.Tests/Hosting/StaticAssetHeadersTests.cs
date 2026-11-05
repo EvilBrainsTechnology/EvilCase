@@ -61,7 +61,7 @@ public class StaticAssetHeadersTests
     [Test]
     public async Task AStylesheetIsServedCompressed()
     {
-        using var response = await this.client.GetAsync(new Uri("/css/ec-base.css", UriKind.Relative));
+        using var response = await this.client.GetAsync(new Uri("/lib/ec.min.css", UriKind.Relative));
 
         Assert.That(response.Content.Headers.ContentEncoding, Does.Contain("gzip"));
     }

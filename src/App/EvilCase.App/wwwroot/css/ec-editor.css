@@ -93,119 +93,119 @@
     flex-direction: column;
     min-width: 0;
     min-height: 100%;
-}
 
-.ec-text-editor .cm-editor {
-    flex: 1 1 auto;
-    border-radius: var(--ec-radius-md);
-    background: var(--ec-surface);
-    box-shadow: var(--ec-shadow-raised);
-}
+    & .cm-editor {
+        flex: 1 1 auto;
+        border-radius: var(--ec-radius-md);
+        background: var(--ec-surface);
+        box-shadow: var(--ec-shadow-raised);
 
-.ec-text-editor .cm-editor .cm-scroller {
-    flex: 1 1 auto;
-    font-family: var(--ec-font-mono);
-    font-size: calc(var(--ec-text-sm) * var(--ec-preview-zoom, 1));
-    line-height: var(--ec-preview-text-leading);
-    font-variant-ligatures: none;
-}
+        & .cm-scroller {
+            flex: 1 1 auto;
+            font-family: var(--ec-font-mono);
+            font-size: calc(var(--ec-text-sm) * var(--ec-preview-zoom, 1));
+            line-height: var(--ec-preview-text-leading);
+            font-variant-ligatures: none;
+        }
 
-.ec-text-editor .cm-editor.cm-focused {
-    outline: var(--ec-text-editor-focus-outline);
-    outline-offset: var(--ec-text-editor-focus-offset);
-}
+        &.cm-focused {
+            outline: var(--ec-text-editor-focus-outline);
+            outline-offset: var(--ec-text-editor-focus-offset);
+        }
 
-.ec-text-editor .cm-editor .cm-content {
-    padding: var(--ec-space-6) 0;
-    caret-color: var(--ec-accent);
-}
+        & .cm-content {
+            padding: var(--ec-space-6) 0;
+            caret-color: var(--ec-accent);
+        }
 
-.ec-text-editor .cm-editor .cm-line {
-    padding: 0 var(--ec-space-7) 0 var(--ec-space-3);
-}
+        & .cm-line {
+            padding: 0 var(--ec-space-7) 0 var(--ec-space-3);
+        }
 
-.ec-text-editor .cm-editor .cm-cursor {
-    border-left-color: var(--ec-accent);
-}
+        & .cm-cursor {
+            border-left-color: var(--ec-accent);
+        }
 
-.ec-text-editor .cm-editor .cm-gutters {
-    border-right: 0;
-    background: transparent;
-    color: var(--ec-text-faint);
-}
+        & .cm-gutters {
+            border-right: 0;
+            background: transparent;
+            color: var(--ec-text-faint);
+        }
 
-.ec-text-editor .cm-editor .cm-lineNumbers .cm-gutterElement {
-    min-width: var(--ec-preview-gutter);
-    box-sizing: border-box;
-    padding: 0 var(--ec-space-3) 0 var(--ec-space-5);
-}
+        & .cm-lineNumbers .cm-gutterElement {
+            min-width: var(--ec-preview-gutter);
+            box-sizing: border-box;
+            padding: 0 var(--ec-space-3) 0 var(--ec-space-5);
+        }
 
-/* Lines changed since the editor opened: a bar left of their numbers. The bar's column keeps its width without a bar,
-   so the text stands in the same place in the view and the editor. */
-.ec-text-editor .cm-editor .ec-text-editor-changes {
-    min-width: var(--ec-text-editor-changed-width);
-}
+        /* Lines changed since the editor opened: a bar left of their numbers. The bar's column keeps its width without a bar,
+           so the text stands in the same place in the view and the editor. */
+        & .ec-text-editor-changes {
+            min-width: var(--ec-text-editor-changed-width);
 
-.ec-text-editor .cm-editor .ec-text-editor-changes .cm-gutterElement {
-    width: var(--ec-text-editor-changed-width);
-}
+            & .cm-gutterElement {
+                width: var(--ec-text-editor-changed-width);
+            }
 
-.ec-text-editor .cm-editor .ec-text-editor-changes .ec-text-editor-changed {
-    background: var(--ec-text-editor-changed);
-}
+            & .ec-text-editor-changed {
+                background: var(--ec-text-editor-changed);
+            }
+        }
 
-.ec-text-editor .cm-editor .cm-activeLine,
-.ec-text-editor .cm-editor .cm-activeLineGutter {
-    background: var(--ec-text-editor-active-line);
-}
+        & .cm-activeLine,
+        & .cm-activeLineGutter {
+            background: var(--ec-text-editor-active-line);
+        }
 
-.ec-text-editor .cm-editor .cm-searchMatch {
-    background: var(--ec-preview-hit);
-    outline: none;
-}
+        & .cm-searchMatch {
+            background: var(--ec-preview-hit);
+            outline: none;
+        }
 
-.ec-text-editor .cm-editor .cm-searchMatch-selected {
-    background: var(--ec-preview-hit-current);
-}
+        & .cm-searchMatch-selected {
+            background: var(--ec-preview-hit-current);
+        }
 
-/* The matches of the read-only view's search; the match shown wins over a match around or inside it. */
-.ec-text-editor .cm-editor .ec-text-editor-hit {
-    background: var(--ec-preview-hit);
-}
+        /* The matches of the read-only view's search; the match shown wins over a match around or inside it. */
+        & .ec-text-editor-hit {
+            background: var(--ec-preview-hit);
+        }
 
-.ec-text-editor .cm-editor .ec-text-editor-hit-current,
-.ec-text-editor .cm-editor .ec-text-editor-hit-current .ec-text-editor-hit {
-    background: var(--ec-preview-hit-current);
-}
+        & .ec-text-editor-hit-current,
+        & .ec-text-editor-hit-current .ec-text-editor-hit {
+            background: var(--ec-preview-hit-current);
+        }
 
-/* The search panel only turns the highlights on; the app's own field drives the search. */
-.ec-text-editor .cm-editor .cm-panels {
-    display: none;
-}
+        /* The search panel only turns the highlights on; the app's own field drives the search. */
+        & .cm-panels {
+            display: none;
+        }
+    }
 
-.ec-text-editor .ec-code-name {
-    color: var(--ec-code-name);
-}
+    & .ec-code-name {
+        color: var(--ec-code-name);
+    }
 
-.ec-text-editor .ec-code-attribute {
-    color: var(--ec-code-attribute);
-}
+    & .ec-code-attribute {
+        color: var(--ec-code-attribute);
+    }
 
-.ec-text-editor .ec-code-string {
-    color: var(--ec-code-string);
-}
+    & .ec-code-string {
+        color: var(--ec-code-string);
+    }
 
-.ec-text-editor .ec-code-literal {
-    color: var(--ec-code-literal);
-}
+    & .ec-code-literal {
+        color: var(--ec-code-literal);
+    }
 
-.ec-text-editor .ec-code-punctuation {
-    color: var(--ec-code-punctuation);
-}
+    & .ec-code-punctuation {
+        color: var(--ec-code-punctuation);
+    }
 
-.ec-text-editor .ec-code-comment {
-    color: var(--ec-code-comment);
-    font-style: italic;
+    & .ec-code-comment {
+        color: var(--ec-code-comment);
+        font-style: italic;
+    }
 }
 
 /* The compare of two versions: the stage scrolls both texts together. Side by side the older stands left, in one column
@@ -270,43 +270,47 @@
 }
 
 /* Side by side each version heads its column. */
-.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0;
-    padding: 0;
-}
+.ec-text-compare-view {
+    &:not(.ec-text-compare-view-unified) {
+        & .ec-text-compare-versions {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 0;
+            padding: 0;
+        }
 
-.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version {
-    padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
-}
+        & .ec-text-compare-version {
+            padding: var(--ec-space-3) var(--ec-space-4) var(--ec-space-3) var(--ec-space-5);
+        }
 
-.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow {
-    display: none;
-}
+        & .ec-text-compare-versions-arrow {
+            display: none;
+        }
 
-.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-versions-arrow + .ec-text-compare-version {
-    border-left: 1px solid var(--ec-border);
-}
+        & .ec-text-compare-versions-arrow + .ec-text-compare-version {
+            border-left: 1px solid var(--ec-border);
+        }
 
-.ec-text-compare-view:not(.ec-text-compare-view-unified) .ec-text-compare-version-meta {
-    display: inline;
+        & .ec-text-compare-version-meta {
+            display: inline;
+        }
+    }
 }
 
 .ec-text-compare-toolbar {
     gap: var(--ec-space-3) var(--ec-space-4);
-}
 
-/* The search narrows before it takes a row of its own. */
-.ec-text-compare-toolbar > .ec-preview-toolbar-search {
-    flex: 1 0 auto;
-    justify-content: flex-end;
-}
+    /* The search narrows before it takes a row of its own. */
+    & > .ec-preview-toolbar-search {
+        flex: 1 0 auto;
+        justify-content: flex-end;
+    }
 
-.ec-text-compare-toolbar .ec-preview-toolbar-search-box {
-    flex: 1 1 auto;
-    width: var(--ec-preview-toolbar-search-mobile);
-    max-width: var(--ec-preview-toolbar-search-width);
+    & .ec-preview-toolbar-search-box {
+        flex: 1 1 auto;
+        width: var(--ec-preview-toolbar-search-mobile);
+        max-width: var(--ec-preview-toolbar-search-width);
+    }
 }
 
 .ec-text-compare-changes {
@@ -350,24 +354,26 @@
     display: block;
 }
 
-.ec-text-compare .cm-editor {
-    border-radius: 0 0 var(--ec-radius-lg) var(--ec-radius-lg);
-    background: transparent;
-    box-shadow: none;
-}
+.ec-text-compare {
+    & .cm-editor {
+        border-radius: 0 0 var(--ec-radius-lg) var(--ec-radius-lg);
+        background: transparent;
+        box-shadow: none;
+    }
 
-.ec-text-compare .cm-mergeView {
-    overflow: visible;
-}
+    & .cm-mergeView {
+        overflow: visible;
+    }
 
-/* The texts split the width as the versions above them do. */
-.ec-text-compare .cm-mergeViewEditors {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-}
+    /* The texts split the width as the versions above them do. */
+    & .cm-mergeViewEditors {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
 
-.ec-text-compare .cm-mergeViewEditor + .cm-mergeViewEditor {
-    border-left: 1px solid var(--ec-border);
+    & .cm-mergeViewEditor + .cm-mergeViewEditor {
+        border-left: 1px solid var(--ec-border);
+    }
 }
 
 /* Every line of a compare, and of an editor showing its changes, keeps a column before its text for the sign of its
@@ -379,97 +385,101 @@
     padding: 0 var(--ec-space-7) 0 calc(var(--ec-space-3) + var(--ec-compare-sign-width));
 }
 
-.ec-text-editor .cm-editor .cm-changedLine::before,
-.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine::before {
-    position: absolute;
-    left: var(--ec-space-1);
-    width: var(--ec-compare-sign-width);
-    font-weight: var(--ec-weight-semibold);
-    text-align: center;
-}
+.ec-text-editor {
+    & .cm-editor {
+        & .cm-changedLine::before,
+        & .cm-deletedChunk .cm-deletedLine::before {
+            position: absolute;
+            left: var(--ec-space-1);
+            width: var(--ec-compare-sign-width);
+            font-weight: var(--ec-weight-semibold);
+            text-align: center;
+        }
 
-.ec-text-editor .cm-editor.cm-merge-a .cm-changedLine,
-.ec-text-editor .cm-editor .cm-deletedChunk,
-.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-removed {
-    background: var(--ec-compare-removed-bg);
-}
+        &.cm-merge-a .cm-changedLine,
+        & .cm-deletedChunk,
+        & .cm-gutterElement.ec-text-compare-removed {
+            background: var(--ec-compare-removed-bg);
+        }
 
-.ec-text-editor .cm-editor.cm-merge-a .cm-changedLine::before,
-.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine::before {
-    content: "−";
-    color: var(--ec-compare-removed-sign);
-}
+        &.cm-merge-a .cm-changedLine::before,
+        & .cm-deletedChunk .cm-deletedLine::before {
+            content: "−";
+            color: var(--ec-compare-removed-sign);
+        }
 
-.ec-text-editor .cm-editor.cm-merge-b .cm-changedLine,
-.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-added {
-    background: var(--ec-compare-added-bg);
-}
+        &.cm-merge-b .cm-changedLine,
+        & .cm-gutterElement.ec-text-compare-added {
+            background: var(--ec-compare-added-bg);
+        }
 
-.ec-text-editor .cm-editor.cm-merge-b .cm-changedLine::before {
-    content: "+";
-    color: var(--ec-compare-added-sign);
-}
+        &.cm-merge-b .cm-changedLine::before {
+            content: "+";
+            color: var(--ec-compare-added-sign);
+        }
 
-.ec-text-editor .cm-editor .cm-deletedChunk {
-    padding-left: 0;
-}
+        & .cm-deletedChunk {
+            padding-left: 0;
+        }
 
-.ec-text-editor .cm-editor.cm-merge-a .cm-line .cm-changedText,
-.ec-text-editor .cm-editor .cm-deletedChunk .cm-deletedLine .cm-deletedText {
-    border-radius: var(--ec-compare-word-radius);
-    background: var(--ec-compare-removed-word);
-}
+        &.cm-merge-a .cm-line .cm-changedText,
+        & .cm-deletedChunk .cm-deletedLine .cm-deletedText {
+            border-radius: var(--ec-compare-word-radius);
+            background: var(--ec-compare-removed-word);
+        }
 
-.ec-text-editor .cm-editor.cm-merge-b .cm-line .cm-changedText {
-    border-radius: var(--ec-compare-word-radius);
-    background: var(--ec-compare-added-word);
-}
+        &.cm-merge-b .cm-line .cm-changedText {
+            border-radius: var(--ec-compare-word-radius);
+            background: var(--ec-compare-added-word);
+        }
 
-/* A line wholly added or removed marks no word. */
-.ec-text-editor .cm-editor .cm-line.ec-text-compare-whole .cm-changedText,
-.ec-text-editor .cm-editor .cm-deletedChunk:not(:has(+ .cm-changedLine)) .cm-deletedLine .cm-deletedText {
-    background: none;
-}
+        /* A line wholly added or removed marks no word. */
+        & .cm-line.ec-text-compare-whole .cm-changedText,
+        & .cm-deletedChunk:not(:has(+ .cm-changedLine)) .cm-deletedLine .cm-deletedText {
+            background: none;
+        }
 
-/* A match of the search shows over a changed word. */
-.ec-text-editor .cm-editor .cm-line .ec-text-editor-hit .cm-changedText {
-    background: var(--ec-preview-hit);
-}
+        /* A match of the search shows over a changed word. */
+        & .cm-line .ec-text-editor-hit .cm-changedText {
+            background: var(--ec-preview-hit);
+        }
 
-.ec-text-editor .cm-editor .cm-line .ec-text-editor-hit-current .cm-changedText {
-    background: var(--ec-preview-hit-current);
-}
+        & .cm-line .ec-text-editor-hit-current .cm-changedText {
+            background: var(--ec-preview-hit-current);
+        }
 
-.ec-text-editor .cm-editor .cm-mergeSpacer,
-.ec-text-editor .cm-editor .cm-gutterElement.ec-text-compare-gap {
-    background: var(--ec-compare-gap);
-}
+        & .cm-mergeSpacer,
+        & .cm-gutterElement.ec-text-compare-gap {
+            background: var(--ec-compare-gap);
+        }
+    }
 
-.ec-text-editor .ec-text-compare-run {
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    width: 100%;
-    height: var(--ec-compare-run-height);
-    padding: 0 0 0 var(--ec-space-6);
-    border: 0;
-    border-block: 1px solid var(--ec-compare-run-border);
-    background: var(--ec-compare-run-bg);
-    color: var(--ec-accent-text);
-    font-family: var(--ec-font);
-    font-size: var(--ec-text-sm);
-    font-weight: var(--ec-weight-medium);
-    text-align: left;
-    cursor: pointer;
-}
+    & .ec-text-compare-run {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        width: 100%;
+        height: var(--ec-compare-run-height);
+        padding: 0 0 0 var(--ec-space-6);
+        border: 0;
+        border-block: 1px solid var(--ec-compare-run-border);
+        background: var(--ec-compare-run-bg);
+        color: var(--ec-accent-text);
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-sm);
+        font-weight: var(--ec-weight-medium);
+        text-align: left;
+        cursor: pointer;
 
-.ec-text-editor .ec-text-compare-run:hover {
-    background: var(--ec-compare-run-hover);
-}
+        &:hover {
+            background: var(--ec-compare-run-hover);
+        }
 
-.ec-text-editor .ec-text-compare-run:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
+        &:focus-visible {
+            outline: none;
+            box-shadow: var(--ec-focus-ring);
+        }
+    }
 }
 
 .ec-text-compare-state {
@@ -623,85 +633,87 @@
     margin-bottom: 0;
 }
 
-.ec-preview-markdown h1,
-.ec-preview-markdown h2,
-.ec-preview-markdown h3,
-.ec-preview-markdown h4 {
-    margin: var(--ec-space-7) 0 var(--ec-space-3);
-    line-height: var(--ec-leading-tight);
-    font-weight: var(--ec-weight-semibold);
-}
+.ec-preview-markdown {
+    & h1,
+    & h2,
+    & h3,
+    & h4 {
+        margin: var(--ec-space-7) 0 var(--ec-space-3);
+        line-height: var(--ec-leading-tight);
+        font-weight: var(--ec-weight-semibold);
+    }
 
-.ec-preview-markdown h1 {
-    font-size: var(--ec-title-mobile);
-}
+    & h1 {
+        font-size: var(--ec-title-mobile);
+    }
 
-.ec-preview-markdown h2 {
-    font-size: var(--ec-text-xl);
-}
+    & h2 {
+        font-size: var(--ec-text-xl);
+    }
 
-.ec-preview-markdown h3,
-.ec-preview-markdown h4 {
-    font-size: var(--ec-text-lg);
-}
+    & h3,
+    & h4 {
+        font-size: var(--ec-text-lg);
+    }
 
-.ec-preview-markdown p,
-.ec-preview-markdown ul,
-.ec-preview-markdown ol,
-.ec-preview-markdown blockquote,
-.ec-preview-markdown pre,
-.ec-preview-markdown table {
-    margin: 0 0 var(--ec-space-5);
-}
+    & p,
+    & ul,
+    & ol,
+    & blockquote,
+    & pre,
+    & table {
+        margin: 0 0 var(--ec-space-5);
+    }
 
-.ec-preview-markdown ul,
-.ec-preview-markdown ol {
-    padding-left: var(--ec-space-7);
-}
+    & ul,
+    & ol {
+        padding-left: var(--ec-space-7);
+    }
 
-.ec-preview-markdown a {
-    color: var(--ec-accent-text);
-}
+    & a {
+        color: var(--ec-accent-text);
+    }
 
-.ec-preview-markdown blockquote {
-    padding-left: var(--ec-space-5);
-    border-left: 3px solid var(--ec-border-strong);
-    color: var(--ec-text-soft);
-}
+    & blockquote {
+        padding-left: var(--ec-space-5);
+        border-left: 3px solid var(--ec-border-strong);
+        color: var(--ec-text-soft);
+    }
 
-.ec-preview-markdown code,
-.ec-preview-markdown pre {
-    border-radius: var(--ec-radius-sm);
-    background: var(--ec-surface-sunken);
-    font-family: var(--ec-font-mono);
-    font-size: var(--ec-text-sm);
-}
+    & code,
+    & pre {
+        border-radius: var(--ec-radius-sm);
+        background: var(--ec-surface-sunken);
+        font-family: var(--ec-font-mono);
+        font-size: var(--ec-text-sm);
+    }
 
-.ec-preview-markdown code {
-    padding: 1px var(--ec-space-2);
-}
+    & code {
+        padding: 1px var(--ec-space-2);
+    }
 
-.ec-preview-markdown pre {
-    padding: var(--ec-space-4) var(--ec-space-5);
-    overflow-x: auto;
-}
+    & pre {
+        padding: var(--ec-space-4) var(--ec-space-5);
+        overflow-x: auto;
+    }
 
-.ec-preview-markdown pre code {
-    padding: 0;
-}
+    & pre code {
+        padding: 0;
+    }
 
-.ec-preview-markdown table {
-    border-collapse: collapse;
-}
+    & table {
+        border-collapse: collapse;
+    }
 
-.ec-preview-markdown th,
-.ec-preview-markdown td {
-    padding: var(--ec-space-2) var(--ec-space-4);
-    border: 1px solid var(--ec-border);
-    text-align: left;
-}
+    & th,
+    & td {
+        padding: var(--ec-space-2) var(--ec-space-4);
+        border: 1px solid var(--ec-border);
+        text-align: left;
+    }
 
-.ec-preview-markdown th {
-    background: var(--ec-surface-header);
-    font-weight: var(--ec-weight-semibold);
+    & th {
+        background: var(--ec-surface-header);
+        font-weight: var(--ec-weight-semibold);
+    }
 }

@@ -17,6 +17,7 @@ import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import type { Extension, Range, StateEffectType } from '@codemirror/state';
 import type { DecorationSet } from '@codemirror/view';
 import type { Change } from '@codemirror/merge';
+import { StyleModule } from 'style-mod';
 
 // [from, to] positions of a text.
 export type Match = [number, number];
@@ -29,6 +30,13 @@ export interface Summary {
 }
 
 export type Language = keyof typeof languages;
+
+// CodeMirror mounts its own styles outside every layer, where they would win over the app's; they go into the vendor
+// layer, which the app's stylesheet declares below its own.
+const mountedRules = StyleModule.prototype.getRules;
+StyleModule.prototype.getRules = function (this: StyleModule): string {
+    return `@layer vendor{${mountedRules.call(this)}}`;
+};
 
 // The classes are the app's; the app's stylesheet colours them.
 const highlighting = HighlightStyle.define([

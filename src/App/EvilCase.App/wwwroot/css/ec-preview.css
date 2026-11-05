@@ -4,26 +4,26 @@
     height: min(var(--ec-preview-height), calc(100vh - 2 * var(--ec-space-8)));
     max-height: none;
     overflow: hidden;
-}
 
-.ec-modal-large[open] {
-    display: flex;
-    flex-direction: column;
-}
+    &[open] {
+        display: flex;
+        flex-direction: column;
+    }
 
-.ec-modal-large::backdrop {
-    background: var(--ec-overlay-strong);
-}
+    &::backdrop {
+        background: var(--ec-overlay-strong);
+    }
 
-.ec-modal-large .ec-modal-header {
-    flex: 0 0 auto;
-    min-height: var(--ec-preview-header-height);
-    box-sizing: border-box;
-    padding: 0 var(--ec-space-5) 0 var(--ec-space-6);
-}
+    & .ec-modal-header {
+        flex: 0 0 auto;
+        min-height: var(--ec-preview-header-height);
+        box-sizing: border-box;
+        padding: 0 var(--ec-space-5) 0 var(--ec-space-6);
+    }
 
-.ec-modal-large .ec-modal-header .ec-button:not(.ec-button-ghost) {
-    height: var(--ec-control-md);
+    & .ec-modal-header .ec-button:not(.ec-button-ghost) {
+        height: var(--ec-control-md);
+    }
 }
 
 .ec-modal-maximize {
@@ -165,6 +165,12 @@
     font-size: var(--ec-text-sm);
     text-align: center;
     font-variant-numeric: tabular-nums;
+
+    &:focus-visible {
+        outline: none;
+        border-color: var(--ec-accent);
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-preview-toolbar-zoom-value {
@@ -272,24 +278,26 @@
     inset: 0;
 }
 
-.ec-preview-pdf .pdfViewer {
-    --page-margin: var(--ec-preview-pdf-page-margin);
-    --page-border: var(--ec-preview-pdf-page-border);
-    padding-top: var(--ec-space-3);
-}
+.ec-preview-pdf {
+    & .pdfViewer {
+        --page-margin: var(--ec-preview-pdf-page-margin);
+        --page-border: var(--ec-preview-pdf-page-border);
+        padding-top: var(--ec-space-3);
+    }
 
-.ec-preview-pdf .pdfViewer .canvasWrapper {
-    box-shadow: var(--ec-shadow-page);
-}
+    & .pdfViewer .canvasWrapper {
+        box-shadow: var(--ec-shadow-page);
+    }
 
-.ec-preview-pdf .textLayer .highlight {
-    --highlight-bg-color: var(--ec-preview-hit);
-    --highlight-selected-bg-color: var(--ec-preview-hit-current);
-}
+    & .textLayer .highlight {
+        --highlight-bg-color: var(--ec-preview-hit);
+        --highlight-selected-bg-color: var(--ec-preview-hit-current);
+    }
 
-/* Vložené video nebo zvuk z PDF se nepřehrává. */
-.ec-preview-pdf .mediaAnnotation {
-    display: none;
+    /* Vložené video nebo zvuk z PDF se nepřehrává. */
+    & .mediaAnnotation {
+        display: none;
+    }
 }
 
 .ec-preview-stage {

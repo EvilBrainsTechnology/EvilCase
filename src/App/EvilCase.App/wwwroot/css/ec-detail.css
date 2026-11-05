@@ -46,24 +46,24 @@
 .ec-detail-fact-labels {
     position: relative;
     flex: 1 1 auto;
-}
 
-/* The chips, the add button and the box sit on the value line, so the label fact is no taller than the others. */
-.ec-detail-fact-labels .ec-label-field > .ec-chip {
-    height: var(--ec-fact-line);
-    padding: 0 var(--ec-space-3);
-    font-size: var(--ec-text-xs);
-}
+    /* The chips, the add button and the box sit on the value line, so the label fact is no taller than the others. */
+    & .ec-label-field > .ec-chip {
+        height: var(--ec-fact-line);
+        padding: 0 var(--ec-space-3);
+        font-size: var(--ec-text-xs);
+    }
 
-.ec-detail-fact-labels .ec-label-field > .ec-chip .ec-chip-dot {
-    width: var(--ec-space-2);
-    height: var(--ec-space-2);
-}
+    & .ec-label-field > .ec-chip .ec-chip-dot {
+        width: var(--ec-space-2);
+        height: var(--ec-space-2);
+    }
 
-.ec-detail-fact-labels .ec-label-add,
-.ec-detail-fact-labels .ec-label-input {
-    height: var(--ec-fact-line);
-    font-size: var(--ec-text-xs);
+    & .ec-label-add,
+    & .ec-label-input {
+        height: var(--ec-fact-line);
+        font-size: var(--ec-text-xs);
+    }
 }
 
 .ec-detail-fact-name {
@@ -100,17 +100,17 @@
     align-items: center;
     gap: var(--ec-space-1);
     min-width: 0;
-}
 
-/* Tlačítko kopírování přesahuje řádek hodnoty, aby hodnota zůstala na účaří ostatních údajů. */
-.ec-detail-fact-copy .ec-copy {
-    margin-block: calc((var(--ec-fact-line) - var(--ec-copy-size)) / 2);
-    color: var(--ec-text-muted);
-}
+    /* Tlačítko kopírování přesahuje řádek hodnoty, aby hodnota zůstala na účaří ostatních údajů. */
+    & .ec-copy {
+        margin-block: calc((var(--ec-fact-line) - var(--ec-copy-size)) / 2);
+        color: var(--ec-text-muted);
+    }
 
-.ec-detail-fact-copy .ec-copy:hover {
-    background: var(--ec-bg);
-    color: var(--ec-text);
+    & .ec-copy:hover {
+        background: var(--ec-bg);
+        color: var(--ec-text);
+    }
 }
 
 .ec-detail-fact-head {
@@ -192,16 +192,16 @@
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
     cursor: pointer;
-}
 
-.ec-label-add:hover {
-    background: var(--ec-surface-sunken);
-    color: var(--ec-text);
-}
+    &:hover {
+        background: var(--ec-surface-sunken);
+        color: var(--ec-text);
+    }
 
-.ec-label-add:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-label-search {
@@ -241,26 +241,26 @@
     border: 1px solid var(--ec-border-strong);
     border-radius: var(--ec-radius-lg);
     background: var(--ec-surface);
-}
 
-.ec-label-field-box:focus-within {
-    border-color: var(--ec-accent);
-    box-shadow: var(--ec-focus-ring);
-}
+    &:focus-within {
+        border-color: var(--ec-accent);
+        box-shadow: var(--ec-focus-ring);
+    }
 
-.ec-label-field-box .ec-label-search {
-    flex: 1 1 var(--ec-label-search-width);
-}
+    & .ec-label-search {
+        flex: 1 1 var(--ec-label-search-width);
+    }
 
-.ec-label-field-box .ec-label-input {
-    flex: 1 1 auto;
-    width: auto;
-    height: auto;
-    padding: 0;
-    border: 0;
-    box-shadow: none;
-    background: transparent;
-    font-size: var(--ec-text-md);
+    & .ec-label-input {
+        flex: 1 1 auto;
+        width: auto;
+        height: auto;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+        font-size: var(--ec-text-md);
+    }
 }
 
 .ec-label-menu {
@@ -545,14 +545,14 @@
     background: var(--ec-surface-sunken);
     color: var(--ec-text);
     text-decoration: none;
-}
 
-.ec-case-link:hover {
-    background: var(--ec-border-subtle);
-}
+    &:hover {
+        background: var(--ec-border-subtle);
+    }
 
-.ec-case-link + .ec-card-text {
-    margin-top: var(--ec-space-4);
+    & + .ec-card-text {
+        margin-top: var(--ec-space-4);
+    }
 }
 
 .ec-case-link-title {
@@ -625,15 +625,15 @@
     padding: var(--ec-space-2) var(--ec-space-3);
     border-radius: var(--ec-timeline-radius);
     text-decoration: none;
-}
 
-.ec-timeline-item:hover .ec-timeline-title {
-    color: var(--ec-accent-text);
-}
+    &:hover .ec-timeline-title {
+        color: var(--ec-accent-text);
+    }
 
-.ec-timeline-item:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-timeline-item-current {
@@ -762,26 +762,26 @@
     border-top: 1px solid var(--ec-border-subtle);
     color: var(--ec-text);
     text-decoration: none;
-}
 
-/* A child case's main file stands on the right across both lines. */
-.ec-child-row:has(> .ec-main-file) {
-    grid-template-columns: minmax(0, 1fr) auto;
-}
+    /* A child case's main file stands on the right across both lines. */
+    &:has(> .ec-main-file) {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
 
-.ec-child-row > .ec-main-file {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    align-self: center;
-}
+    & > .ec-main-file {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
+    }
 
-.ec-child-row:hover .ec-child-title {
-    color: var(--ec-accent-text);
-}
+    &:hover .ec-child-title {
+        color: var(--ec-accent-text);
+    }
 
-.ec-child-row:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-child-title {

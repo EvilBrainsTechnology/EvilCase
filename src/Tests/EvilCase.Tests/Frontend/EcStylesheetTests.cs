@@ -47,7 +47,11 @@ public partial class EcStylesheetTests
             Assert.That(css, Does.Not.Contain("http"), "a stylesheet loads nothing from a foreign network");
         }
 
-        foreach (var url in UrlPattern.Matches(css).Select(static match => match.Groups["url"].Value))
+        var urls = UrlPattern.Matches(css).Select(static match => match.Groups["url"].Value).ToList();
+
+        Assert.That(urls, Is.Not.Empty, $"{stylesheet} loads the app's fonts");
+
+        foreach (var url in urls)
         {
             using var response = await this.client.GetAsync(new Uri(stylesheetUri, url));
 
@@ -58,6 +62,6 @@ public partial class EcStylesheetTests
     [GeneratedRegex("""<link rel="stylesheet" href="(?<href>[^"]+)" />""", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex StylesheetPattern { get; }
 
-    [GeneratedRegex("""url\(['"](?<url>[^'"]+)['"]\)""", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
+    [GeneratedRegex("""url\((?<quote>['"]?)(?<url>[^'")]+)\k<quote>\)""", RegexOptions.None, matchTimeoutMilliseconds: 1000)]
     private static partial Regex UrlPattern { get; }
 }

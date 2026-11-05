@@ -15,21 +15,21 @@
     min-height: var(--ec-file-row-height);
     padding: var(--ec-space-3) var(--ec-space-4);
     border-bottom: 1px solid var(--ec-border-subtle);
-}
 
-.ec-file-row:first-child {
-    border-top-left-radius: var(--ec-radius-xl);
-    border-top-right-radius: var(--ec-radius-xl);
-}
+    &:first-child {
+        border-top-left-radius: var(--ec-radius-xl);
+        border-top-right-radius: var(--ec-radius-xl);
+    }
 
-.ec-file-row:last-child {
-    border-bottom: 0;
-    border-bottom-left-radius: var(--ec-radius-xl);
-    border-bottom-right-radius: var(--ec-radius-xl);
-}
+    &:last-child {
+        border-bottom: 0;
+        border-bottom-left-radius: var(--ec-radius-xl);
+        border-bottom-right-radius: var(--ec-radius-xl);
+    }
 
-.ec-file-row:hover {
-    background: var(--ec-surface-sunken);
+    &:hover {
+        background: var(--ec-surface-sunken);
+    }
 }
 
 .ec-file-row-renaming,
@@ -84,18 +84,20 @@
     color: var(--ec-accent-text);
 }
 
-.ec-file-name:focus-visible {
-    outline: none;
-}
+.ec-file-name {
+    &:focus-visible {
+        outline: none;
+    }
 
-.ec-file-name:focus-visible::after {
-    border-radius: var(--ec-radius-xl);
-    box-shadow: inset 0 0 0 2px var(--ec-accent);
-}
+    &:focus-visible::after {
+        border-radius: var(--ec-radius-xl);
+        box-shadow: inset 0 0 0 2px var(--ec-accent);
+    }
 
-.ec-file-name:disabled {
-    cursor: default;
-    opacity: 0.6;
+    &:disabled {
+        cursor: default;
+        opacity: 0.6;
+    }
 }
 
 .ec-file-meta,
@@ -215,23 +217,23 @@
 /* Stáhnout vše a šipka jeho nabídky jsou jedno tlačítko o dvou částech. */
 .ec-split-button {
     display: flex;
-}
 
-.ec-split-button .ec-button {
-    height: var(--ec-control-md);
-}
+    & .ec-button {
+        height: var(--ec-control-md);
+    }
 
-.ec-split-button > .ec-button {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-}
+    & > .ec-button {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
 
-.ec-split-button .ec-menu-anchor > .ec-button {
-    aspect-ratio: auto;
-    padding: 0 var(--ec-space-2);
-    border-left-width: 0;
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    & .ec-menu-anchor > .ec-button {
+        aspect-ratio: auto;
+        padding: 0 var(--ec-space-2);
+        border-left-width: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
 }
 
 .ec-file-uploading {
@@ -296,28 +298,30 @@
 }
 
 /* Soubory v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
-.ec-file-card-compact .ec-file-row {
-    gap: var(--ec-space-3);
-    min-height: var(--ec-file-row-compact-height);
-    padding: var(--ec-space-3);
-}
+.ec-file-card-compact {
+    & .ec-file-row {
+        gap: var(--ec-space-3);
+        min-height: var(--ec-file-row-compact-height);
+        padding: var(--ec-space-3);
+    }
 
-.ec-file-card-compact .ec-file-name {
-    font-size: var(--ec-text-sm);
-}
+    & .ec-file-name {
+        font-size: var(--ec-text-sm);
+    }
 
-.ec-file-card-compact .ec-file-meta {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
+    & .ec-file-meta {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
 
-.ec-file-card-compact .ec-file-actions .ec-button {
-    height: var(--ec-control-sm);
-}
+    & .ec-file-actions .ec-button {
+        height: var(--ec-control-sm);
+    }
 
-.ec-file-card-compact .ec-card-header {
-    gap: var(--ec-space-3);
+    & .ec-card-header {
+        gap: var(--ec-space-3);
+    }
 }
 
 .ec-file-card .ec-card-title {

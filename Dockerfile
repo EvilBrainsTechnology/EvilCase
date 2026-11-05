@@ -14,13 +14,16 @@ RUN find /projects -type f \
         -delete \
     && find /projects -depth -type d -empty -delete
 
-# The frontend libraries, fonts and compiled modules the build stage would otherwise generate with its own Node.js.
+# The frontend libraries, fonts, compiled modules and stylesheet bundle the build stage would otherwise generate with its own Node.js.
 FROM node:22-alpine AS libs
 WORKDIR /libs
 COPY src/App/EvilCase.App/package.json src/App/EvilCase.App/package-lock.json src/App/EvilCase.App/build-libs.mjs ./
 COPY src/App/EvilCase.App/ts/ ./ts/
 RUN npm ci --ignore-scripts --no-audit --no-fund \
     && node build-libs.mjs
+COPY src/App/EvilCase.App/build-styles.mjs ./
+COPY src/App/EvilCase.App/wwwroot/css/ ./wwwroot/css/
+RUN node build-styles.mjs
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
 
