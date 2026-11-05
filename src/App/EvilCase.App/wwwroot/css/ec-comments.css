@@ -65,16 +65,16 @@
     font-size: var(--ec-text-sm);
     color: var(--ec-accent-text);
     cursor: pointer;
-}
 
-.ec-comment-action:hover {
-    text-decoration: underline;
-}
+    &:hover {
+        text-decoration: underline;
+    }
 
-.ec-comment-action:focus-visible {
-    outline: none;
-    border-radius: var(--ec-radius-sm);
-    box-shadow: var(--ec-focus-ring);
+    &:focus-visible {
+        outline: none;
+        border-radius: var(--ec-radius-sm);
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-comment-action-danger {
@@ -94,36 +94,38 @@
 }
 
 /* Komentáře v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
-.ec-comments-compact .ec-comment {
-    gap: var(--ec-space-3);
-}
+.ec-comments-compact {
+    & .ec-comment {
+        gap: var(--ec-space-3);
+    }
 
-.ec-comments-compact .ec-comment-avatar {
-    width: var(--ec-comment-avatar-compact);
-    height: var(--ec-comment-avatar-compact);
-    font-size: var(--ec-text-2xs);
-}
+    & .ec-comment-avatar {
+        width: var(--ec-comment-avatar-compact);
+        height: var(--ec-comment-avatar-compact);
+        font-size: var(--ec-text-2xs);
+    }
 
-.ec-comments-compact .ec-comment-meta,
-.ec-comments-compact .ec-comment-action {
-    font-size: var(--ec-text-xs);
-}
+    & .ec-comment-meta,
+    & .ec-comment-action {
+        font-size: var(--ec-text-xs);
+    }
 
-.ec-comments-compact .ec-comment-text {
-    font-size: var(--ec-text-sm);
-}
+    & .ec-comment-text {
+        font-size: var(--ec-text-sm);
+    }
 
-.ec-comments-compact .ec-textarea {
-    min-height: auto;
-    font-size: var(--ec-text-sm);
-}
+    & .ec-textarea {
+        min-height: auto;
+        font-size: var(--ec-text-sm);
+    }
 
-.ec-comments-compact .ec-comment-composer {
-    padding-top: var(--ec-space-4);
-    border-top: 1px solid var(--ec-border-subtle);
-}
+    & .ec-comment-composer {
+        padding-top: var(--ec-space-4);
+        border-top: 1px solid var(--ec-border-subtle);
+    }
 
-.ec-comments-compact .ec-comment-composer .ec-button {
-    height: var(--ec-control-md);
-    font-size: var(--ec-text-sm);
+    & .ec-comment-composer .ec-button {
+        height: var(--ec-control-md);
+        font-size: var(--ec-text-sm);
+    }
 }

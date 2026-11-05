@@ -85,16 +85,16 @@ html {
     line-height: var(--ec-leading-tight);
     white-space: nowrap;
     cursor: pointer;
-}
 
-.ec-button:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
-}
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 
-.ec-button:disabled {
-    cursor: default;
-    opacity: 0.6;
+    &:disabled {
+        cursor: default;
+        opacity: 0.6;
+    }
 }
 
 .ec-button-compact {
@@ -228,18 +228,18 @@ html {
     text-overflow: ellipsis;
     color: var(--ec-text-muted);
     text-decoration: none;
-}
 
-.ec-crumb:first-child {
-    flex: none;
-}
+    &:first-child {
+        flex: none;
+    }
 
-.ec-crumb:hover {
-    color: var(--ec-text);
-}
+    &:hover {
+        color: var(--ec-text);
+    }
 
-.ec-crumb[aria-current="page"] {
-    color: var(--ec-text);
+    &[aria-current="page"] {
+        color: var(--ec-text);
+    }
 }
 
 .ec-crumb-separator {

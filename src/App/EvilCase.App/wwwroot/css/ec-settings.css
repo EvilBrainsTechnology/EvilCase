@@ -56,18 +56,18 @@
     color: var(--ec-text-soft);
     cursor: pointer;
     white-space: nowrap;
-}
 
-.ec-segment:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
-}
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 
-.ec-segment[aria-pressed="true"] {
-    background: var(--ec-surface);
-    color: var(--ec-text);
-    font-weight: var(--ec-weight-semibold);
-    box-shadow: var(--ec-shadow-raised);
+    &[aria-pressed="true"] {
+        background: var(--ec-surface);
+        color: var(--ec-text);
+        font-weight: var(--ec-weight-semibold);
+        box-shadow: var(--ec-shadow-raised);
+    }
 }
 
 .ec-warning {
@@ -114,16 +114,16 @@
     font-size: var(--ec-text-md);
     color: var(--ec-text-soft);
     text-decoration: none;
-}
 
-.ec-settings-nav-item:hover {
-    background: var(--ec-surface-header);
-}
+    &:hover {
+        background: var(--ec-surface-header);
+    }
 
-.ec-settings-nav-item[aria-current="page"] {
-    background: var(--ec-accent-soft);
-    color: var(--ec-accent-text);
-    font-weight: var(--ec-weight-semibold);
+    &[aria-current="page"] {
+        background: var(--ec-accent-soft);
+        color: var(--ec-accent-text);
+        font-weight: var(--ec-weight-semibold);
+    }
 }
 
 .ec-export {
@@ -381,19 +381,19 @@
     border: 1px solid var(--ec-border-strong);
     border-radius: var(--ec-radius-lg);
     cursor: pointer;
-}
 
-.ec-token-scope-option:has(input:checked) {
-    padding: calc(var(--ec-space-4) - 1px) calc(var(--ec-token-option-pad) - 1px);
-    border: 2px solid var(--ec-accent);
-    background: var(--ec-token-option-checked-bg);
-}
+    &:has(input:checked) {
+        padding: calc(var(--ec-space-4) - 1px) calc(var(--ec-token-option-pad) - 1px);
+        border: 2px solid var(--ec-accent);
+        background: var(--ec-token-option-checked-bg);
+    }
 
-.ec-token-scope-option input {
-    width: var(--ec-icon-md);
-    height: var(--ec-icon-md);
-    margin: var(--ec-space-1) 0 0;
-    accent-color: var(--ec-accent);
+    & input {
+        width: var(--ec-icon-md);
+        height: var(--ec-icon-md);
+        margin: var(--ec-space-1) 0 0;
+        accent-color: var(--ec-accent);
+    }
 }
 
 .ec-token-scope-copy {
@@ -424,15 +424,15 @@
 .ec-token-secret {
     display: flex;
     gap: var(--ec-space-3);
-}
 
-.ec-token-secret .ec-input {
-    flex: 1 1 auto;
-    min-width: 0;
-}
+    & .ec-input {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
 
-.ec-token-secret .ec-button {
-    flex-shrink: 0;
+    & .ec-button {
+        flex-shrink: 0;
+    }
 }
 
 /* Below lg the secret wraps in a block instead of the field. */
@@ -488,16 +488,16 @@
     border-radius: var(--ec-radius-pill);
     background: var(--ec-chip-color);
     cursor: pointer;
-}
 
-.ec-swatch:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
-}
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 
-.ec-swatch[aria-pressed="true"] {
-    border-color: var(--ec-text);
-    border-width: 2px;
+    &[aria-pressed="true"] {
+        border-color: var(--ec-text);
+        border-width: 2px;
+    }
 }
 
 .ec-confirm-text {

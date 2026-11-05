@@ -31,15 +31,15 @@
     margin: 0 calc(-1 * var(--ec-space-6));
     padding: var(--ec-space-4) var(--ec-space-6);
     border-bottom: 1px solid var(--ec-border-subtle);
-}
 
-.ec-versions-row:has(.ec-versions-main:hover),
-.ec-versions-row:has(.ec-versions-main:focus-visible) {
-    background: var(--ec-surface-sunken);
-}
+    &:has(.ec-versions-main:hover),
+    &:has(.ec-versions-main:focus-visible) {
+        background: var(--ec-surface-sunken);
+    }
 
-.ec-versions-row:last-child {
-    border-bottom: 0;
+    &:last-child {
+        border-bottom: 0;
+    }
 }
 
 /* The row's main button stretches over the whole row; the actions sit above it. */
@@ -56,20 +56,20 @@
     font: inherit;
     text-align: left;
     cursor: pointer;
-}
 
-.ec-versions-main::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-}
+    &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+    }
 
-.ec-versions-main:focus-visible {
-    outline: none;
-}
+    &:focus-visible {
+        outline: none;
+    }
 
-.ec-versions-main:focus-visible::after {
-    box-shadow: inset 0 0 0 2px var(--ec-accent);
+    &:focus-visible::after {
+        box-shadow: inset 0 0 0 2px var(--ec-accent);
+    }
 }
 
 .ec-versions-title {
@@ -266,20 +266,22 @@
 }
 
 /* A version the other side of a compare rules out. */
-.ec-preview-versions-option:disabled,
-.ec-preview-versions-option:disabled:hover {
-    background: transparent;
-    color: var(--ec-text-faint);
-    cursor: default;
-}
+.ec-preview-versions-option {
+    &:disabled,
+    &:disabled:hover {
+        background: transparent;
+        color: var(--ec-text-faint);
+        cursor: default;
+    }
 
-.ec-preview-versions-option:disabled .ec-preview-versions-option-meta {
-    color: var(--ec-text-faint);
-}
+    &:disabled .ec-preview-versions-option-meta {
+        color: var(--ec-text-faint);
+    }
 
-.ec-preview-versions-option[aria-current="true"] {
-    background: var(--ec-accent-soft);
-    color: var(--ec-accent-text);
+    &[aria-current="true"] {
+        background: var(--ec-accent-soft);
+        color: var(--ec-accent-text);
+    }
 }
 
 .ec-preview-versions-option-title {
@@ -395,14 +397,14 @@
     grid-template-columns: var(--ec-preview-signature-label) minmax(0, 1fr);
     gap: var(--ec-space-2) var(--ec-space-5);
     margin: 0;
-}
 
-.ec-preview-signature-details dt {
-    color: var(--ec-text-muted);
-}
+    & dt {
+        color: var(--ec-text-muted);
+    }
 
-.ec-preview-signature-details dd {
-    margin: 0;
+    & dd {
+        margin: 0;
+    }
 }
 
 /* An open popover would be clipped by the scrolling strip. */
@@ -441,15 +443,15 @@
     color: inherit;
     text-align: left;
     cursor: pointer;
-}
 
-.ec-preview-signature-file:hover {
-    background: var(--ec-surface-sunken);
-}
+    &:hover {
+        background: var(--ec-surface-sunken);
+    }
 
-.ec-preview-signature-file:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-preview-signature-file-name {

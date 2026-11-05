@@ -63,20 +63,22 @@
     }
 
     /* On a detail the title has the whole row; the status and the actions go below it. */
-    .ec-detail .ec-page-header-row > .ec-page-title {
-        flex: 1 0 100%;
-    }
+    .ec-detail {
+        & .ec-page-header-row > .ec-page-title {
+            flex: 1 0 100%;
+        }
 
-    .ec-detail .ec-page-title {
-        line-height: var(--ec-leading-title);
-    }
+        & .ec-page-title {
+            line-height: var(--ec-leading-title);
+        }
 
-    .ec-detail .ec-page-header {
-        gap: var(--ec-space-2);
-    }
+        & .ec-page-header {
+            gap: var(--ec-space-2);
+        }
 
-    .ec-detail .ec-page-header-row {
-        row-gap: var(--ec-space-3);
+        & .ec-page-header-row {
+            row-gap: var(--ec-space-3);
+        }
     }
 
     .ec-text-wide {
@@ -118,18 +120,20 @@
         overflow-wrap: break-word;
     }
 
-    .ec-detail-fact-labels .ec-label-field > .ec-chip {
-        height: calc(var(--ec-space-7) + var(--ec-space-1));
-        font-size: var(--ec-text-sm);
-    }
+    .ec-detail-fact-labels {
+        & .ec-label-field > .ec-chip {
+            height: calc(var(--ec-space-7) + var(--ec-space-1));
+            font-size: var(--ec-text-sm);
+        }
 
-    .ec-detail-fact-labels .ec-label-field > .ec-chip .ec-chip-dot {
-        width: var(--ec-space-3);
-        height: var(--ec-space-3);
-    }
+        & .ec-label-field > .ec-chip .ec-chip-dot {
+            width: var(--ec-space-3);
+            height: var(--ec-space-3);
+        }
 
-    .ec-detail-fact-labels .ec-label-add {
-        font-size: var(--ec-text-sm);
+        & .ec-label-add {
+            font-size: var(--ec-text-sm);
+        }
     }
 
     /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
@@ -262,15 +266,15 @@
 
     .ec-token-meta {
         display: flex;
-    }
 
-    .ec-token-meta .ec-token-chip {
-        height: var(--ec-token-chip-sm-height);
-        padding: 0 var(--ec-space-2);
-    }
+        & .ec-token-chip {
+            height: var(--ec-token-chip-sm-height);
+            padding: 0 var(--ec-space-2);
+        }
 
-    .ec-token-meta .ec-token-expired::before {
-        display: none;
+        & .ec-token-expired::before {
+            display: none;
+        }
     }
 
     .ec-token-row .ec-settings-row-actions .ec-button {
@@ -718,18 +722,18 @@
     /* The editor's toolbar stays one row: what does not fit scrolls sideways. An open search takes a row of its own. */
     .ec-text-editor-toolbar {
         overflow-x: auto;
-    }
 
-    .ec-text-editor-toolbar:has(> .ec-preview-toolbar-search-open) {
-        flex-wrap: wrap;
-    }
+        &:has(> .ec-preview-toolbar-search-open) {
+            flex-wrap: wrap;
+        }
 
-    .ec-text-editor-toolbar > * {
-        flex: 0 0 auto;
-    }
+        & > * {
+            flex: 0 0 auto;
+        }
 
-    .ec-text-editor-toolbar > .ec-toolbar-notes {
-        flex: 1 1 0;
+        & > .ec-toolbar-notes {
+            flex: 1 1 0;
+        }
     }
 
     .ec-text-editor-toolbar > .ec-preview-toolbar-search-open,
@@ -757,42 +761,42 @@
         overflow-x: auto;
         scroll-snap-type: x proximity;
         scrollbar-width: none;
-    }
 
-    .ec-markdown-toolbar-format > .ec-preview-toolbar-separator:first-child {
-        display: none;
-    }
+        & > .ec-preview-toolbar-separator:first-child {
+            display: none;
+        }
 
-    .ec-markdown-toolbar-format > .ec-button {
-        scroll-snap-align: start;
+        & > .ec-button {
+            scroll-snap-align: start;
+        }
     }
 
     /* The version, the steps and the summary on one row, the legend on a short row below. */
     .ec-editor-changes-bar {
         gap: var(--ec-space-2);
         padding: var(--ec-space-2) var(--ec-space-4);
-    }
 
-    .ec-editor-changes-bar .ec-text-compare-version-label {
-        display: none;
-    }
+        & .ec-text-compare-version-label {
+            display: none;
+        }
 
-    .ec-editor-changes-bar .ec-markdown-compare-legend {
-        flex: 1 1 100%;
-        flex-wrap: nowrap;
-        gap: var(--ec-space-3);
-        margin-left: 0;
-        overflow-x: auto;
-        font-size: var(--ec-text-xs);
-        white-space: nowrap;
-    }
+        & .ec-markdown-compare-legend {
+            flex: 1 1 100%;
+            flex-wrap: nowrap;
+            gap: var(--ec-space-3);
+            margin-left: 0;
+            overflow-x: auto;
+            font-size: var(--ec-text-xs);
+            white-space: nowrap;
+        }
 
-    .ec-editor-changes-bar .ec-markdown-compare-legend-item {
-        gap: var(--ec-space-1);
-    }
+        & .ec-markdown-compare-legend-item {
+            gap: var(--ec-space-1);
+        }
 
-    .ec-editor-changes-bar .ec-markdown-compare-legend-item > :first-child {
-        padding: 0 var(--ec-space-1);
+        & .ec-markdown-compare-legend-item > :first-child {
+            padding: 0 var(--ec-space-1);
+        }
     }
 
     .ec-markdown-mode-long {
@@ -855,37 +859,39 @@
     }
 
     /* Starší and Novější stand inside their pickers. */
-    .ec-text-compare-versions .ec-text-compare-version {
-        display: grid;
-        align-items: center;
-        gap: 0;
-    }
+    .ec-text-compare-versions {
+        & .ec-text-compare-version {
+            display: grid;
+            align-items: center;
+            gap: 0;
+        }
 
-    .ec-text-compare-versions .ec-text-compare-version > * {
-        grid-area: 1 / 1;
-    }
+        & .ec-text-compare-version > * {
+            grid-area: 1 / 1;
+        }
 
-    .ec-text-compare-versions .ec-text-compare-version-title {
-        margin-right: auto;
-    }
+        & .ec-text-compare-version-title {
+            margin-right: auto;
+        }
 
-    .ec-text-compare-versions .ec-text-compare-version-label {
-        align-self: center;
-        position: relative;
-        z-index: 1;
-        padding-left: var(--ec-space-4);
-        font-size: var(--ec-text-xs);
-        font-weight: var(--ec-weight-regular);
-        color: var(--ec-text-muted);
-        pointer-events: none;
-    }
+        & .ec-text-compare-version-label {
+            align-self: center;
+            position: relative;
+            z-index: 1;
+            padding-left: var(--ec-space-4);
+            font-size: var(--ec-text-xs);
+            font-weight: var(--ec-weight-regular);
+            color: var(--ec-text-muted);
+            pointer-events: none;
+        }
 
-    .ec-text-compare-versions .ec-text-compare-version .ec-preview-versions-trigger {
-        padding-left: var(--ec-compare-version-label-mobile);
-    }
+        & .ec-text-compare-version .ec-preview-versions-trigger {
+            padding-left: var(--ec-compare-version-label-mobile);
+        }
 
-    .ec-text-compare-versions .ec-text-compare-version-meta {
-        display: none;
+        & .ec-text-compare-version-meta {
+            display: none;
+        }
     }
 
     .ec-text-compare .cm-editor .cm-line,

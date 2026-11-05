@@ -243,24 +243,24 @@
     font-size: var(--ec-text-xs);
     color: var(--ec-text-muted);
     white-space: nowrap;
-}
 
-.ec-sr-meta > * + *::before {
-    content: "·";
-    margin-right: var(--ec-space-2);
-    color: var(--ec-text-faint);
-}
+    & > * + *::before {
+        content: "·";
+        margin-right: var(--ec-space-2);
+        color: var(--ec-text-faint);
+    }
 
-.ec-sr-meta .ec-badge {
-    flex: 0 0 auto;
-    height: var(--ec-sr-badge-height);
-    padding: 0 var(--ec-space-3);
-    font-size: var(--ec-text-2xs);
-    font-weight: var(--ec-weight-medium);
-}
+    & .ec-badge {
+        flex: 0 0 auto;
+        height: var(--ec-sr-badge-height);
+        padding: 0 var(--ec-space-3);
+        font-size: var(--ec-text-2xs);
+        font-weight: var(--ec-weight-medium);
+    }
 
-.ec-sr-meta > .ec-badge::before {
-    content: none;
+    & > .ec-badge::before {
+        content: none;
+    }
 }
 
 .ec-sr-mono {
@@ -342,15 +342,15 @@
     font-size: var(--ec-text-sm);
     color: var(--ec-text-muted);
     text-align: center;
-}
 
-.ec-sr-state-empty .ec-sr-state-icon {
-    width: var(--ec-control-lg);
-    height: var(--ec-control-lg);
-}
+    & .ec-sr-state-icon {
+        width: var(--ec-control-lg);
+        height: var(--ec-control-lg);
+    }
 
-.ec-sr-state-empty .ec-sr-state-title {
-    font-size: var(--ec-text-md);
+    & .ec-sr-state-title {
+        font-size: var(--ec-text-md);
+    }
 }
 
 .ec-sr-footer {
@@ -467,21 +467,25 @@
     }
 
     /* Číslo jednací úkonu má vlastní řádek; „ve spisu…“ se zkrátí na konci druhého. */
-    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-meta {
-        flex-wrap: wrap;
-        row-gap: var(--ec-space-1);
-    }
+    .ec-sr-option {
+        &:has(.ec-sr-icon-act) {
+            & .ec-sr-meta {
+                flex-wrap: wrap;
+                row-gap: var(--ec-space-1);
+            }
 
-    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-mono {
-        flex-basis: 100%;
-    }
+            & .ec-sr-mono {
+                flex-basis: 100%;
+            }
 
-    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-mono + *::before {
-        content: none;
-    }
+            & .ec-sr-mono + *::before {
+                content: none;
+            }
 
-    .ec-sr-option:has(.ec-sr-icon-act) .ec-sr-grow-text {
-        flex: 1 1 0;
+            & .ec-sr-grow-text {
+                flex: 1 1 0;
+            }
+        }
     }
 
     .ec-sr-enter,
@@ -563,15 +567,15 @@
     color: var(--ec-text);
     text-align: left;
     cursor: pointer;
-}
 
-.ec-menu-item:hover {
-    background: var(--ec-surface-sunken);
-}
+    &:hover {
+        background: var(--ec-surface-sunken);
+    }
 
-.ec-menu-item:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
 }
 
 .ec-menu-anchor {
@@ -660,14 +664,14 @@
     grid-template-columns: auto minmax(0, 1fr);
     gap: var(--ec-space-2) var(--ec-space-4);
     margin: 0;
-}
 
-.ec-signature-details dt {
-    color: var(--ec-text-muted);
-}
+    & dt {
+        color: var(--ec-text-muted);
+    }
 
-.ec-signature-details dd {
-    margin: 0;
+    & dd {
+        margin: 0;
+    }
 }
 
 .ec-signature-note {
@@ -729,31 +733,31 @@
         padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         border-top: 1px solid var(--ec-border);
         background: var(--ec-surface);
-    }
 
-    .ec-tabbar .ec-nav-link {
-        flex-direction: column;
-        justify-content: center;
-        gap: var(--ec-space-1);
-        min-width: 0;
-        height: var(--ec-tabbar-height);
-        padding: 0;
-        font-size: var(--ec-text-2xs);
-        color: var(--ec-text-muted);
-    }
+        & .ec-nav-link {
+            flex-direction: column;
+            justify-content: center;
+            gap: var(--ec-space-1);
+            min-width: 0;
+            height: var(--ec-tabbar-height);
+            padding: 0;
+            font-size: var(--ec-text-2xs);
+            color: var(--ec-text-muted);
 
-    .ec-tabbar .ec-nav-link .ec-icon {
-        width: var(--ec-tabbar-icon);
-        height: var(--ec-tabbar-icon);
-    }
+            & .ec-icon {
+                width: var(--ec-tabbar-icon);
+                height: var(--ec-tabbar-icon);
+            }
 
-    .ec-tabbar .ec-nav-link[aria-current="page"] {
-        font-weight: var(--ec-weight-semibold);
-        color: var(--ec-accent);
-    }
+            &[aria-current="page"] {
+                font-weight: var(--ec-weight-semibold);
+                color: var(--ec-accent);
+            }
 
-    .ec-tabbar .ec-nav-link:focus-visible {
-        box-shadow: inset var(--ec-focus-ring);
+            &:focus-visible {
+                box-shadow: inset var(--ec-focus-ring);
+            }
+        }
     }
 
     /* Značka zůstane malá; její dotyková plocha doroste na minimum. */
