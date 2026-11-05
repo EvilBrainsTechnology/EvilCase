@@ -1,0 +1,129 @@
+.ec-comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-5);
+}
+
+.ec-comment {
+    display: flex;
+    gap: var(--ec-space-4);
+}
+
+.ec-comment-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-control-md);
+    height: var(--ec-control-md);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-text);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-surface);
+}
+
+.ec-comment-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: var(--ec-space-1);
+}
+
+.ec-comment-meta {
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-comment-author {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-comment-text {
+    margin: 0;
+    font-size: var(--ec-text-md);
+    line-height: var(--ec-leading-body);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+    text-wrap: pretty;
+}
+
+.ec-comment-actions {
+    display: flex;
+    gap: var(--ec-space-4);
+}
+
+.ec-comment-action {
+    height: var(--ec-comment-action-height);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-accent-text);
+    cursor: pointer;
+}
+
+.ec-comment-action:hover {
+    text-decoration: underline;
+}
+
+.ec-comment-action:focus-visible {
+    outline: none;
+    border-radius: var(--ec-radius-sm);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-comment-action-danger {
+    color: var(--ec-danger-text);
+}
+
+.ec-comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+}
+
+.ec-comment-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ec-space-3);
+}
+
+/* Komentáře v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
+.ec-comments-compact .ec-comment {
+    gap: var(--ec-space-3);
+}
+
+.ec-comments-compact .ec-comment-avatar {
+    width: var(--ec-comment-avatar-compact);
+    height: var(--ec-comment-avatar-compact);
+    font-size: var(--ec-text-2xs);
+}
+
+.ec-comments-compact .ec-comment-meta,
+.ec-comments-compact .ec-comment-action {
+    font-size: var(--ec-text-xs);
+}
+
+.ec-comments-compact .ec-comment-text {
+    font-size: var(--ec-text-sm);
+}
+
+.ec-comments-compact .ec-textarea {
+    min-height: auto;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-comments-compact .ec-comment-composer {
+    padding-top: var(--ec-space-4);
+    border-top: 1px solid var(--ec-border-subtle);
+}
+
+.ec-comments-compact .ec-comment-composer .ec-button {
+    height: var(--ec-control-md);
+    font-size: var(--ec-text-sm);
+}

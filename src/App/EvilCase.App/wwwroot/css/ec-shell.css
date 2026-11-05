@@ -1,0 +1,298 @@
+/* Značka — přihlášení, zaváděcí obrazovka v index.html a LoadingPage. */
+.ec-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    font-size: var(--ec-brand-size);
+    font-weight: var(--ec-weight-bold);
+}
+
+.ec-brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-brand-mark);
+    height: var(--ec-brand-mark);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-accent);
+    color: var(--ec-on-accent);
+}
+
+.ec-brand-mark .ec-icon {
+    width: var(--ec-brand-icon);
+    height: var(--ec-brand-icon);
+}
+
+/* Brána: přihlášení a zavádění aplikace sdílí jeden rám (docs/design/prihlaseni.html, nacitani.html). */
+.ec-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ec-space-7);
+    min-height: var(--ec-viewport-height);
+    padding: max(var(--ec-space-7), calc(var(--ec-viewport-height) / 2 - var(--ec-gate-anchor))) var(--ec-space-6) var(--ec-space-7);
+    box-sizing: border-box;
+    background: var(--ec-gate-bg);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+/* Rezervovaný posuvník by pod tmavou stránkou ukázal světlý pruh. */
+html:has(.ec-gate) {
+    scrollbar-gutter: auto;
+    background: var(--ec-login-panel-bg);
+}
+
+.ec-gate-brand {
+    flex-direction: column;
+    gap: var(--ec-space-4);
+    font-size: var(--ec-gate-brand-size);
+    letter-spacing: -0.02em;
+    color: var(--ec-login-panel-text);
+}
+
+.ec-gate-brand .ec-brand-mark {
+    width: var(--ec-gate-brand-mark);
+    height: var(--ec-gate-brand-mark);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-gate-brand .ec-brand-mark .ec-icon,
+.ec-gate-brand .ec-brand-mark svg {
+    width: var(--ec-gate-brand-icon);
+    height: var(--ec-gate-brand-icon);
+}
+
+.ec-gate-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+    box-sizing: border-box;
+    width: var(--ec-gate-card-width);
+    max-width: 100%;
+    padding: var(--ec-gate-card-pad);
+    background: var(--ec-surface);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-gate-card-radius);
+    box-shadow: var(--ec-gate-card-shadow);
+}
+
+.ec-gate-card:has(.ec-boot-step) {
+    justify-content: center;
+    min-height: var(--ec-gate-card-height);
+}
+
+.ec-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+}
+
+.ec-login-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+    text-align: center;
+}
+
+.ec-login-title {
+    margin: 0;
+    font-size: var(--ec-login-title-size);
+    font-weight: var(--ec-weight-semibold);
+    letter-spacing: -0.02em;
+}
+
+/* Zavádění aplikace: kroky 1/3 a 2/3 v index.html, 3/3 v LoadingPage. */
+.ec-boot-step {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ec-space-3);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text-muted);
+}
+
+.ec-boot-percent {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-boot-percent::after {
+    content: var(--blazor-load-percentage-text, "0%");
+}
+
+.ec-boot-track {
+    position: relative;
+    overflow: hidden;
+    height: var(--ec-space-1);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-border);
+}
+
+/* Blazor počítá soubory, ne bajty, takže procenta přicházejí skokem a pruh nesmí animovat. */
+.ec-boot-bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--ec-boot-fill);
+    background: var(--ec-accent);
+    transition: none;
+}
+
+.ec-boot-track-full {
+    background: var(--ec-accent);
+}
+
+.ec-boot-step-start {
+    display: none;
+}
+
+@container style(--blazor-load-percentage: 100%) {
+    .ec-boot-step-download,
+    .ec-boot-percent {
+        display: none;
+    }
+
+    .ec-boot-step-start {
+        display: inline;
+    }
+}
+
+/* Rám aplikace: lišta nad obsahem a šedý podklad pod ním (docs/design/prehled.html). */
+
+.ec-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: var(--ec-viewport-height);
+    background: var(--ec-bg);
+    font-family: var(--ec-font);
+    color: var(--ec-text);
+}
+
+.ec-shell-body {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+}
+
+/* The bar and its panels stand above the page's fields. */
+.ec-topbar {
+    position: relative;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    gap: var(--ec-topbar-gap);
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    height: var(--ec-topbar-height);
+    padding: 0 max(var(--ec-content-padding), calc((100% - var(--ec-content-max)) / 2 + var(--ec-content-padding)));
+    background: var(--ec-topbar-bg);
+    color: var(--ec-topbar-text);
+}
+
+.ec-topbar-brand {
+    gap: var(--ec-space-4);
+    font-size: var(--ec-topbar-brand-size);
+    color: var(--ec-topbar-text);
+    text-decoration: none;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+}
+
+.ec-topbar-mark {
+    width: var(--ec-topbar-mark);
+    height: var(--ec-topbar-mark);
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-topbar-mark .ec-icon {
+    width: var(--ec-topbar-icon);
+    height: var(--ec-topbar-icon);
+}
+
+.ec-topbar-nav {
+    display: flex;
+    align-items: stretch;
+    height: var(--ec-topbar-height);
+}
+
+.ec-nav-link {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: 0 var(--ec-nav-pad);
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ec-nav-link:hover {
+    color: var(--ec-text);
+}
+
+.ec-topbar-nav .ec-nav-link {
+    color: var(--ec-topbar-nav-text);
+}
+
+.ec-topbar-nav .ec-nav-link:hover {
+    color: var(--ec-topbar-text);
+    background: var(--ec-topbar-nav-hover-bg);
+}
+
+.ec-nav-link:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-topbar-nav .ec-nav-link[aria-current="page"] {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-topbar-text);
+    background: var(--ec-topbar-nav-active-bg);
+    box-shadow: var(--ec-topbar-nav-marker);
+}
+
+.ec-topbar-nav .ec-nav-link:focus-visible {
+    box-shadow: var(--ec-topbar-focus-ring);
+}
+
+.ec-topbar-nav .ec-nav-link[aria-current="page"]:focus-visible {
+    box-shadow: var(--ec-topbar-nav-marker), var(--ec-topbar-focus-ring);
+}
+
+.ec-search {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    width: var(--ec-search-width);
+    height: var(--ec-control-bar);
+    margin-left: auto;
+    padding: 0 var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text-muted);
+}
+
+.ec-search:focus-within {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-search-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+    text-overflow: ellipsis;
+}
+
+.ec-search-input::placeholder {
+    color: var(--ec-text-subtle);
+}

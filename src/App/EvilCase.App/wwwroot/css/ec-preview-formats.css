@@ -1,0 +1,322 @@
+.ec-preview-stage-document {
+    scrollbar-gutter: stable;
+}
+
+/* Dokument širší než plocha začíná u jejího levého okraje, užší stojí uprostřed. */
+.ec-preview-document {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    margin: 0 auto;
+    zoom: var(--ec-preview-zoom, 1);
+}
+
+.ec-preview-document > div::part(document-wrapper) {
+    gap: var(--ec-preview-page-gap);
+    padding: 0;
+    background: transparent;
+}
+
+.ec-preview-document > div::part(document-page) {
+    margin: 0;
+    box-shadow: var(--ec-shadow-page);
+}
+
+.ec-preview-sheet-view {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--ec-surface);
+}
+
+.ec-preview-sheet-view > .ec-preview-note {
+    flex: 0 0 auto;
+    padding: var(--ec-space-3) var(--ec-space-7);
+    border-bottom: 1px solid var(--ec-border);
+    border-radius: 0;
+}
+
+.ec-preview-sheet {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.ec-preview-sheet-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-preview-sheet-table th,
+.ec-preview-sheet-table td {
+    max-width: var(--ec-preview-sheet-cell);
+    padding: var(--ec-space-2) var(--ec-space-4);
+    border-right: 1px solid var(--ec-border-subtle);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ec-preview-sheet-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--ec-surface-header);
+    color: var(--ec-text-muted);
+    font-weight: var(--ec-weight-medium);
+    text-align: center;
+}
+
+.ec-preview-sheet-table tbody th {
+    position: sticky;
+    left: 0;
+    min-width: var(--ec-preview-sheet-gutter);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-faint);
+    font-weight: var(--ec-weight-regular);
+    text-align: right;
+}
+
+.ec-preview-sheet-table thead th:first-child {
+    left: 0;
+    z-index: 1;
+}
+
+.ec-preview-sheet-tabs {
+    display: flex;
+    flex: 0 0 auto;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-3) var(--ec-space-7);
+    border-top: 1px solid var(--ec-border);
+    background: var(--ec-surface);
+    overflow-x: auto;
+}
+
+.ec-preview-sheet-tab {
+    flex: 0 0 auto;
+    height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-5);
+    border: 0;
+    border-radius: var(--ec-radius-sm);
+    background: transparent;
+    color: var(--ec-text-muted);
+    font: inherit;
+    font-size: var(--ec-text-sm);
+    cursor: pointer;
+}
+
+.ec-preview-sheet-tab:hover {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
+.ec-preview-sheet-tab[aria-selected="true"] {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-email {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-5);
+}
+
+.ec-preview-email-headers {
+    display: grid;
+    grid-template-columns: var(--ec-preview-email-label) minmax(0, 1fr);
+    gap: var(--ec-space-2) var(--ec-space-4);
+    margin: 0;
+    padding-bottom: var(--ec-space-5);
+    border-bottom: 1px solid var(--ec-border);
+    font-size: var(--ec-text-md);
+}
+
+.ec-preview-email-headers dt {
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-email-headers dd {
+    margin: 0;
+}
+
+.ec-preview-email-body {
+    white-space: pre-wrap;
+}
+
+.ec-preview-email-attachments {
+    padding-top: var(--ec-space-5);
+    border-top: 1px solid var(--ec-border);
+}
+
+.ec-preview-email-attachments-title {
+    margin: 0 0 var(--ec-space-3);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-email-attachment-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-preview-email-attachment {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-size: var(--ec-text-md);
+}
+
+.ec-preview-email-attachment-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ec-preview-email-attachment-size {
+    flex: 0 0 auto;
+    color: var(--ec-text-muted);
+    font-size: var(--ec-text-xs);
+}
+
+/* The attachments or events below draw the one divider. */
+.ec-preview-data-message .ec-preview-email-headers {
+    grid-template-columns: var(--ec-preview-data-message-label) minmax(0, 1fr);
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.ec-preview-data-message-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2) var(--ec-space-3);
+}
+
+.ec-preview-data-message-subject {
+    margin: 0;
+    font-size: var(--ec-text-lg);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-data-message-party {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-preview-data-message-box,
+.ec-preview-data-message-address {
+    color: var(--ec-text-muted);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-preview-data-message-attachments {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-md);
+}
+
+.ec-preview-data-message-attachment {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-2) var(--ec-space-3);
+    border-bottom: 1px solid var(--ec-border-subtle);
+    font-size: var(--ec-text-md);
+}
+
+.ec-preview-data-message-attachment:last-child {
+    border-bottom: 0;
+}
+
+.ec-preview-data-message-attachment:has(.ec-preview-data-message-attachment-open):hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-preview-data-message-attachment-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ec-preview-data-message-attachment-open {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* The whole row opens the attachment. */
+.ec-preview-data-message-attachment-open::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.ec-preview-data-message-attachment:hover .ec-preview-data-message-attachment-open {
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-data-message-attachment-open:focus-visible {
+    outline: none;
+}
+
+.ec-preview-data-message-attachment-open:focus-visible::after {
+    border-radius: var(--ec-radius-md);
+    box-shadow: inset 0 0 0 2px var(--ec-accent);
+}
+
+.ec-preview-data-message-attachment-size {
+    flex: 0 0 auto;
+    color: var(--ec-text-muted);
+    font-size: var(--ec-text-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+/* The download sits above the row's open overlay. */
+.ec-preview-data-message-attachment .ec-button {
+    position: relative;
+    z-index: 1;
+}
+
+.ec-preview-data-message-events {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-preview-data-message-event {
+    display: grid;
+    grid-template-columns: var(--ec-preview-data-message-label) minmax(0, 1fr);
+    gap: var(--ec-space-4);
+    font-size: var(--ec-text-md);
+}
+
+.ec-preview-data-message-event-time {
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}

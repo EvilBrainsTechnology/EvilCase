@@ -1,0 +1,498 @@
+/* Seznam verzí souboru (docs/design/verze-souboru.html). */
+.ec-modal-sheet {
+    width: min(var(--ec-modal-sheet-width), calc(100vw - 2 * var(--ec-space-5)));
+}
+
+.ec-versions-subtitle {
+    overflow: hidden;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-versions-list,
+.ec-preview-versions-list,
+.ec-preview-signers-list,
+.ec-preview-signature-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* A row spans the body's padding, so its hover reaches the window's edges. */
+.ec-versions-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    margin: 0 calc(-1 * var(--ec-space-6));
+    padding: var(--ec-space-4) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border-subtle);
+}
+
+.ec-versions-row:has(.ec-versions-main:hover),
+.ec-versions-row:has(.ec-versions-main:focus-visible) {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-versions-row:last-child {
+    border-bottom: 0;
+}
+
+/* The row's main button stretches over the whole row; the actions sit above it. */
+.ec-versions-main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ec-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-versions-main::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.ec-versions-main:focus-visible {
+    outline: none;
+}
+
+.ec-versions-main:focus-visible::after {
+    box-shadow: inset 0 0 0 2px var(--ec-accent);
+}
+
+.ec-versions-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-versions-delete .ec-button,
+.ec-versions-delete-file .ec-button {
+    color: var(--ec-danger-solid);
+}
+
+.ec-versions-delete-file .ec-button {
+    border-color: var(--ec-danger-border);
+}
+
+.ec-versions-note {
+    flex: 1 1 auto;
+    margin: 0;
+    font-size: var(--ec-text-xs);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-muted);
+}
+
+.ec-modal-sheet .ec-modal-footer {
+    align-items: center;
+}
+
+.ec-versions-delete-more {
+    display: none;
+}
+
+/* A button that is a label of a hidden file input. */
+.ec-file-pick {
+    flex: 0 0 auto;
+    cursor: pointer;
+}
+
+.ec-file-pick:has(input:focus-visible) {
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-file-pick-disabled {
+    cursor: default;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* A notice about what an upload stored. */
+.ec-file-notice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-4) var(--ec-space-5);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-leading-body);
+}
+
+/* The version bar, a notice and a signed document's signers sit between the header and the preview. */
+.ec-modal-large .ec-modal-body:has(> :is(.ec-preview-signers, .ec-preview-versions, .ec-preview-alert)) {
+    flex-direction: column;
+}
+
+.ec-preview-alert {
+    flex: 0 0 auto;
+    margin: var(--ec-space-4) var(--ec-space-6) 0;
+}
+
+.ec-preview-actions .ec-button[aria-disabled="true"] {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.ec-preview-versions-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: var(--ec-space-6);
+    height: var(--ec-space-6);
+    margin-left: var(--ec-space-2);
+    padding: 0 var(--ec-space-2);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-closed-bg);
+    font-size: var(--ec-text-xs);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-actions .ec-button[aria-pressed="true"] .ec-preview-versions-count {
+    background: var(--ec-surface);
+}
+
+.ec-preview-versions {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3) var(--ec-space-4);
+    padding: var(--ec-space-3) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface-header);
+    color: var(--ec-text-soft);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-preview-versions-old {
+    border-bottom-color: var(--ec-preview-version-old-border);
+    background: var(--ec-preview-version-old-bg);
+    color: var(--ec-preview-version-old-text);
+}
+
+.ec-preview-versions-label {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    box-sizing: border-box;
+    min-height: var(--ec-control-sm);
+    padding: 0 var(--ec-space-3) 0 var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-old .ec-preview-versions-trigger {
+    border-color: var(--ec-preview-version-old-border);
+    color: inherit;
+}
+
+.ec-preview-versions-note {
+    flex: 1 1 auto;
+}
+
+.ec-preview-versions .ec-button-quiet {
+    color: var(--ec-accent-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+/* The options span the panel, so their highlight reaches its edges. */
+.ec-popover.ec-preview-versions-panel {
+    display: flex;
+    flex-direction: column;
+    padding: var(--ec-space-2) 0;
+}
+
+.ec-preview-versions-list > li {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-preview-versions-option,
+.ec-preview-versions-manage {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    align-self: stretch;
+    gap: calc(var(--ec-space-1) / 2);
+    box-sizing: border-box;
+    min-height: var(--ec-control-md);
+    min-width: 0;
+    padding: var(--ec-space-3) var(--ec-space-4);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ec-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-preview-versions-manage {
+    justify-content: center;
+}
+
+.ec-preview-versions-option:hover,
+.ec-preview-versions-manage:hover {
+    background: var(--ec-surface-sunken);
+}
+
+/* A version the other side of a compare rules out. */
+.ec-preview-versions-option:disabled,
+.ec-preview-versions-option:disabled:hover {
+    background: transparent;
+    color: var(--ec-text-faint);
+    cursor: default;
+}
+
+.ec-preview-versions-option:disabled .ec-preview-versions-option-meta {
+    color: var(--ec-text-faint);
+}
+
+.ec-preview-versions-option[aria-current="true"] {
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent-text);
+}
+
+.ec-preview-versions-option-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-versions-option-meta {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-versions-divider {
+    height: var(--ec-hairline);
+    margin: var(--ec-space-2) 0;
+    background: var(--ec-border-subtle);
+}
+
+.ec-preview-versions-error {
+    margin: 0;
+    padding: var(--ec-space-3) var(--ec-space-4);
+    color: var(--ec-danger-text);
+}
+
+.ec-preview-signers {
+    flex: 0 0 auto;
+    max-height: var(--ec-preview-signers-height);
+    padding: var(--ec-space-4) var(--ec-space-6);
+    border-bottom: 1px solid var(--ec-border);
+    background: var(--ec-surface);
+    font-size: var(--ec-text-sm);
+    overflow-y: auto;
+}
+
+.ec-preview-signers-list {
+    gap: var(--ec-space-3);
+}
+
+.ec-preview-signature-list {
+    gap: var(--ec-space-4);
+}
+
+.ec-preview-signer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-1) var(--ec-space-4);
+}
+
+.ec-preview-signer-name,
+.ec-preview-signature-name {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-signer-summary,
+.ec-preview-signature-note {
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signers-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin: 0;
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature {
+    width: min(var(--ec-preview-signature-width), 100%);
+}
+
+.ec-preview-signature-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-3);
+}
+
+.ec-preview-signature-title {
+    margin: 0;
+    font-size: var(--ec-text-xl);
+    font-weight: var(--ec-weight-semibold);
+    line-height: var(--ec-leading-tight);
+}
+
+.ec-preview-signature-signers {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+}
+
+.ec-preview-signature-count {
+    margin: 0;
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature-signer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-3);
+    padding: var(--ec-space-5);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg);
+}
+
+.ec-preview-signature-details {
+    display: grid;
+    grid-template-columns: var(--ec-preview-signature-label) minmax(0, 1fr);
+    gap: var(--ec-space-2) var(--ec-space-5);
+    margin: 0;
+}
+
+.ec-preview-signature-details dt {
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature-details dd {
+    margin: 0;
+}
+
+/* An open popover would be clipped by the scrolling strip. */
+.ec-preview-signers:has(.ec-popover) {
+    position: relative;
+    z-index: 1;
+    max-height: none;
+    overflow: visible;
+}
+
+.ec-preview-signers-source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2);
+    margin-bottom: var(--ec-space-3);
+    color: var(--ec-text-muted);
+}
+
+.ec-preview-signature-file-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-2);
+}
+
+.ec-preview-signature-file {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-height: var(--ec-preview-signature-file-height);
+    padding: 0 var(--ec-space-3);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-lg);
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-preview-signature-file:hover {
+    background: var(--ec-surface-sunken);
+}
+
+.ec-preview-signature-file:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-preview-signature-file-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-preview-signature-file-size {
+    flex: none;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+}
+
+.ec-preview-signature-file-open {
+    display: inline-flex;
+    flex: none;
+    white-space: nowrap;
+    align-items: center;
+    gap: var(--ec-space-1);
+    color: var(--ec-accent-text);
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-preview-signature-signer-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-3);
+}
+
+.ec-preview-signature-problem,
+.ec-signature-problem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ec-space-2);
+}
+
+.ec-signature-title {
+    margin: 0;
+    font-weight: var(--ec-weight-semibold);
+}

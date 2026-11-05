@@ -1,0 +1,833 @@
+/* Detail úkonu (docs/design/detail-ukonu.html). */
+.ec-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+}
+
+.ec-detail-text {
+    margin: 0;
+    max-width: var(--ec-detail-text-max);
+    font-size: var(--ec-text-lg);
+    line-height: var(--ec-leading-body);
+    color: var(--ec-text-soft);
+    white-space: pre-line;
+    text-wrap: pretty;
+}
+
+.ec-detail-facts {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--ec-border-subtle);
+    border-radius: var(--ec-radius-xl);
+}
+
+.ec-detail-fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    min-width: 0;
+    padding: var(--ec-space-4) var(--ec-space-5) var(--ec-fact-pad-end);
+    border-right: 1px solid var(--ec-border-subtle);
+}
+
+.ec-detail-fact:last-child {
+    border-right: 0;
+}
+
+.ec-detail-fact-fixed {
+    flex: none;
+}
+
+.ec-detail-fact-copyable {
+    padding-right: var(--ec-space-4);
+}
+
+.ec-detail-fact-labels {
+    position: relative;
+    flex: 1 1 auto;
+}
+
+/* The chips, the add button and the box sit on the value line, so the label fact is no taller than the others. */
+.ec-detail-fact-labels .ec-label-field > .ec-chip {
+    height: var(--ec-fact-line);
+    padding: 0 var(--ec-space-3);
+    font-size: var(--ec-text-xs);
+}
+
+.ec-detail-fact-labels .ec-label-field > .ec-chip .ec-chip-dot {
+    width: var(--ec-space-2);
+    height: var(--ec-space-2);
+}
+
+.ec-detail-fact-labels .ec-label-add,
+.ec-detail-fact-labels .ec-label-input {
+    height: var(--ec-fact-line);
+    font-size: var(--ec-text-xs);
+}
+
+.ec-detail-fact-name {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-value {
+    font-size: var(--ec-text-md);
+    line-height: var(--ec-fact-line);
+    font-weight: var(--ec-weight-medium);
+    white-space: pre-line;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-detail-fact-mono {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-sm);
+    line-height: var(--ec-fact-line);
+    font-weight: var(--ec-weight-medium);
+    overflow-wrap: anywhere;
+}
+
+.ec-detail-fact-link {
+    font-size: var(--ec-text-md);
+    line-height: var(--ec-fact-line);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    text-decoration: none;
+}
+
+.ec-detail-fact-copy {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    min-width: 0;
+}
+
+/* Tlačítko kopírování přesahuje řádek hodnoty, aby hodnota zůstala na účaří ostatních údajů. */
+.ec-detail-fact-copy .ec-copy {
+    margin-block: calc((var(--ec-fact-line) - var(--ec-copy-size)) / 2);
+    color: var(--ec-text-muted);
+}
+
+.ec-detail-fact-copy .ec-copy:hover {
+    background: var(--ec-bg);
+    color: var(--ec-text);
+}
+
+.ec-detail-fact-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-1) var(--ec-space-4);
+    min-width: 0;
+}
+
+.ec-detail-fact-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    margin-left: auto;
+    font-size: var(--ec-text-xs);
+    color: var(--ec-warning-text);
+    white-space: nowrap;
+}
+
+.ec-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: var(--ec-copy-size);
+    height: var(--ec-copy-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-radius-sm);
+    background: transparent;
+    cursor: pointer;
+}
+
+.ec-copy:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-kbd {
+    margin-left: var(--ec-space-3);
+    padding: 0 var(--ec-space-2);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-sm);
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    line-height: 1;
+    color: var(--ec-text-muted);
+}
+
+.ec-label-field {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ec-space-2);
+}
+
+.ec-label-field-open {
+    position: relative;
+    z-index: 21;
+}
+
+.ec-label-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+}
+
+.ec-label-add {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    height: calc(var(--ec-space-7) + var(--ec-space-1));
+    padding: 0 var(--ec-space-3);
+    border: 1px dashed var(--ec-border-dashed);
+    border-radius: var(--ec-radius-sm);
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    cursor: pointer;
+}
+
+.ec-label-add:hover {
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+}
+
+.ec-label-add:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-label-search {
+    display: inline-flex;
+}
+
+.ec-label-input {
+    box-sizing: border-box;
+    height: calc(var(--ec-space-7) + var(--ec-space-1));
+    width: var(--ec-label-search-width);
+    min-width: 0;
+    padding: 0 var(--ec-space-3);
+    border: 1px solid var(--ec-accent);
+    border-radius: var(--ec-radius-sm);
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+    background: var(--ec-surface);
+    color: var(--ec-text);
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+}
+
+.ec-label-input::placeholder {
+    color: var(--ec-text-subtle);
+}
+
+.ec-label-field-inline .ec-label-search {
+    position: relative;
+}
+
+/* The form field: the chips and the input share one box. */
+.ec-label-field-box {
+    position: relative;
+    min-height: var(--ec-control-form);
+    box-sizing: border-box;
+    padding: var(--ec-space-2) var(--ec-space-4);
+    border: 1px solid var(--ec-border-strong);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface);
+}
+
+.ec-label-field-box:focus-within {
+    border-color: var(--ec-accent);
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-label-field-box .ec-label-search {
+    flex: 1 1 var(--ec-label-search-width);
+}
+
+.ec-label-field-box .ec-label-input {
+    flex: 1 1 auto;
+    width: auto;
+    height: auto;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    font-size: var(--ec-text-md);
+}
+
+.ec-label-menu {
+    position: absolute;
+    top: calc(100% + var(--ec-space-2));
+    left: 0;
+    z-index: 22;
+    display: flex;
+    flex-direction: column;
+    width: var(--ec-popover-width);
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    background: var(--ec-surface);
+    box-shadow: var(--ec-shadow-overlay);
+}
+
+/* The detail row's field sits in the last fact, so its menu opens towards the left. */
+.ec-label-field-inline .ec-label-menu {
+    right: 0;
+    left: auto;
+}
+
+.ec-label-field-box .ec-label-menu {
+    width: auto;
+    right: calc(var(--ec-space-3) * -1);
+    left: calc(var(--ec-space-3) * -1);
+    top: calc(100% + var(--ec-space-4));
+}
+
+.ec-label-sheet-head,
+.ec-label-sheet-search {
+    display: none;
+}
+
+.ec-label-options {
+    display: flex;
+    flex-direction: column;
+    max-height: var(--ec-popover-width);
+    overflow-y: auto;
+    padding: var(--ec-space-2);
+}
+
+.ec-label-options:empty {
+    display: none;
+}
+
+.ec-label-option {
+    display: flex;
+    align-items: center;
+    min-height: var(--ec-control-md);
+    padding: 0 var(--ec-space-3);
+    border: 0;
+    border-radius: var(--ec-radius-md);
+    background: transparent;
+    cursor: pointer;
+}
+
+.ec-label-option:hover,
+.ec-label-option-active {
+    background: var(--ec-accent-soft);
+}
+
+.ec-label-empty {
+    padding: var(--ec-space-4);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-label-create {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-4);
+    padding: var(--ec-space-4);
+    border-top: 1px solid var(--ec-border-subtle);
+    background: var(--ec-surface-sunken);
+}
+
+.ec-label-create-button {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    min-height: var(--ec-control-sm);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-md);
+    color: var(--ec-text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.ec-label-swatches {
+    min-height: 0;
+    gap: var(--ec-space-2);
+}
+
+.ec-label-create + .ec-field-error,
+.ec-label-menu > .ec-field-error {
+    padding: var(--ec-space-3) var(--ec-space-4) 0;
+}
+
+.ec-label-menu-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ec-space-4);
+    min-height: var(--ec-control-md);
+    padding: 0 var(--ec-space-4);
+    border-top: 1px solid var(--ec-border-subtle);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-label-manage {
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+}
+
+@media (max-width: 991.98px) {
+    .ec-label-backdrop {
+        z-index: 50;
+        background: var(--ec-overlay);
+    }
+
+    .ec-label-field-open {
+        z-index: 51;
+    }
+
+    /* The sheet carries its own search; the field's input steps aside while it is open. */
+    .ec-label-field-open .ec-label-input {
+        display: none;
+    }
+
+    .ec-label-menu,
+    .ec-label-field-inline .ec-label-menu,
+    .ec-label-field-box .ec-label-menu {
+        position: fixed;
+        top: auto;
+        right: 0;
+        bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
+        left: 0;
+        z-index: 52;
+        width: auto;
+        max-height: calc(var(--ec-viewport-height) * 0.85 - var(--ec-tabbar-height) - env(safe-area-inset-bottom));
+        border-width: 1px 0 0;
+        border-radius: var(--ec-radius-card) var(--ec-radius-card) 0 0;
+    }
+
+    .ec-label-sheet-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--ec-space-4) var(--ec-space-5) 0;
+    }
+
+    .ec-label-sheet-title {
+        font-size: var(--ec-text-xl);
+        font-weight: var(--ec-weight-semibold);
+    }
+
+    .ec-label-sheet-done {
+        min-height: var(--ec-touch-min);
+        padding: 0 var(--ec-space-4);
+        border: 0;
+        background: transparent;
+        font-family: var(--ec-font);
+        font-size: var(--ec-text-md);
+        font-weight: var(--ec-weight-semibold);
+        color: var(--ec-accent-text);
+        cursor: pointer;
+    }
+
+    .ec-label-sheet-search {
+        display: block;
+        flex: 0 0 auto;
+        height: var(--ec-touch-min);
+        margin: var(--ec-space-3) var(--ec-space-5);
+        font-size: var(--ec-text-lg);
+    }
+
+    .ec-label-options {
+        flex: 0 1 auto;
+        min-height: 0;
+        max-height: none;
+    }
+
+    .ec-label-option {
+        min-height: var(--ec-touch-row);
+    }
+
+    .ec-label-add,
+    .ec-label-create-button,
+    .ec-label-menu-foot {
+        min-height: var(--ec-touch-min);
+    }
+
+    .ec-label-manage {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--ec-touch-min);
+    }
+
+    /* The cross stays small inside the chip; its hit area grows to the touch minimum. */
+    .ec-chip-remove {
+        position: relative;
+    }
+
+    .ec-chip-remove::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: var(--ec-touch-min);
+        height: var(--ec-touch-min);
+        transform: translate(-50%, -50%);
+    }
+
+    .ec-label-hint {
+        display: none;
+    }
+}
+
+.ec-act-pager {
+    gap: var(--ec-space-2);
+}
+
+.ec-act-pager .ec-button {
+    color: var(--ec-text);
+}
+
+.ec-act-pager-text {
+    min-width: var(--ec-act-pager-text);
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-act-pager-position {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ec-sidebar-width);
+    gap: var(--ec-space-6);
+    align-items: start;
+}
+
+.ec-detail-main,
+.ec-detail-aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-6);
+    min-width: 0;
+}
+
+/* Karta v bočním sloupci 380 px má menší nadpis (docs/design/detail-spisu.html). */
+.ec-detail-aside .ec-card-title,
+.ec-form-aside .ec-card-title {
+    font-size: var(--ec-text-lg);
+}
+
+.ec-contact-occurrences {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--ec-space-6);
+    align-items: start;
+}
+
+.ec-case-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    padding: var(--ec-space-4);
+    border-radius: var(--ec-radius-lg);
+    background: var(--ec-surface-sunken);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+.ec-case-link:hover {
+    background: var(--ec-border-subtle);
+}
+
+.ec-case-link + .ec-card-text {
+    margin-top: var(--ec-space-4);
+}
+
+.ec-case-link-title {
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    text-wrap: pretty;
+}
+
+.ec-case-link-number {
+    font-family: var(--ec-font-mono);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-case-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    margin: var(--ec-space-4) 0 0;
+    font-size: var(--ec-text-sm);
+    color: var(--ec-text-muted);
+}
+
+.ec-case-contact {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    margin: var(--ec-space-4) 0 0;
+    font-size: var(--ec-text-sm);
+}
+
+.ec-case-contact-label {
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-status-dot {
+    flex: 0 0 auto;
+    width: var(--ec-space-3);
+    height: var(--ec-space-3);
+    border-radius: var(--ec-radius-pill);
+}
+
+.ec-status-dot-active {
+    background: var(--ec-active-dot);
+}
+
+.ec-status-dot-waiting {
+    background: var(--ec-waiting-dot);
+}
+
+.ec-status-dot-closed {
+    background: var(--ec-closed-dot);
+}
+
+.ec-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ec-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ec-timeline-item {
+    display: grid;
+    grid-template-columns: var(--ec-icon-md) minmax(0, 1fr);
+    column-gap: calc(var(--ec-space-1) + var(--ec-space-2));
+    margin: 0 calc(-1 * var(--ec-space-3));
+    padding: var(--ec-space-2) var(--ec-space-3);
+    border-radius: var(--ec-timeline-radius);
+    text-decoration: none;
+}
+
+.ec-timeline-item:hover .ec-timeline-title {
+    color: var(--ec-accent-text);
+}
+
+.ec-timeline-item:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-timeline-item-current {
+    background: var(--ec-accent-soft);
+}
+
+.ec-timeline-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: stretch;
+}
+
+.ec-timeline-dot {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: var(--ec-timeline-dot);
+    height: var(--ec-timeline-dot);
+    margin-top: var(--ec-space-1);
+    border: 2px solid var(--ec-closed-dot);
+    border-radius: var(--ec-radius-pill);
+    background: var(--ec-surface);
+}
+
+.ec-timeline-dot-incoming {
+    border-color: var(--ec-incoming-dot);
+}
+
+.ec-timeline-dot-outgoing {
+    border-color: var(--ec-outgoing-dot);
+}
+
+.ec-timeline-dot-current {
+    border-color: var(--ec-accent);
+    background: var(--ec-accent);
+}
+
+.ec-timeline-line {
+    flex: 1 1 auto;
+    width: var(--ec-timeline-line);
+    margin-top: var(--ec-space-1);
+    margin-bottom: calc(-1 * (var(--ec-space-1) + var(--ec-space-2)));
+    background: var(--ec-border);
+}
+
+.ec-timeline-entry:last-child .ec-timeline-line {
+    background: transparent;
+}
+
+.ec-timeline-main {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+    padding-bottom: calc(var(--ec-space-1) + var(--ec-space-2));
+}
+
+.ec-timeline-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-timeline-direction {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--ec-space-1) / 2);
+}
+
+.ec-timeline-direction-incoming {
+    color: var(--ec-incoming-text);
+}
+
+.ec-timeline-direction-outgoing {
+    color: var(--ec-outgoing-text);
+}
+
+.ec-timeline-title {
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    line-height: var(--ec-timeline-leading);
+    color: var(--ec-text);
+}
+
+.ec-timeline-item-current .ec-timeline-title {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-timeline-all {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ec-space-1);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+}
+
+/* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */
+.ec-child-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-child-counts {
+    padding-bottom: var(--ec-space-1);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+}
+
+.ec-child-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.ec-child-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    column-gap: var(--ec-space-4);
+    row-gap: var(--ec-space-1);
+    min-height: var(--ec-list-row-height);
+    border-top: 1px solid var(--ec-border-subtle);
+    color: var(--ec-text);
+    text-decoration: none;
+}
+
+/* A child case's main file stands on the right across both lines. */
+.ec-child-row:has(> .ec-main-file) {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ec-child-row > .ec-main-file {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+}
+
+.ec-child-row:hover .ec-child-title {
+    color: var(--ec-accent-text);
+}
+
+.ec-child-row:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
+
+.ec-child-title {
+    overflow: hidden;
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-child-status {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.ec-child-toggle {
+    display: flex;
+    align-items: center;
+    height: var(--ec-control-md);
+    padding: 0;
+    border: 0;
+    border-top: 1px solid var(--ec-border-subtle);
+    background: transparent;
+    font-family: var(--ec-font);
+    font-size: var(--ec-text-sm);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    cursor: pointer;
+}
+
+.ec-child-toggle:hover {
+    text-decoration: underline;
+}
+
+/* Only below lg: the section anchors, the button showing all child cases and the label edit button. */
+.ec-anchors,
+.ec-child-all,
+.ec-label-edit {
+    display: none;
+}
+
+.ec-child-toggle:focus-visible {
+    outline: none;
+    box-shadow: var(--ec-focus-ring);
+}
