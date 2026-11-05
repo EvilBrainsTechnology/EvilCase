@@ -175,48 +175,8 @@
                 {
                     @if (attachment is null && file.VersionCount > 1 && (this.OlderVersion is not null || this.versionsOpen))
                     {
-                        var shown = this.OlderVersion ?? file.Version;
-                        var shownItem = this.versions?.FirstOrDefault(version => version.Number == shown);
-                        var shortTitle = $"Verze {shown} z {file.Version}" + (shownItem is null ? "" : $" · {MomentDisplay.Text(shownItem.Created)}");
-                        var title = shortTitle + (shownItem is null ? "" : $" · {shownItem.UploaderEmail}");
-                        <div class="@(this.OlderVersion is null ? "ec-preview-versions" : "ec-preview-versions ec-preview-versions-old")" role="group" aria-label="Verze souboru">
-                            <span class="ec-preview-versions-label"><EcIcon Paths="@AppIcons.Clock" />Verze</span>
-                            <EcPopover @ref="this.versionsPopover" AriaLabel="Výběr verze" PanelClass="ec-preview-versions-panel">
-                                <Trigger>
-                                    <span class="ec-preview-versions-trigger"><span class="ec-text-wide">@title</span><span class="ec-text-narrow">@shortTitle</span><EcIcon Paths="@AppIcons.ChevronDown" /></span>
-                                </Trigger>
-                                <ChildContent>
-                                    @if (this.versions is null)
-                                    {
-                                        <p class="ec-preview-versions-error">Verze se nepodařilo načíst.</p>
-                                    }
-                                    else
-                                    {
-                                        <ul class="ec-preview-versions-list">
-                                            @foreach (var version in this.versions)
-                                            {
-                                                var number = version.Number;
-
-                                                <li>
-                                                    <button type="button" class="ec-preview-versions-option" aria-current="@(number == shown ? "true" : null)"
-                                                            @onclick="() => this.SelectVersion(file, number)">
-                                                        <span class="ec-preview-versions-option-title">Verze @number@(number == file.Version ? " " : "")@if (number == file.Version) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
-                                                        <span class="ec-preview-versions-option-meta">@MomentDisplay.Text(version.Created) · @version.UploaderEmail</span>
-                                                    </button>
-                                                </li>
-                                            }
-                                        </ul>
-                                    }
-                                    <div class="ec-preview-versions-divider" role="separator"></div>
-                                    <button type="button" class="ec-preview-versions-manage" @onclick="() => this.ManageVersions(file)">Spravovat verze</button>
-                                </ChildContent>
-                            </EcPopover>
-                            @if (this.OlderVersion is not null)
-                            {
-                                <span class="ec-preview-versions-note">Starší verze. Stáhnout stáhne tuto verzi.</span>
-                                <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.ShowCurrentVersion"><span class="ec-text-wide">Zobrazit aktuální verzi</span><span class="ec-text-narrow">Aktuální</span></EcButton>
-                            }
-                        </div>
+                        <PreviewVersionBar File="file" OlderVersion="this.OlderVersion" Versions="this.versions" OnSelect="number => this.SelectVersion(file, number)"
+                                           OnManage="() => this.OnManageVersions.InvokeAsync(file)" OnShowCurrent="this.ShowCurrentVersion" />
                     }
                     @if (this.versionFailure is not null)
                     {
@@ -340,40 +300,8 @@
 
     private int? loadedNumber;
 
-    private IReadOnlyList<FileVersionItem>? versions;
-
-    private bool versionsFailed;
-
-    private (Guid, int, int)? versionsKey;
-
-    // The file and the version the compare opened for, and whether it opened against the current version; null while
-    // the preview does not compare.
-    private (Guid FileId, int Number, bool WithCurrent)? compareStart;
-
-    // The versions chosen in the compare; until then the pair it opened with.
-    private (int Older, int Newer)? comparePair;
-
-    private bool versionsOpen;
-
-    private bool uploadingVersion;
-
-    private string? versionFailure;
-
-    private EcPopover? versionsPopover;
-
-    private ElementReference versionsToggle;
-
-    private InputFile? versionInput;
-
-    private int versionRound;
-
-    private bool focusVersionsToggle;
-
     // Zdrojový kód chosen; holds until the preview closes.
     private bool markdownSource;
-
-    // The link window is open while set.
-    private string? linkHref;
 
     // The preview of what is shown, once it read it; a new key shows it anew.
     private FileContentPreview? contentPreview;
@@ -383,43 +311,9 @@
     // The stored data message read already, shown again without a load on the way back from its attachment.
     private byte[]? heldContent;
 
+    private bool uploadingVersion;
+
     private bool renaming;
-
-    // The text in the editor as read; null while the preview only shows.
-    private EditableText? editing;
-
-    // Whether the editor's text differs from the one read.
-    private bool dirty;
-
-    private bool saving;
-
-    private string? saveFailure;
-
-    private TextEditor? editor;
-
-    // Whether the read-only view showed the code formatted when the edit began.
-    private bool editsFormattedCode;
-
-    // Whether the editor shows its Změny, and the version they compare with; null compares with the version edited.
-    private bool changesShown;
-
-    private int? changesNumber;
-
-    // The texts of the versions read for the Změny, by file, number and upload; null for a version not in UTF-8.
-    private readonly Dictionary<(Guid FileId, int Number, DateTime Created), string?> changesTexts = [];
-
-    // The last read of a version for the Změny failed.
-    private bool changesFailed;
-
-    private CancellationTokenSource? changesToken;
-
-    // What a confirmed discard of unsaved changes goes on to do; set while the question shows.
-    private Func<Task>? afterDiscard;
-
-    // The editor is to open once the first file loads; the read under way carries it until it ends.
-    private bool editOnLoad;
-
-    private bool editOnShown;
 
     private FileListItem? Current => this.Files.FirstOrDefault(file => file.FileId == this.FileId);
 
@@ -428,47 +322,7 @@
     // The number of the version shown when it is not the current one.
     private int? OlderVersion => this.Version is { } number && this.Current is { } file && number != file.Version ? number : null;
 
-    private FileVersionItem? ShownVersionItem => this.OlderVersion is { } number ? this.versions?.FirstOrDefault(version => version.Number == number) : null;
-
-    // Until a pick, the version opened for against the current one when asked, else against the one before it; the
-    // oldest against the current one. The current one is read each time, so a new version takes its place.
-    private (int Older, int Newer)? ComparedPair
-    {
-        get
-        {
-            if (this.comparePair is { } picked)
-                return picked;
-
-            if (this.compareStart is not { } start || this.versions is not { } list || this.Current is not { } file)
-                return null;
-
-            if ((!start.WithCurrent || start.Number == file.Version) && list.FirstOrDefault(version => version.Number < start.Number) is { } previous)
-                return (previous.Number, start.Number);
-
-            return (start.Number, file.Version);
-        }
-    }
-
     private DataMessageAttachment? ShownAttachment => this.trail.Count == 0 ? null : this.trail[^1].Message.Attachments[this.trail[^1].Index];
-
-    // Only the current version of a stored text or code file, read whole and valid UTF-8, is edited.
-    private bool CanEdit
-    {
-        get
-        {
-            return this.contentPreview is { Editable: not null, Ready: true, SignedContentName: null } && this.trail.Count == 0 && this.OlderVersion is null
-                && !this.uploadingVersion;
-        }
-    }
-
-    // Only the editor guards the close.
-    private EventCallback CloseRequest
-    {
-        get
-        {
-            return this.editing is null ? default : EventCallback.Factory.Create(this, this.RequestClose);
-        }
-    }
 
     protected override void OnInitialized()
     {
@@ -521,44 +375,6 @@
         this.renaming = false;
 
         this.Reload(file);
-    }
-
-    private async Task LoadVersionList(FileListItem file)
-    {
-        var key = (file.FileId, file.Version, file.VersionCount);
-
-        if (file.VersionCount < 2)
-        {
-            this.versions = null;
-            this.versionsKey = null;
-
-            return;
-        }
-
-        if (key == this.versionsKey)
-            return;
-
-        this.versionsKey = key;
-        this.versionsFailed = false;
-
-        try
-        {
-            this.versions = await this.LoadVersions(file, CancellationToken.None);
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading the versions of file {FileAssetId} failed", file.FileId);
-
-            this.versions = null;
-            this.versionsFailed = true;
-        }
-    }
-
-    private async Task RetryVersions(FileListItem file)
-    {
-        this.versionsKey = null;
-
-        await this.LoadVersionList(file);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -662,60 +478,6 @@
             await this.OnDownload.InvokeAsync(file);
     }
 
-    private void ToggleVersions()
-    {
-        if (this.OlderVersion is null)
-            this.versionsOpen = !this.versionsOpen;
-    }
-
-    // The bar holding the focused button goes away, so the focus moves to the toggle once the current version shows.
-    private async Task ShowCurrentVersion()
-    {
-        this.versionsOpen = false;
-        this.focusVersionsToggle = true;
-
-        await this.VersionChanged.InvokeAsync(null);
-    }
-
-    private async Task SelectVersion(FileListItem file, int number)
-    {
-        await this.versionsPopover!.CloseToTrigger();
-
-        this.versionsOpen = true;
-
-        await this.VersionChanged.InvokeAsync(number == file.Version ? null : number);
-    }
-
-    private async Task ManageVersions(FileListItem file)
-    {
-        await this.versionsPopover!.CloseToTrigger();
-        await this.OnManageVersions.InvokeAsync(file);
-    }
-
-    private async Task UploadNewVersion(FileListItem file, IBrowserFile picked)
-    {
-        this.uploadingVersion = true;
-        this.versionFailure = null;
-
-        this.versionFailure = (await this.UploadVersion(file, picked)).Failure;
-
-        this.uploadingVersion = false;
-
-        if (this.versionFailure is null)
-            await this.VersionChanged.InvokeAsync(null);
-    }
-
-    private async Task VersionPicked(FileListItem file, InputFileChangeEventArgs args)
-    {
-        if (args.FileCount == 0)
-            return;
-
-        // A fresh input, so the same file can be picked again.
-        this.versionRound++;
-
-        await this.UploadNewVersion(file, args.File);
-    }
-
     // The version shown, or the document a signed file carries; below lg without its label.
     private RenderFragment DownloadButton(FileListItem file, bool labelled)
     {
@@ -785,63 +547,6 @@
         this.versionFailure = await this.ChangeMain!(file, main);
     }
 
-    private List<EcMenuItem> CompareActions(FileListItem file)
-    {
-        var actions = new List<EcMenuItem>
-        {
-            new() { Text = "Zavřít porovnání", Icon = AppIcons.Compare, OnSelect = EventCallback.Factory.Create(this, this.CloseCompare) },
-            new() { Text = $"Stáhnout verzi {this.ComparedPair?.Newer ?? file.Version}", Icon = AppIcons.Download, OnSelect = EventCallback.Factory.Create(this, () => this.DownloadCompared(file)) },
-        };
-
-        if (this.Files.Count > 1)
-        {
-            actions.Add(new EcMenuItem { Text = "Předchozí soubor", Icon = AppIcons.ChevronLeft, OnSelect = EventCallback.Factory.Create(this, () => this.Step(-1)), DividerBefore = true });
-            actions.Add(new EcMenuItem { Text = "Další soubor", Icon = AppIcons.ChevronRight, OnSelect = EventCallback.Factory.Create(this, () => this.Step(1)) });
-        }
-
-        return actions;
-    }
-
-    private async Task PickVersion()
-    {
-        await this.BrowserFiles.PickFile(this.versionInput!.Element!.Value, CancellationToken.None);
-    }
-
-    // An older version compares with the current one, the current with the one before it.
-    private void StartCompare(FileListItem file)
-    {
-        this.renaming = false;
-        this.versionsOpen = false;
-        this.versionFailure = null;
-        this.compareStart = (file.FileId, this.OlderVersion ?? file.Version, WithCurrent: this.OlderVersion is not null);
-        this.comparePair = null;
-    }
-
-    private void CloseCompare()
-    {
-        this.compareStart = null;
-        this.comparePair = null;
-    }
-
-    // The newer version of the compare is saved under the file's name.
-    private async Task DownloadCompared(FileListItem file)
-    {
-        await this.DownloadVersion(file, this.ComparedPair?.Newer ?? file.Version);
-    }
-
-    private async Task DownloadVersion(FileListItem file, int number)
-    {
-        if (number == file.Version)
-            await this.OnDownload.InvokeAsync(file);
-        else
-            await this.BrowserFiles.DownloadFile(file.FileId, number, file.FileName, CancellationToken.None);
-    }
-
-    private static bool Listed(IReadOnlyList<FileVersionItem> versions, int number)
-    {
-        return versions.Any(version => version.Number == number);
-    }
-
     private RenderFragment FileSteps()
     {
         return @<text>
@@ -857,38 +562,6 @@
                 </nav>
             }
         </text>;
-    }
-
-    private async Task StartEdit()
-    {
-        this.renaming = false;
-        this.versionsOpen = false;
-        this.versionFailure = null;
-        this.saveFailure = null;
-        this.dirty = false;
-        this.editsFormattedCode = this.contentPreview?.ShowsFormattedCode == true;
-        this.editing = this.contentPreview?.Editable;
-        this.changesShown = false;
-        this.changesNumber = null;
-        this.changesFailed = false;
-
-        try
-        {
-            await this.History.TrackSteps();
-        }
-        catch (JSException exception)
-        {
-            this.Logger.LogInformation(exception, "The browser's history steps are not tracked");
-        }
-    }
-
-    private void LeaveEdit()
-    {
-        this.changesToken?.Cancel();
-        this.changesTexts.Clear();
-        this.editing = null;
-        this.dirty = false;
-        this.saveFailure = null;
     }
 
     // The Změny of the edited text against the version edited or the one chosen; a version that cannot compare says why.
@@ -930,218 +603,9 @@
         return new EditorChanges(this.changesShown, number, original, version, status, EventCallback.Factory.Create<bool>(this, this.ShowChanges));
     }
 
-    private async Task ShowChanges(bool shown)
-    {
-        this.changesShown = shown;
-
-        if (shown)
-            await this.ReadChangesVersion();
-        else
-            this.changesToken?.Cancel();
-    }
-
-    private async Task PickChangesVersion(int number)
-    {
-        this.changesNumber = number == this.loadedNumber ? null : number;
-        this.changesFailed = false;
-
-        await this.ReadChangesVersion();
-    }
-
-    // Reads the version the Změny compare with, unless it is the one edited, read already or over the limit.
-    private async Task ReadChangesVersion()
-    {
-        if (this.Current is not { } file || this.changesNumber is not { } number
-            || this.versions?.FirstOrDefault(version => version.Number == number) is not { } version
-            || version.SizeBytes > MaxTextBytes || this.changesTexts.ContainsKey((file.FileId, number, version.Created)))
-            return;
-
-        this.changesToken?.Cancel();
-        this.changesToken?.Dispose();
-
-        var token = (this.changesToken = new CancellationTokenSource()).Token;
-
-        this.changesFailed = false;
-
-        try
-        {
-            await using var content = await this.LoadContent(file, number == file.Version ? null : number, token);
-            var bytes = await FileContentPreview.ReadBytes(content, token);
-
-            if (!token.IsCancellationRequested)
-                this.changesTexts[(file.FileId, number, version.Created)] = EditableText.ParseOrDefault(bytes)?.Text;
-        }
-        catch (OperationCanceledException)
-        {
-            // Another version or the end of the edit took over.
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Loading version {Version} of file {FileId} for the changes failed", number, file.FileId);
-
-            if (!token.IsCancellationRequested)
-                this.changesFailed = true;
-        }
-    }
-
     private static RenderFragment ChangesProblem(string problem)
     {
         return @<div class="ec-warning ec-preview-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@problem</div>;
-    }
-
-    private void EditorDirtyChanged(bool changed)
-    {
-        this.dirty = changed;
-    }
-
-    // A version that came while the editor was open shows once it closes.
-    private Task ShowCurrent()
-    {
-        if (this.editing is null && this.Current is { } file && file.FileId == this.loadedFileId && this.OlderVersion is null && file.Version != this.loadedNumber)
-            this.Reload(file);
-
-        return Task.CompletedTask;
-    }
-
-    private async Task EditorUnavailable()
-    {
-        this.LeaveEdit();
-        this.versionFailure = "Úpravy se nepodařilo spustit. Zkuste to za chvíli znovu.";
-
-        await this.ShowCurrent();
-    }
-
-    private async Task ApplyLink(string href)
-    {
-        this.linkHref = null;
-
-        await this.contentPreview!.SetLink(href);
-    }
-
-    private async Task CancelEdit()
-    {
-        if (this.saving)
-            return;
-
-        if (this.dirty)
-        {
-            this.afterDiscard = this.ShowCurrent;
-        }
-        else
-        {
-            this.LeaveEdit();
-
-            await this.ShowCurrent();
-        }
-    }
-
-    // The X, a click outside or Escape while editing: unsaved changes are confirmed before the preview closes. A save
-    // under way finishes first.
-    private async Task RequestClose()
-    {
-        if (this.saving)
-            return;
-
-        if (this.dirty)
-            this.afterDiscard = () => this.OpenChanged.InvokeAsync(false);
-        else
-            await this.OpenChanged.InvokeAsync(false);
-    }
-
-    // Covers links and the browser's Back and Forward; leaving the site is asked by the browser through
-    // ConfirmExternalNavigation. A Back or Forward goes on after the discard as the same step through the history.
-    private async Task ConfirmNavigation(LocationChangingContext context)
-    {
-        var held = this.dirty;
-
-        if (held)
-            context.PreventNavigation();
-
-        var target = context.TargetLocation;
-        var distance = 0;
-
-        if (!context.IsNavigationIntercepted)
-        {
-            try
-            {
-                distance = await this.History.TakeStep(target);
-            }
-            catch (JSException exception)
-            {
-                this.Logger.LogInformation(exception, "The browser's history step is not known");
-            }
-        }
-
-        if (!held)
-            return;
-
-        this.afterDiscard = async () =>
-        {
-            if (distance == 0)
-                this.Navigation.NavigateTo(target);
-            else
-                await this.History.Go(distance);
-        };
-    }
-
-    private async Task Discard()
-    {
-        var next = this.afterDiscard!;
-
-        this.afterDiscard = null;
-        this.LeaveEdit();
-
-        await next();
-    }
-
-    private void KeepEditing(bool open)
-    {
-        if (!open)
-            this.afterDiscard = null;
-    }
-
-    // The text goes up as a new version by the same call as Nová verze; a success shows the current version.
-    private async Task Save()
-    {
-        if (this.editing is not { } edited || !this.dirty || this.saving || this.Current is not { } file)
-            return;
-
-        this.saving = true;
-        this.saveFailure = null;
-
-        string? failure;
-
-        try
-        {
-            var text = FileTypeDisplay.Preview(file.FileName) == FilePreviewKind.Markdown
-                ? await this.contentPreview!.ReadMarkdown()
-                : await this.editor!.ReadText();
-            var content = edited.Encode(text);
-
-            failure = (await this.UploadVersion(file, new EditedFile(file.FileName, content))).Failure;
-        }
-        catch (JSException exception)
-        {
-            this.Logger.LogWarning(exception, "Reading the edited text of file {FileAssetId} failed", file.FileId);
-
-            failure = "Text se nepodařilo přečíst z editoru. Zkuste to znovu.";
-        }
-        finally
-        {
-            this.saving = false;
-        }
-
-        if (failure is not null)
-        {
-            this.saveFailure = failure;
-
-            return;
-        }
-
-        this.LeaveEdit();
-
-        await this.ShowCurrent();
-        await this.VersionChanged.InvokeAsync(null);
     }
 
     // The warning that a new version invalidates the file's detached signature, in either editor.

@@ -1,0 +1,88 @@
+@using EvilBrains.EvilCase.Api.Contract.Files
+@* The bar over the preview of a file with versions: the version shown, the choice of another and the way back to the
+   current one. *@
+@{
+    var shown = this.OlderVersion ?? this.File.Version;
+    var shownItem = this.Versions?.FirstOrDefault(version => version.Number == shown);
+    var shortTitle = $"Verze {shown} z {this.File.Version}" + (shownItem is null ? "" : $" · {MomentDisplay.Text(shownItem.Created)}");
+    var title = shortTitle + (shownItem is null ? "" : $" · {shownItem.UploaderEmail}");
+}
+
+<div class="@(this.OlderVersion is null ? "ec-preview-versions" : "ec-preview-versions ec-preview-versions-old")" role="group" aria-label="Verze souboru">
+    <span class="ec-preview-versions-label"><EcIcon Paths="@AppIcons.Clock" />Verze</span>
+    <EcPopover @ref="this.popover" AriaLabel="Výběr verze" PanelClass="ec-preview-versions-panel">
+        <Trigger>
+            <span class="ec-preview-versions-trigger"><span class="ec-text-wide">@title</span><span class="ec-text-narrow">@shortTitle</span><EcIcon Paths="@AppIcons.ChevronDown" /></span>
+        </Trigger>
+        <ChildContent>
+            @if (this.Versions is null)
+            {
+                <p class="ec-preview-versions-error">Verze se nepodařilo načíst.</p>
+            }
+            else
+            {
+                <ul class="ec-preview-versions-list">
+                    @foreach (var version in this.Versions)
+                    {
+                        var number = version.Number;
+
+                        <li>
+                            <button type="button" class="ec-preview-versions-option" aria-current="@(number == shown ? "true" : null)"
+                                    @onclick="() => this.Select(number)">
+                                <span class="ec-preview-versions-option-title">Verze @number@(number == this.File.Version ? " " : "")@if (number == this.File.Version) { <EcBadge Text="aktuální" Tone="EcBadgeTone.Current" /> }</span>
+                                <span class="ec-preview-versions-option-meta">@MomentDisplay.Text(version.Created) · @version.UploaderEmail</span>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            }
+            <div class="ec-preview-versions-divider" role="separator"></div>
+            <button type="button" class="ec-preview-versions-manage" @onclick="this.Manage">Spravovat verze</button>
+        </ChildContent>
+    </EcPopover>
+    @if (this.OlderVersion is not null)
+    {
+        <span class="ec-preview-versions-note">Starší verze. Stáhnout stáhne tuto verzi.</span>
+        <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.OnShowCurrent"><span class="ec-text-wide">Zobrazit aktuální verzi</span><span class="ec-text-narrow">Aktuální</span></EcButton>
+    }
+</div>
+
+@code {
+    private EcPopover? popover;
+
+    [Parameter, EditorRequired]
+    public required FileListItem File { get; set; }
+
+    /// <summary>
+    /// The number of the version shown when it is not the current one.
+    /// </summary>
+    [Parameter]
+    public int? OlderVersion { get; set; }
+
+    /// <summary>
+    /// The file's versions; null when they did not load.
+    /// </summary>
+    [Parameter]
+    public IReadOnlyList<FileVersionItem>? Versions { get; set; }
+
+    [Parameter]
+    public EventCallback<int> OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback OnManage { get; set; }
+
+    [Parameter]
+    public EventCallback OnShowCurrent { get; set; }
+
+    private async Task Select(int number)
+    {
+        await this.popover!.CloseToTrigger();
+        await this.OnSelect.InvokeAsync(number);
+    }
+
+    private async Task Manage()
+    {
+        await this.popover!.CloseToTrigger();
+        await this.OnManage.InvokeAsync();
+    }
+}
