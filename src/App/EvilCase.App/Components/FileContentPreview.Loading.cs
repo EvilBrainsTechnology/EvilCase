@@ -16,7 +16,7 @@ public partial class FileContentPreview
 
     internal static async Task<byte[]> ReadBytes(Stream content, CancellationToken token)
     {
-        using var bytes = new MemoryStream();
+        await using var bytes = new MemoryStream();
 
         await content.CopyToAsync(bytes, token);
 
@@ -26,13 +26,15 @@ public partial class FileContentPreview
     // Cancels what is loading, so a stale load never overwrites a newer one.
     private async Task Show()
     {
-        this.loadToken?.Cancel();
-
+        var previous = this.loadToken;
         var token = (this.loadToken = new CancellationTokenSource()).Token;
 
         this.loading = true;
         this.failed = false;
         this.unsupported = false;
+
+        if (previous is not null)
+            await previous.CancelAsync();
 
         await this.ReleaseUrl();
 
@@ -57,8 +59,7 @@ public partial class FileContentPreview
             return;
         }
 
-        if ((preview == FilePreviewKind.DataMessage && this.SizeBytes > DataMessageZfo.MaxBytes)
-            || (preview == FilePreviewKind.SignedDocument && this.SizeBytes > FileLimits.MaxReadBytes))
+        if (this.OverReadLimit(preview))
         {
             this.loading = false;
             this.unsupported = true;
@@ -68,20 +69,10 @@ public partial class FileContentPreview
 
         try
         {
-            // The browser requests what it shows natively itself, and the PDF library requests a PDF; the rest is
-            // read here as bytes.
+            // The browser and the PDF library request what they show themselves; the rest is read here as bytes.
             if (this.Content is null && (preview == FilePreviewKind.Pdf || InlineFileTypes.MediaType(file.FileName) is not null))
             {
-                await this.Session.EnsureFresh(token);
-
-                if (!token.IsCancellationRequested)
-                {
-                    this.loading = false;
-                    this.url = FileUrl.Content(file.FileId, this.Version);
-
-                    // The browser keeps requesting ranges while the file is shown; the next file or the close ends it.
-                    _ = this.Session.KeepFresh(token);
-                }
+                await this.ShowStoredUrl(file, token);
 
                 return;
             }
@@ -119,6 +110,27 @@ public partial class FileContentPreview
         }
     }
 
+    // A data message or a signed file is read whole, so one over its limit is not read.
+    private bool OverReadLimit(FilePreviewKind preview)
+    {
+        return (preview == FilePreviewKind.DataMessage && this.SizeBytes > DataMessageZfo.MaxBytes)
+            || (preview == FilePreviewKind.SignedDocument && this.SizeBytes > FileLimits.MaxReadBytes);
+    }
+
+    private async Task ShowStoredUrl(FileListItem file, CancellationToken token)
+    {
+        await this.Session.EnsureFresh(token);
+
+        if (token.IsCancellationRequested)
+            return;
+
+        this.loading = false;
+        this.url = FileUrl.Content(file.FileId, this.Version);
+
+        // The browser keeps requesting ranges while the file is shown; the next file or the close ends it.
+        _ = this.Session.KeepFresh(token);
+    }
+
     private async Task ShowAttachment(DataMessageAttachment attachment, CancellationToken token)
     {
         var preview = FileTypeDisplay.Preview(attachment.Name);
@@ -145,7 +157,7 @@ public partial class FileContentPreview
 
             // What the browser shows natively is a blob of the type the extension gives.
             if (InlineFileTypes.MediaType(attachment.Name) is { } mediaType)
-                await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, content, token), token);
+                await this.ShowBlob(mediaType, content, token);
             else
                 await this.Read(attachment.Name, preview, content, token);
 
@@ -171,152 +183,128 @@ public partial class FileContentPreview
     // Each branch writes nothing once a later file took over, so a stale load never overwrites a newer one.
     private async Task Read(string fileName, FilePreviewKind preview, Stream content, CancellationToken token)
     {
-        switch (preview)
+        await (preview switch
         {
-            case FilePreviewKind.Text:
-            case FilePreviewKind.Code:
-            {
-                var (text, cut, editable) = await ReadText(content, token);
-
-                if (!token.IsCancellationRequested)
-                {
-                    (this.text, this.truncated) = (text, cut);
-                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
-                }
-
-                break;
-            }
-
-            case FilePreviewKind.Markdown:
-            {
-                var (text, cut, editable) = await ReadText(content, token);
-
-                if (!token.IsCancellationRequested)
-                {
-                    (this.markdown, this.truncated) = (text, cut);
-                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
-                }
-
-                break;
-            }
+            FilePreviewKind.Text or FilePreviewKind.Code or FilePreviewKind.Markdown => this.ShowText(preview, content, token),
 
             // Only SVG is a picture read as bytes: it is shown as an image blob, never as the stored type.
-            case FilePreviewKind.Image:
-                await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl("image/svg+xml", content, token), token);
-
-                break;
-
-            case FilePreviewKind.ConvertedImage:
-                await this.ShowUrl(await this.Previews.CreatePngUrl(content, token), token);
-
-                break;
-
-            case FilePreviewKind.Document:
-            {
-                var bytes = await ReadBytes(content, token);
-
-                if (!token.IsCancellationRequested)
-                    this.document = bytes;
-
-                break;
-            }
-
-            case FilePreviewKind.Workbook:
-            {
-                var sheets = await this.Previews.ReadWorkbook(content, MaxSheetRows, token);
-
-                if (!token.IsCancellationRequested)
-                    this.workbook = sheets;
-
-                break;
-            }
-
-            case FilePreviewKind.Email:
-            {
-                var message = await this.Previews.ReadEmail(fileName, content, token);
-
-                if (!token.IsCancellationRequested)
-                    this.email = message;
-
-                break;
-            }
+            FilePreviewKind.Image => this.ShowBlob("image/svg+xml", content, token),
+            FilePreviewKind.ConvertedImage => this.ShowPng(content, token),
+            FilePreviewKind.Workbook => this.ReadWorkbook(content, token),
+            FilePreviewKind.Email => this.ReadEmail(fileName, content, token),
 
             // A stored PDF is requested by the library itself; only an attachment held in memory comes here.
-            case FilePreviewKind.Pdf:
-            {
-                var bytes = await ReadBytes(content, token);
+            FilePreviewKind.Document or FilePreviewKind.Pdf or FilePreviewKind.DataMessage => this.HoldBytes(preview, content, token),
+            FilePreviewKind.SignedDocument => this.ReadSignedDocument(fileName, content, token),
+            FilePreviewKind.None or FilePreviewKind.Audio or FilePreviewKind.Video => throw new UnreachableException(),
+            _ => throw new UnreachableException(),
+        });
+    }
 
-                if (!token.IsCancellationRequested)
-                    this.pdf = bytes;
+    private async Task ShowBlob(string mediaType, Stream content, CancellationToken token)
+    {
+        await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, content, token), token);
+    }
 
-                break;
-            }
+    private async Task ShowPng(Stream content, CancellationToken token)
+    {
+        await this.ShowUrl(await this.Previews.CreatePngUrl(content, token), token);
+    }
 
-            case FilePreviewKind.DataMessage:
-            {
-                var bytes = await ReadBytes(content, token);
+    private async Task ReadWorkbook(Stream content, CancellationToken token)
+    {
+        var sheets = await this.Previews.ReadWorkbook(content, MaxSheetRows, token);
 
-                if (!token.IsCancellationRequested)
-                    this.dataMessage = bytes;
+        if (!token.IsCancellationRequested)
+            this.workbook = sheets;
+    }
 
-                break;
-            }
+    private async Task ReadEmail(string fileName, Stream content, CancellationToken token)
+    {
+        var message = await this.Previews.ReadEmail(fileName, content, token);
 
-            case FilePreviewKind.SignedDocument:
-            {
-                var bytes = await ReadBytes(content, token);
+        if (!token.IsCancellationRequested)
+            this.email = message;
+    }
 
-                if (token.IsCancellationRequested)
-                    break;
+    private async Task HoldBytes(FilePreviewKind preview, Stream content, CancellationToken token)
+    {
+        var bytes = await ReadBytes(content, token);
 
-                var signed = SignedData.ParseOrDefault(bytes);
+        if (token.IsCancellationRequested)
+            return;
 
-                if (signed is null)
-                {
-                    this.unsupported = true;
+        if (preview == FilePreviewKind.Document)
+            this.document = bytes;
+        else if (preview == FilePreviewKind.Pdf)
+            this.pdf = bytes;
+        else
+            this.dataMessage = bytes;
+    }
 
-                    break;
-                }
+    private async Task ShowText(FilePreviewKind preview, Stream content, CancellationToken token)
+    {
+        var (text, cut, editable) = await ReadText(content, token);
 
-                // A detached signature carries no document; the stage shows its signers instead.
-                if (signed.Content is not { } document)
-                    break;
+        if (token.IsCancellationRequested)
+            return;
 
-                var documentName = FileTypeDisplay.SignedContentName(fileName);
+        if (preview == FilePreviewKind.Markdown)
+            this.markdown = text;
+        else
+            this.text = text;
 
-                // A name without a known extension takes the one of the type its content shows.
-                if (!FileTypeDisplay.HasKnownExtension(documentName)
-                    && await this.DetectExtension(document, token) is { } detected && FileTypeDisplay.IsKnownExtension(detected))
-                    documentName = $"{documentName}.{detected}";
+        this.truncated = cut;
+        (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+    }
 
-                if (token.IsCancellationRequested)
-                    break;
+    // A signed document shows what it carries, read by the type of its own name.
+    private async Task ReadSignedDocument(string fileName, Stream content, CancellationToken token)
+    {
+        var bytes = await ReadBytes(content, token);
 
-                (this.signedContent, this.signedContentName) = (document, documentName);
+        if (token.IsCancellationRequested)
+            return;
 
-                var documentPreview = FileTypeDisplay.Preview(documentName);
+        var signed = SignedData.ParseOrDefault(bytes);
 
-                await using var documentContent = new MemoryStream(document, writable: false);
+        if (signed is null)
+        {
+            this.unsupported = true;
 
-                // A signature or data message inside the signature would need a stored file of its own.
-                if (documentPreview is FilePreviewKind.SignedDocument or FilePreviewKind.DataMessage)
-                    this.unsupported = true;
-                else if (InlineFileTypes.MediaType(documentName) is { } mediaType)
-                    await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, documentContent, token), token);
-                else if (documentPreview != FilePreviewKind.None)
-                    await this.Read(documentName, documentPreview, documentContent, token);
-
-                break;
-            }
-
-            case FilePreviewKind.None:
-            case FilePreviewKind.Audio:
-            case FilePreviewKind.Video:
-                throw new UnreachableException();
-
-            default:
-                throw new UnreachableException();
+            return;
         }
+
+        // A detached signature carries no document; the stage shows its signers instead.
+        if (signed.Content is not { } document)
+            return;
+
+        var documentName = FileTypeDisplay.SignedContentName(fileName);
+
+        // A name without a known extension takes the one of the type its content shows.
+        if (!FileTypeDisplay.HasKnownExtension(documentName)
+            && await this.DetectExtension(document, token) is { } detected
+            && FileTypeDisplay.IsKnownExtension(detected))
+        {
+            documentName = $"{documentName}.{detected}";
+        }
+
+        if (token.IsCancellationRequested)
+            return;
+
+        (this.signedContent, this.signedContentName) = (document, documentName);
+
+        var documentPreview = FileTypeDisplay.Preview(documentName);
+
+        await using var documentContent = new MemoryStream(document, writable: false);
+
+        // A signature or data message inside the signature would need a stored file of its own.
+        if (documentPreview is FilePreviewKind.SignedDocument or FilePreviewKind.DataMessage)
+            this.unsupported = true;
+        else if (InlineFileTypes.MediaType(documentName) is { } mediaType)
+            await this.ShowBlob(mediaType, documentContent, token);
+        else if (documentPreview != FilePreviewKind.None)
+            await this.Read(documentName, documentPreview, documentContent, token);
     }
 
     // A library that fails leaves the type undetected.
@@ -382,10 +370,10 @@ public partial class FileContentPreview
             read += count;
         }
 
-        var truncated = read > FileTypeDisplay.MaxTextBytes;
+        var cut = read > FileTypeDisplay.MaxTextBytes;
         var shown = buffer.AsSpan(0, Math.Min(read, FileTypeDisplay.MaxTextBytes));
-        var editable = truncated ? null : EditableText.ParseOrDefault(shown);
+        var whole = cut ? null : EditableText.ParseOrDefault(shown);
 
-        return (editable?.Text ?? Encoding.UTF8.GetString(shown).TrimStart('﻿'), truncated, editable);
+        return (whole?.Text ?? Encoding.UTF8.GetString(shown).TrimStart('﻿'), cut, whole);
     }
 }
