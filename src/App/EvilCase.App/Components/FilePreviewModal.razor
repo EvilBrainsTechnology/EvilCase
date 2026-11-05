@@ -154,7 +154,8 @@
 
                     <VersionCompare @key="file.FileId" File="file" Versions="@(pair is null ? null : this.versions)" VersionsFailed="this.versionsFailed"
                                     OnRetryVersions="() => this.RetryVersions(file)" Older="@(pair?.Older ?? 0)" Newer="@(pair?.Newer ?? 0)"
-                                    OnPick="picked => this.comparePair = picked" LoadContent="this.LoadContent" />
+                                    OnPick="picked => this.comparePair = picked" LoadContent="this.LoadContent" OnDownload="number => this.DownloadVersion(file, number)"
+                                    OnOpenFile="this.OpenFile" />
                 }
                 else if (this.editing is { } edited && preview != FilePreviewKind.Markdown)
                 {
@@ -752,7 +753,7 @@
         if (compact && file.VersionCount > 1 && this.OlderVersion is null)
             actions.Add(new EcMenuItem { Text = $"Verze ({file.VersionCount})", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, this.ToggleVersions) });
 
-        if (compact && file.VersionCount > 1 && FileTypeDisplay.Compares(file.FileName))
+        if (compact && file.VersionCount > 1 && FileTypeDisplay.ComparesByContent(file.FileName))
             actions.Add(new EcMenuItem { Text = "Porovnat", Icon = AppIcons.Compare, OnSelect = EventCallback.Factory.Create(this, () => this.StartCompare(file)) });
 
         actions.Add(new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, this.StartRename) });
@@ -825,8 +826,11 @@
     // The newer version of the compare is saved under the file's name.
     private async Task DownloadCompared(FileListItem file)
     {
-        var number = this.ComparedPair?.Newer ?? file.Version;
+        await this.DownloadVersion(file, this.ComparedPair?.Newer ?? file.Version);
+    }
 
+    private async Task DownloadVersion(FileListItem file, int number)
+    {
         if (number == file.Version)
             await this.OnDownload.InvokeAsync(file);
         else
