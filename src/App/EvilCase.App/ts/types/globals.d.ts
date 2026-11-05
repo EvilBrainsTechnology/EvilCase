@@ -1,6 +1,5 @@
 // The globals of the libraries loadScript loads as classic scripts; each is there once its script has loaded.
 interface Window {
-    EcMsg: typeof import('../lib-src/msgreader.js');
     docx: typeof import('docx-preview');
     libheif: () => Promise<LibHeif>;
 }

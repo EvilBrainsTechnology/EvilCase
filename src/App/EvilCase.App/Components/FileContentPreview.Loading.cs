@@ -222,7 +222,7 @@ public partial class FileContentPreview
     {
         var bytes = await ReadBytes(content, token);
 
-        await this.AssemblyLoader.LoadAssembliesAsync(WorkbookAssemblies);
+        await this.Assemblies.LoadAssembliesAsync(WorkbookAssemblies);
 
         if (token.IsCancellationRequested)
             return;
@@ -235,9 +235,18 @@ public partial class FileContentPreview
 
     private async Task ReadEmail(string fileName, Stream content, CancellationToken token)
     {
-        var message = await this.Previews.ReadEmail(fileName, content, token);
+        var bytes = await ReadBytes(content, token);
 
-        if (!token.IsCancellationRequested)
+        await this.Assemblies.LoadAssembliesAsync(EmailFile.Assemblies);
+
+        var message = await EmailFile.ParseOrDefault(fileName, bytes, async html => await this.Previews.HtmlToText(html, token));
+
+        if (token.IsCancellationRequested)
+            return;
+
+        if (message is null)
+            this.unsupported = true;
+        else
             this.email = message;
     }
 
@@ -297,14 +306,11 @@ public partial class FileContentPreview
 
         // A name without a known extension takes the one of the type its content shows.
         if (!FileTypeDisplay.HasKnownExtension(documentName)
-            && await this.DetectExtension(document, token) is { } detected
+            && FileTypeDetection.ExtensionOrDefault(document) is { } detected
             && FileTypeDisplay.IsKnownExtension(detected))
         {
             documentName = $"{documentName}.{detected}";
         }
-
-        if (token.IsCancellationRequested)
-            return;
 
         (this.signedContent, this.signedContentName) = (document, documentName);
 
@@ -319,23 +325,6 @@ public partial class FileContentPreview
             await this.ShowBlob(mediaType, documentContent, token);
         else if (documentPreview != FilePreviewKind.None)
             await this.Read(documentName, documentPreview, documentContent, token);
-    }
-
-    // A library that fails leaves the type undetected.
-    private async Task<string?> DetectExtension(byte[] content, CancellationToken token)
-    {
-        await using var stream = new MemoryStream(content, writable: false);
-
-        try
-        {
-            return await this.Previews.DetectExtension(stream, token);
-        }
-        catch (JSException exception)
-        {
-            this.Logger.LogInformation(exception, "The library could not detect the type of a signed document");
-
-            return null;
-        }
     }
 
     private async Task ShowUrl(string created, CancellationToken token)

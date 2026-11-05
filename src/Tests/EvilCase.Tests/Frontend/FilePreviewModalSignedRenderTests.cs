@@ -19,9 +19,8 @@ public class FilePreviewModalSignedRenderTests
     [Test]
     public async Task ADocumentNamedWithoutAnExtensionShowsAndDownloadsAsTheTypeItsContentShows()
     {
-        await using var ctx = NewContext(out var previews, out var files, out _);
+        await using var ctx = NewContext(out _, out var files, out _);
 
-        previews.DetectedExtension = "xml";
         var file = File("Potvrzení.p7s");
         var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(XmlBytes, detached: false));
         var editors = ctx.Services.GetRequiredService<StubTextEditors>();
@@ -32,20 +31,18 @@ public class FilePreviewModalSignedRenderTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(previews.Detected, Is.EqualTo([XmlBytes]));
             Assert.That(component.Find(".ec-preview-meta").TextContent, Does.Contain("podepsaný dokument Potvrzení.xml"));
             Assert.That(files.DownloadedContents.Select(static content => content.FileName), Is.EqualTo(["Potvrzení.xml"]));
         }
     }
 
     [Test]
-    public async Task ADetectionThatFailsKeepsTheDocumentUnderItsName()
+    public async Task ADocumentWhoseContentShowsNoTypeKeepsItsName()
     {
-        await using var ctx = NewContext(out var previews, out var files, out _);
+        await using var ctx = NewContext(out _, out var files, out _);
 
-        previews.Fails = true;
         var file = File("Potvrzení.p7s");
-        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign(XmlBytes, detached: false));
+        var component = Render(ctx, [file], file.FileId, static _ => SignedFile.Sign("Prostý text bez typu."u8.ToArray(), detached: false));
 
         await component.WaitForAssertionAsync(() => Assert.That(component.Find(".ec-preview-message-title").TextContent, Is.EqualTo(Unsupported)));
         await component.Find("button[aria-label='Stáhnout dokument']").ClickAsync(new());

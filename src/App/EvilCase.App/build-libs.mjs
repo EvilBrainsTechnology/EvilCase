@@ -1,8 +1,8 @@
 // Generates wwwroot/lib, wwwroot/fonts and wwwroot/js: copies the browser builds of node_modules and their license
-// files, bundles each module of ts/lib-src with esbuild: postal-mime, @kenjiuno/msgreader, file-type, the code
-// formatting (Prettier with @prettier/plugin-xml), the text editor (CodeMirror), the Markdown view and editor (Milkdown)
-// and the tooltip placement (Floating UI), and compiles each module of ts/js and ts/worker on its own into wwwroot/js,
-// with its source map. It does not check the types; `npm run typecheck` does.
+// files, bundles each module of ts/lib-src with esbuild: the code formatting (Prettier with @prettier/plugin-xml), the
+// text editor (CodeMirror), the Markdown view and editor (Milkdown) and the tooltip placement (Floating UI), and
+// compiles each module of ts/js and ts/worker on its own into wwwroot/js, with its source map. It does not check the
+// types; `npm run typecheck` does.
 //
 // Usage: node build-libs.mjs        (after `npm ci`; no parameters, any working directory)
 // Replaces wwwroot/lib, wwwroot/fonts and wwwroot/js; all three are gitignored.
@@ -168,9 +168,6 @@ writeFileSync(join(lib, 'pdfjs', 'pdf_viewer.css'), (await transform(readFileSyn
 copy('pdfjs-dist', 'legacy/web/images', join(lib, 'pdfjs', 'images'));
 copyLicense('pdfjs-dist', join(lib, 'pdfjs', 'LICENSE'));
 
-await bundle('postal-mime');
-await bundle('msgreader', { format: 'iife', globalName: 'EcMsg' });
-await bundle('file-type');
 await bundle('code-preview');
 await bundle('codemirror');
 await bundle('milkdown');
