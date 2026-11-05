@@ -1,18 +1,10 @@
-// The workbooks, e-mails and pictures read here for a preview drawn in .NET.
+// The e-mails and pictures read here for a preview drawn in .NET.
 import { loadScript } from './preview-shared.js';
 import { release } from './preview-view.js';
 import type { Address, Mailbox } from 'postal-mime';
 
 const maxPixels = 64 * 1024 * 1024;
 const maxBodyLength = 200000;
-const maxColumns = 100;
-
-interface Sheet {
-    name: string;
-    rows: string[][];
-    rowCount: number;
-    columnCount: number;
-}
 
 interface Attachment {
     name: string;
@@ -21,52 +13,6 @@ interface Attachment {
 
 function extensionOf(fileName: string) {
     return fileName.slice(fileName.lastIndexOf('.') + 1).toLowerCase();
-}
-
-export async function readWorkbook(contentStream: DotNetStream, maxRows: number) {
-    release();
-
-    const buffer = await contentStream.arrayBuffer();
-
-    // SheetJS also reads text and HTML as a sheet; only a ZIP or an OLE container is a workbook here.
-    const head = new Uint8Array(buffer, 0, Math.min(4, buffer.byteLength));
-    const isZip = head[0] === 0x50 && head[1] === 0x4b;
-    const isOle = head[0] === 0xd0 && head[1] === 0xcf && head[2] === 0x11 && head[3] === 0xe0;
-
-    if (!isZip && !isOle) {
-        throw new Error('The file is not a workbook.');
-    }
-
-    await loadScript('sheetjs/xlsx.full.min.js');
-
-    const XLSX = window.XLSX;
-    const workbook = XLSX.read(buffer, { type: 'array', dense: true, cellDates: true, dateNF: 'd. m. yyyy' });
-    const sheets: Sheet[] = [];
-
-    for (const name of workbook.SheetNames) {
-        const sheet = workbook.Sheets[name];
-        const ref = sheet['!ref'];
-
-        if (!ref) {
-            sheets.push({ name, rows: [], rowCount: 0, columnCount: 0 });
-            continue;
-        }
-
-        // The table starts at A1 whatever the used range says, so the row and column headings match Excel.
-        const range = XLSX.utils.decode_range(ref);
-        const rowCount = range.e.r + 1;
-        const columnCount = Math.min(range.e.c + 1, maxColumns);
-
-        range.s = { r: 0, c: 0 };
-        range.e.r = Math.min(range.e.r, maxRows - 1);
-        range.e.c = columnCount - 1;
-
-        const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: false, defval: '', blankrows: true, range, dateNF: 'd. m. yyyy' });
-
-        sheets.push({ name, rows: rows.map(row => Array.from({ length: columnCount }, (_, index) => String(row[index] ?? ''))), rowCount, columnCount });
-    }
-
-    return sheets;
 }
 
 // The text of an HTML body: the page is parsed in an inert document, so nothing in it runs or loads.

@@ -151,13 +151,6 @@ internal sealed class StubFilePreviews : IFilePreviews
         return Task.CompletedTask;
     }
 
-    public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token)
-    {
-        this.ThrowWhenFailing();
-
-        return Task.FromResult<IReadOnlyList<SheetPreview>>([]);
-    }
-
     public Task<EmailPreview> ReadEmail(string fileName, Stream content, CancellationToken token)
     {
         this.ThrowWhenFailing();

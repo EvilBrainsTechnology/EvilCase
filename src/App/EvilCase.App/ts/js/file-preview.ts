@@ -3,4 +3,4 @@
 export { disposeView, findInView, goToViewPage, openImageView, openTextView, zoomView } from './preview-view.js';
 export { renderDocument } from './document-preview.js';
 export { disposePdf, findInPdf, goToPdfPage, renderPdf, renderPdfContent, zoomPdf } from './pdf-preview.js';
-export { createPngUrl, detectExtension, readEmail, readWorkbook } from './file-readers.js';
+export { createPngUrl, detectExtension, readEmail } from './file-readers.js';

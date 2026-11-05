@@ -2,11 +2,13 @@
 @using System.Text
 @using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.AspNetCore.Components.WebAssembly.Services
 @using Microsoft.JSInterop
 @implements IAsyncDisposable
 @inject IAuthSession Session
 @inject IBrowserFiles BrowserFiles
 @inject IFilePreviews Previews
+@inject LazyAssemblyLoader AssemblyLoader
 @inject ILogger<FileContentPreview> Logger
 
 @* The preview of one version of a stored file, or of an attachment of a data message: it reads the content once and
