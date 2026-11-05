@@ -1,0 +1,18 @@
+/* The app stylesheets in their cascade order; build-styles.mjs bundles them into wwwroot/lib/ec.min.css. */
+@import "ec-fonts.css";
+@import "ec-tokens.css";
+@import "ec-base.css";
+@import "ec-files.css";
+@import "ec-preview.css";
+@import "ec-editor.css";
+@import "ec-markdown.css";
+@import "ec-preview-formats.css";
+@import "ec-versions.css";
+@import "ec-comments.css";
+@import "ec-settings.css";
+@import "ec-detail.css";
+@import "ec-mobile.css";
+@import "ec-shell.css";
+@import "ec-topbar.css";
+@import "ec-lists.css";
+@import "ec-mobile-edge-to-edge.css";

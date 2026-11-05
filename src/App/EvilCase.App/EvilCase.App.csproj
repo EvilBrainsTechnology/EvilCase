@@ -40,14 +40,18 @@
   <!--
     SkipFrontendLibs=true leaves wwwroot/lib, wwwroot/fonts and wwwroot/js to the caller (the Dockerfile's Node stage)
     and checks no types. IncludeFrontendLibs adds them to Content again because the wwwroot glob may predate them.
+    The stylesheets of wwwroot/css ship only inside the bundle wwwroot/lib/ec.min.css.
   -->
   <ItemGroup>
+    <Content Remove="wwwroot\css\**" />
     <FrontendLibsInput Include="package.json;package-lock.json" />
     <FrontendLibsOutput Include="node_modules\.package-lock.json" />
     <FrontendLibsBuildInput Include="package-lock.json;build-libs.mjs;ts\**\*.ts;ts\**\tsconfig.json" />
     <FrontendLibsBuildOutput Include="node_modules\.build-libs.stamp;wwwroot\lib\pdfjs\pdf.min.mjs;wwwroot\fonts\instrument-sans-latin.woff2;wwwroot\js\early-refresh.js" />
     <FrontendTypesInput Include="package.json;ts\**\*.ts;ts\**\tsconfig.json" />
     <FrontendTypesOutput Include="node_modules\.typecheck.stamp" />
+    <FrontendStylesInput Include="build-styles.mjs;wwwroot\css\**\*.css" />
+    <FrontendStylesOutput Include="wwwroot\lib\ec.min.css" />
   </ItemGroup>
 
   <Target Name="InstallFrontendLibs" Condition="'$(SkipFrontendLibs)' != 'true'" Inputs="@(FrontendLibsInput)" Outputs="@(FrontendLibsOutput)">
@@ -65,7 +69,11 @@
     <Touch Files="@(FrontendTypesOutput)" AlwaysCreate="true" />
   </Target>
 
-  <Target Name="IncludeFrontendLibs" DependsOnTargets="GenerateFrontendLibs;CheckFrontendTypes" BeforeTargets="ResolveProjectStaticWebAssets;AssignTargetPaths">
+  <Target Name="GenerateFrontendStyles" Condition="'$(SkipFrontendLibs)' != 'true'" DependsOnTargets="GenerateFrontendLibs" Inputs="@(FrontendStylesInput);@(FrontendLibsOutput)" Outputs="@(FrontendStylesOutput)">
+    <Exec Command="node build-styles.mjs" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
+  <Target Name="IncludeFrontendLibs" DependsOnTargets="GenerateFrontendStyles;CheckFrontendTypes" BeforeTargets="ResolveProjectStaticWebAssets;AssignTargetPaths">
     <ItemGroup>
       <Content Remove="wwwroot\lib\**;wwwroot\fonts\**;wwwroot\js\**" />
       <Content Include="wwwroot\lib\**;wwwroot\fonts\**;wwwroot\js\**" />
