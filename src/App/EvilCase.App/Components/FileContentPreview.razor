@@ -1,0 +1,832 @@
+@using System.Diagnostics
+@using System.Text
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Contract.Files
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IAuthSession Session
+@inject IBrowserFiles BrowserFiles
+@inject IFilePreviews Previews
+@inject ILogger<FileContentPreview> Logger
+
+@* The preview of one version of a stored file, or of an attachment of a data message: it reads the content once and
+   shows it by its type. A signed document shows what it carries. *@
+@if (!this.Covered)
+{
+    var name = this.signedContentName ?? this.Name;
+    var preview = FileTypeDisplay.Preview(name);
+
+    if (preview == FilePreviewKind.None || this.unsupported)
+    {
+        <div class="ec-preview-message">
+            <EcFileIcon FileName="@name" Size="EcFileIconSize.Large" />
+            <p class="ec-preview-message-title">Náhled tohoto typu souboru není k dispozici</p>
+            <p class="ec-preview-message-text">Soubor si stáhněte a otevřete v aplikaci, která ho umí zobrazit.</p>
+            <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Download" OnClick="this.OnDownload">Stáhnout soubor</EcButton>
+        </div>
+    }
+    else if (this.failed)
+    {
+        <div class="ec-preview-message">
+            <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />Soubor se nepodařilo načíst. Zkuste to za chvíli znovu.</div>
+            <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Refresh" OnClick="this.Show">Zkusit znovu</EcButton>
+        </div>
+    }
+    else if (this.loading)
+    {
+        <p class="ec-preview-message">Načítám…</p>
+    }
+    else if (preview is FilePreviewKind.Text or FilePreviewKind.Code)
+    {
+        var language = preview == FilePreviewKind.Code ? FileTypeDisplay.Language(name) : (CodeLanguage?)null;
+
+        <TextEditor @ref="this.viewer" Text="@this.text" Language="language" FileName="@name" ReadOnly Formats="language is not null"
+                    Partial="this.truncated" OnFormatted="view => this.codeView = view" OnUnavailable="this.Unreadable">
+            <Notes>
+                @if (this.NotUtf8)
+                {
+                    <ToolbarNote Text="@NotUtf8Note" />
+                }
+                @if (this.truncated)
+                {
+                    <ToolbarNote Text="@(language is null ? "Soubor je delší, zobrazuje se jen jeho začátek." : "Soubor je delší, zobrazuje se jen jeho začátek a nejde naformátovat.")" />
+                }
+                else if (language is { } shownLanguage && this.codeView is { Formatted: false, Invalid: true })
+                {
+                    <ToolbarNote Text="@($"Soubor není platný {LanguageName(shownLanguage)}, proto se ukazuje jen originál.")" />
+                }
+                else if (this.codeView is { Formatted: false })
+                {
+                    <ToolbarNote Text="Soubor se nepodařilo naformátovat, ukazuje se originál." />
+                }
+            </Notes>
+        </TextEditor>
+    }
+    else if (preview == FilePreviewKind.Markdown)
+    {
+        <MarkdownView @ref="this.markdownView" Text="@this.markdown" FileName="@name"
+                      Editing="this.Edit is not null" Locked="this.Edit?.Locked ?? false" Changes="this.Edit?.Changes"
+                      Source="this.markdownSource" SourceChanged="this.SwitchMarkdownSource"
+                      OnDirtyChanged="this.Edit?.OnDirtyChanged ?? default" OnSave="this.Edit?.OnSave ?? default" OnUnavailable="this.MarkdownUnavailable"
+                      OnLinkRequest="this.Edit?.OnLinkRequest ?? default">
+            <Notes>
+                @if (this.Edit is { } edit)
+                {
+                    @edit.Notes
+                }
+                else
+                {
+                    @if (this.truncated)
+                    {
+                        <ToolbarNote Text="Soubor je delší, zobrazuje se jen jeho začátek." />
+                    }
+                    @if (this.NotUtf8)
+                    {
+                        <ToolbarNote Text="@NotUtf8Note" />
+                    }
+                }
+            </Notes>
+        </MarkdownView>
+    }
+    else if (preview == FilePreviewKind.Document)
+    {
+        <DocumentPreview Content="this.document!" FileName="@name" OnUnreadable="this.Unreadable" />
+    }
+    else if (preview == FilePreviewKind.Workbook)
+    {
+        if (this.workbook.Count == 0)
+        {
+            <p class="ec-preview-message">Sešit neobsahuje žádné listy.</p>
+        }
+        else
+        {
+            var sheet = this.workbook[this.activeSheet];
+
+            <div class="ec-preview-sheet-view">
+                @if (sheet.RowCount > sheet.Rows.Count)
+                {
+                    <p class="ec-preview-note">Zobrazuje se jen prvních @NumberDisplay.Text(sheet.Rows.Count) řádků z @NumberDisplay.Text(sheet.RowCount).</p>
+                }
+                <div class="ec-preview-sheet" role="document" tabindex="0" aria-label="Obsah listu @sheet.Name">
+                    <table class="ec-preview-sheet-table">
+                        <thead>
+                            <tr>
+                                <th scope="col"></th>
+                                @for (var column = 0; column < sheet.ColumnCount; column++)
+                                {
+                                    <th scope="col">@ColumnName(column)</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var row = 0; row < sheet.Rows.Count; row++)
+                            {
+                                <tr>
+                                    <th scope="row">@(row + 1)</th>
+                                    @foreach (var cell in sheet.Rows[row])
+                                    {
+                                        <td>@cell</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="ec-preview-sheet-tabs" role="tablist" aria-label="Listy sešitu">
+                    @for (var index = 0; index < this.workbook.Count; index++)
+                    {
+                        var sheetIndex = index;
+
+                        <button type="button" role="tab" class="ec-preview-sheet-tab" aria-selected="@(sheetIndex == this.activeSheet ? "true" : "false")"
+                                @onclick="() => this.activeSheet = sheetIndex">@this.workbook[sheetIndex].Name</button>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else if (preview == FilePreviewKind.Email)
+    {
+        var message = this.email!;
+
+        <ReflowPreview>
+            <article class="ec-preview-email" role="document" tabindex="0" aria-label="Obsah zprávy @name">
+                <dl class="ec-preview-email-headers">
+                    <dt>Od</dt>
+                    <dd>@TextDisplay.OrDash(message.From)</dd>
+                    <dt>Komu</dt>
+                    <dd>@TextDisplay.OrDash(string.Join(", ", message.To))</dd>
+                    @if (message.Cc.Count > 0)
+                    {
+                        <dt>Kopie</dt>
+                        <dd>@string.Join(", ", message.Cc)</dd>
+                    }
+                    <dt>Předmět</dt>
+                    <dd>@TextDisplay.OrDash(message.Subject)</dd>
+                    <dt>Datum</dt>
+                    <dd>@MomentDisplay.Text(message.Date?.UtcDateTime)</dd>
+                </dl>
+                @if (message.Truncated)
+                {
+                    <p class="ec-preview-note">Zpráva je delší, zobrazuje se jen její začátek.</p>
+                }
+                <div class="ec-preview-email-body">@message.Body</div>
+                @if (message.Attachments.Count > 0)
+                {
+                    <section class="ec-preview-email-attachments" aria-label="Přílohy">
+                        <h3 class="ec-preview-email-attachments-title">Přílohy (@message.Attachments.Count)</h3>
+                        <ul class="ec-preview-email-attachment-list">
+                            @foreach (var attachment in message.Attachments)
+                            {
+                                <li class="ec-preview-email-attachment">
+                                    <EcIcon Paths="@AppIcons.Paperclip" />
+                                    <span class="ec-preview-email-attachment-name">@attachment.Name</span>
+                                    <span class="ec-preview-email-attachment-size">@FileSizeDisplay.Text(attachment.Size)</span>
+                                </li>
+                            }
+                        </ul>
+                    </section>
+                }
+            </article>
+        </ReflowPreview>
+    }
+    else if (preview == FilePreviewKind.DataMessage)
+    {
+        <DataMessagePreview Content="this.dataMessage!" FileName="@name" FileId="@(this.Attachment is null ? this.File.FileId : null)"
+                            Version="@(this.Attachment is null ? this.Version : null)" OnOpenAttachment="@(this.OnOpenAttachment.HasDelegate ? EventCallback.Factory.Create<(DataMessage Message, int Index)>(this, this.OpenAttachment) : default)" OnUnreadable="this.Unreadable" />
+    }
+    else if (preview == FilePreviewKind.SignedDocument)
+    {
+        <FileSigners FileId="this.File.FileId" FileName="@this.File.FileName" Version="this.Version" Detached OnOpenFile="this.OnOpenFile" />
+    }
+    else if (preview == FilePreviewKind.Pdf)
+    {
+        <PdfPreview Url="@(this.url ?? "")" Content="this.pdf" FileName="@name" OnUnreadable="this.Unreadable" />
+    }
+    else if (preview == FilePreviewKind.Image || preview == FilePreviewKind.ConvertedImage)
+    {
+        <ImagePreview Url="@(this.url ?? "")" FileName="@name" OnUnreadable="this.Unreadable" />
+    }
+    else if (preview == FilePreviewKind.Audio)
+    {
+        <div class="ec-preview-stage">
+            <audio class="ec-preview-audio" src="@this.url" controls @onerror="this.Unreadable"></audio>
+        </div>
+    }
+    else
+    {
+        <div class="ec-preview-stage">
+            <video class="ec-preview-video" src="@this.url" controls @onerror="this.Unreadable"></video>
+        </div>
+    }
+}
+
+@code {
+    private const int MaxSheetRows = 1000;
+
+    private const string NotUtf8Note = "Soubor není v kódování UTF-8, proto ho nejde upravit.";
+
+    private CancellationTokenSource? loadToken;
+
+    private string? url;
+
+    private bool urlIsBlob;
+
+    private string markdown = "";
+
+    private bool markdownSource;
+
+    private MarkdownView? markdownView;
+
+    private IReadOnlyList<SheetPreview> workbook = [];
+
+    private int activeSheet;
+
+    private EmailPreview? email;
+
+    private byte[]? document;
+
+    private byte[]? pdf;
+
+    private byte[]? dataMessage;
+
+    // The document a signed file carries and the name it is shown and saved under; null for any other file.
+    private byte[]? signedContent;
+
+    private string? signedContentName;
+
+    // The text or code shown, its start when it was cut.
+    private string text = "";
+
+    // How the code shown formatted; null for a text and until the code shows.
+    private CodeView? codeView;
+
+    private bool truncated;
+
+    private bool loading = true;
+
+    private bool failed;
+
+    private bool unsupported;
+
+    // The shown text or code as the editor takes it; null when it was not read whole or is not valid UTF-8.
+    private EditableText? editable;
+
+    // Whether the text or code was read whole and is not valid UTF-8.
+    private bool notUtf8;
+
+    private TextEditor? viewer;
+
+    [Parameter, EditorRequired]
+    public required FileListItem File { get; set; }
+
+    /// <summary>
+    /// The version shown; null shows the current one.
+    /// </summary>
+    [Parameter]
+    public int? Version { get; set; }
+
+    [Parameter, EditorRequired]
+    public required long SizeBytes { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; set; }
+
+    /// <summary>
+    /// The attachment of a data message shown instead of the stored file.
+    /// </summary>
+    [Parameter]
+    public DataMessageAttachment? Attachment { get; set; }
+
+    /// <summary>
+    /// The content of the stored version read already, which shows without a load.
+    /// </summary>
+    [Parameter]
+    public byte[]? Content { get; set; }
+
+    /// <summary>
+    /// Whether the preview is a side of a compare, which notes nothing about editing.
+    /// </summary>
+    [Parameter]
+    public bool Compared { get; set; }
+
+    /// <summary>
+    /// Whether something else stands in the preview's place; it keeps what it read.
+    /// </summary>
+    [Parameter]
+    public bool Covered { get; set; }
+
+    /// <summary>
+    /// The edit of a Markdown file, in place of its preview; null shows it only.
+    /// </summary>
+    [Parameter]
+    public MarkdownEdit? Edit { get; set; }
+
+    /// <summary>
+    /// Whether the preview of a Markdown file starts with its source; read when the preview opens.
+    /// </summary>
+    [Parameter]
+    public bool MarkdownSource { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> MarkdownSourceChanged { get; set; }
+
+    /// <summary>
+    /// Raised when a read ends or the content turns out unreadable, with the preview itself.
+    /// </summary>
+    [Parameter]
+    public EventCallback<FileContentPreview> OnChanged { get; set; }
+
+    [Parameter]
+    public EventCallback OnDownload { get; set; }
+
+    /// <summary>
+    /// Raised with the message shown, read and parsed, and the index of the attachment to preview; without it the
+    /// attachments do not open.
+    /// </summary>
+    [Parameter]
+    public EventCallback<(byte[] Content, string MessageName, DataMessage Message, int Index)> OnOpenAttachment { get; set; }
+
+    [Parameter]
+    public EventCallback<Guid> OnOpenFile { get; set; }
+
+    /// <summary>
+    /// The name of the document a signed file carries; null for any other file.
+    /// </summary>
+    public string? SignedContentName => this.signedContentName;
+
+    /// <summary>
+    /// The text or code read whole and valid UTF-8, as the editor takes it.
+    /// </summary>
+    internal EditableText? Editable => this.editable;
+
+    /// <summary>
+    /// Whether the content was read and shows.
+    /// </summary>
+    public bool Ready => !this.loading && !this.failed && !this.unsupported;
+
+    public bool ShowsFormattedCode => this.viewer?.ShowsFormatted == true;
+
+    private string Name => this.Attachment?.Name ?? this.File.FileName;
+
+    private bool NotUtf8 => this.notUtf8 && this.Attachment is null && this.signedContentName is null && this.Version is null && !this.Compared;
+
+    protected override void OnInitialized()
+    {
+        this.markdownSource = this.MarkdownSource;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.Show();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        this.loadToken?.Cancel();
+
+        await this.ReleaseUrl();
+    }
+
+    public async Task<string> ReadMarkdown()
+    {
+        return await this.markdownView!.ReadText();
+    }
+
+    public async Task SetLink(string href)
+    {
+        await this.markdownView!.SetLink(href);
+    }
+
+    public async Task DownloadSignedContent()
+    {
+        await using var content = new MemoryStream(this.signedContent!, writable: false);
+
+        await this.BrowserFiles.DownloadContent(this.signedContentName!, content, CancellationToken.None);
+    }
+
+    internal static async Task<byte[]> ReadBytes(Stream content, CancellationToken token)
+    {
+        using var bytes = new MemoryStream();
+
+        await content.CopyToAsync(bytes, token);
+
+        return bytes.ToArray();
+    }
+
+    // Cancels what is loading, so a stale load never overwrites a newer one.
+    private async Task Show()
+    {
+        this.loadToken?.Cancel();
+
+        var token = (this.loadToken = new CancellationTokenSource()).Token;
+
+        this.loading = true;
+        this.failed = false;
+        this.unsupported = false;
+
+        await this.ReleaseUrl();
+
+        if (this.Attachment is { } attachment)
+            await this.ShowAttachment(attachment, token);
+        else
+            await this.ShowStored(token);
+
+        if (!token.IsCancellationRequested)
+            await this.OnChanged.InvokeAsync(this);
+    }
+
+    private async Task ShowStored(CancellationToken token)
+    {
+        var file = this.File;
+        var preview = FileTypeDisplay.Preview(file.FileName);
+
+        if (preview == FilePreviewKind.None)
+        {
+            this.loading = false;
+
+            return;
+        }
+
+        if ((preview == FilePreviewKind.DataMessage && this.SizeBytes > DataMessageZfo.MaxBytes)
+            || (preview == FilePreviewKind.SignedDocument && this.SizeBytes > FileLimits.MaxReadBytes))
+        {
+            this.loading = false;
+            this.unsupported = true;
+
+            return;
+        }
+
+        try
+        {
+            // The browser requests what it shows natively itself, and the PDF library requests a PDF; the rest is
+            // read here as bytes.
+            if (this.Content is null && (preview == FilePreviewKind.Pdf || InlineFileTypes.MediaType(file.FileName) is not null))
+            {
+                await this.Session.EnsureFresh(token);
+
+                if (!token.IsCancellationRequested)
+                {
+                    this.loading = false;
+                    this.url = FileUrl.Content(file.FileId, this.Version);
+
+                    // The browser keeps requesting ranges while the file is shown; the next file or the close ends it.
+                    _ = this.Session.KeepFresh(token);
+                }
+
+                return;
+            }
+
+            await using var content = this.Content is { } read ? new MemoryStream(read, writable: false) : await this.LoadContent(file, this.Version, token);
+
+            await this.Read(file.FileName, preview, content, token);
+
+            if (!token.IsCancellationRequested)
+                this.loading = false;
+        }
+        catch (OperationCanceledException)
+        {
+            // A later file took over.
+        }
+        catch (JSException exception) when (UsesLibrary(preview))
+        {
+            this.Logger.LogInformation(exception, "The library could not read file {FileId} for the preview", file.FileId);
+
+            if (!token.IsCancellationRequested)
+            {
+                this.loading = false;
+                this.unsupported = true;
+            }
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException or JSException)
+        {
+            this.Logger.LogWarning(exception, "Loading file {FileId} for the preview failed", file.FileId);
+
+            if (!token.IsCancellationRequested)
+            {
+                this.loading = false;
+                this.failed = true;
+            }
+        }
+    }
+
+    private async Task ShowAttachment(DataMessageAttachment attachment, CancellationToken token)
+    {
+        var preview = FileTypeDisplay.Preview(attachment.Name);
+
+        if (preview == FilePreviewKind.None)
+        {
+            this.loading = false;
+
+            return;
+        }
+
+        // A signed file inside a data message has no stored file whose signers the server reads.
+        if (preview == FilePreviewKind.SignedDocument)
+        {
+            this.loading = false;
+            this.unsupported = true;
+
+            return;
+        }
+
+        try
+        {
+            await using var content = new MemoryStream(attachment.Content, writable: false);
+
+            // What the browser shows natively is a blob of the type the extension gives.
+            if (InlineFileTypes.MediaType(attachment.Name) is { } mediaType)
+                await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, content, token), token);
+            else
+                await this.Read(attachment.Name, preview, content, token);
+
+            if (!token.IsCancellationRequested)
+                this.loading = false;
+        }
+        catch (OperationCanceledException)
+        {
+            // A later attachment or file took over.
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not read an attachment of a data message for the preview");
+
+            if (!token.IsCancellationRequested)
+            {
+                this.loading = false;
+                this.unsupported = true;
+            }
+        }
+    }
+
+    // Each branch writes nothing once a later file took over, so a stale load never overwrites a newer one.
+    private async Task Read(string fileName, FilePreviewKind preview, Stream content, CancellationToken token)
+    {
+        switch (preview)
+        {
+            case FilePreviewKind.Text:
+            case FilePreviewKind.Code:
+            {
+                var (text, cut, editable) = await ReadText(content, token);
+
+                if (!token.IsCancellationRequested)
+                {
+                    (this.text, this.truncated) = (text, cut);
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+                }
+
+                break;
+            }
+
+            case FilePreviewKind.Markdown:
+            {
+                var (text, cut, editable) = await ReadText(content, token);
+
+                if (!token.IsCancellationRequested)
+                {
+                    (this.markdown, this.truncated) = (text, cut);
+                    (this.editable, this.notUtf8) = (editable, !cut && editable is null);
+                }
+
+                break;
+            }
+
+            // Only SVG is a picture read as bytes: it is shown as an image blob, never as the stored type.
+            case FilePreviewKind.Image:
+                await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl("image/svg+xml", content, token), token);
+
+                break;
+
+            case FilePreviewKind.ConvertedImage:
+                await this.ShowUrl(await this.Previews.CreatePngUrl(content, token), token);
+
+                break;
+
+            case FilePreviewKind.Document:
+            {
+                var bytes = await ReadBytes(content, token);
+
+                if (!token.IsCancellationRequested)
+                    this.document = bytes;
+
+                break;
+            }
+
+            case FilePreviewKind.Workbook:
+            {
+                var sheets = await this.Previews.ReadWorkbook(content, MaxSheetRows, token);
+
+                if (!token.IsCancellationRequested)
+                    this.workbook = sheets;
+
+                break;
+            }
+
+            case FilePreviewKind.Email:
+            {
+                var message = await this.Previews.ReadEmail(fileName, content, token);
+
+                if (!token.IsCancellationRequested)
+                    this.email = message;
+
+                break;
+            }
+
+            // A stored PDF is requested by the library itself; only an attachment held in memory comes here.
+            case FilePreviewKind.Pdf:
+            {
+                var bytes = await ReadBytes(content, token);
+
+                if (!token.IsCancellationRequested)
+                    this.pdf = bytes;
+
+                break;
+            }
+
+            case FilePreviewKind.DataMessage:
+            {
+                var bytes = await ReadBytes(content, token);
+
+                if (!token.IsCancellationRequested)
+                    this.dataMessage = bytes;
+
+                break;
+            }
+
+            case FilePreviewKind.SignedDocument:
+            {
+                var bytes = await ReadBytes(content, token);
+
+                if (token.IsCancellationRequested)
+                    break;
+
+                var signed = SignedData.ParseOrDefault(bytes);
+
+                if (signed is null)
+                {
+                    this.unsupported = true;
+
+                    break;
+                }
+
+                // A detached signature carries no document; the stage shows its signers instead.
+                if (signed.Content is not { } document)
+                    break;
+
+                var documentName = FileTypeDisplay.SignedContentName(fileName);
+
+                // A name without a known extension takes the one of the type its content shows.
+                if (!FileTypeDisplay.HasKnownExtension(documentName)
+                    && await this.DetectExtension(document, token) is { } detected && FileTypeDisplay.IsKnownExtension(detected))
+                    documentName = $"{documentName}.{detected}";
+
+                if (token.IsCancellationRequested)
+                    break;
+
+                (this.signedContent, this.signedContentName) = (document, documentName);
+
+                var documentPreview = FileTypeDisplay.Preview(documentName);
+
+                await using var documentContent = new MemoryStream(document, writable: false);
+
+                // A signature or data message inside the signature would need a stored file of its own.
+                if (documentPreview is FilePreviewKind.SignedDocument or FilePreviewKind.DataMessage)
+                    this.unsupported = true;
+                else if (InlineFileTypes.MediaType(documentName) is { } mediaType)
+                    await this.ShowUrl(await this.BrowserFiles.CreateBlobUrl(mediaType, documentContent, token), token);
+                else if (documentPreview != FilePreviewKind.None)
+                    await this.Read(documentName, documentPreview, documentContent, token);
+
+                break;
+            }
+
+            case FilePreviewKind.None:
+            case FilePreviewKind.Audio:
+            case FilePreviewKind.Video:
+                throw new UnreachableException();
+
+            default:
+                throw new UnreachableException();
+        }
+    }
+
+    // A library that fails leaves the type undetected.
+    private async Task<string?> DetectExtension(byte[] content, CancellationToken token)
+    {
+        await using var stream = new MemoryStream(content, writable: false);
+
+        try
+        {
+            return await this.Previews.DetectExtension(stream, token);
+        }
+        catch (JSException exception)
+        {
+            this.Logger.LogInformation(exception, "The library could not detect the type of a signed document");
+
+            return null;
+        }
+    }
+
+    private async Task ShowUrl(string created, CancellationToken token)
+    {
+        if (token.IsCancellationRequested)
+            await this.BrowserFiles.RevokeBlobUrl(created);
+        else
+            (this.url, this.urlIsBlob) = (created, true);
+    }
+
+    private async Task ReleaseUrl()
+    {
+        if (this.url is null)
+            return;
+
+        var released = this.url;
+        this.url = null;
+
+        if (this.urlIsBlob)
+            await this.BrowserFiles.RevokeBlobUrl(released);
+
+        this.urlIsBlob = false;
+    }
+
+    private async Task OpenAttachment((DataMessage Message, int Index) opened)
+    {
+        await this.OnOpenAttachment.InvokeAsync((this.dataMessage!, this.Name, opened.Message, opened.Index));
+    }
+
+    private async Task SwitchMarkdownSource(bool source)
+    {
+        this.markdownSource = source;
+
+        await this.MarkdownSourceChanged.InvokeAsync(source);
+    }
+
+    // The formatted or source view of a Markdown file did not start: the edit ends and says so, a preview offers the download.
+    private async Task MarkdownUnavailable()
+    {
+        if (this.Edit is { } edit)
+            await edit.OnUnavailable.InvokeAsync();
+        else
+            await this.Unreadable();
+    }
+
+    private async Task Unreadable()
+    {
+        this.unsupported = true;
+
+        await this.OnChanged.InvokeAsync(this);
+    }
+
+    private static string LanguageName(CodeLanguage language)
+    {
+        return language switch
+        {
+            CodeLanguage.Json => "JSON",
+            CodeLanguage.Xml => "XML",
+            CodeLanguage.Yaml => "YAML",
+            CodeLanguage.Html => "HTML",
+            CodeLanguage.Markdown => "Markdown",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    // A signed document's content is read by the library of its own type.
+    private static bool UsesLibrary(FilePreviewKind preview)
+    {
+        return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email
+            or FilePreviewKind.SignedDocument;
+    }
+
+    private static string ColumnName(int index)
+    {
+        var name = "";
+
+        for (var number = index + 1; number > 0; number = (number - 1) / 26)
+            name = (char)('A' + (number - 1) % 26) + name;
+
+        return name;
+    }
+
+    // Only the start of a long file is read; the cut may split a character, which shows as one replacement mark. The text
+    // is editable only when read whole and valid UTF-8.
+    private static async Task<(string Text, bool Truncated, EditableText? Editable)> ReadText(Stream content, CancellationToken token)
+    {
+        var buffer = new byte[FileTypeDisplay.MaxTextBytes + 1];
+        var read = 0;
+
+        while (read < buffer.Length)
+        {
+            var count = await content.ReadAsync(buffer.AsMemory(read), token);
+
+            if (count == 0)
+                break;
+
+            read += count;
+        }
+
+        var truncated = read > FileTypeDisplay.MaxTextBytes;
+        var shown = buffer.AsSpan(0, Math.Min(read, FileTypeDisplay.MaxTextBytes));
+        var editable = truncated ? null : EditableText.ParseOrDefault(shown);
+
+        return (editable?.Text ?? Encoding.UTF8.GetString(shown).TrimStart('﻿'), truncated, editable);
+    }
+}
