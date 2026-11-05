@@ -326,9 +326,8 @@ public class FilePreviewModalEditRenderTests
         var ctx = NewContext(out var editors);
 
         var file = File("Poznámky.txt");
-        var component = await RenderEditing(ctx, [file], file.FileId);
+        await RenderEditing(ctx, [file], file.FileId);
 
-        await component.Instance.DisposeAsync();
         await ctx.DisposeAsync();
 
         Assert.That(editors.Closed, Is.EqualTo(2), "the view closes for the edit and the editor with the preview");
