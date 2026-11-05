@@ -87,13 +87,6 @@ internal sealed class FilePreviews(IJSRuntime jsRuntime) : JsModule(jsRuntime, "
         await this.InvokeVoid("disposePdf", host);
     }
 
-    public async Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token)
-    {
-        using var streamRef = new DotNetStreamReference(content);
-
-        return await this.Invoke<IReadOnlyList<SheetPreview>>("readWorkbook", token, streamRef, maxRows);
-    }
-
     public async Task<string> HtmlToText(string html, CancellationToken token)
     {
         return await this.Invoke<string>("htmlToText", token, html);

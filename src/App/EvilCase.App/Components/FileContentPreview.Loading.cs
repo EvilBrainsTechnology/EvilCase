@@ -12,6 +12,12 @@ public partial class FileContentPreview
 {
     private const int MaxSheetRows = 1000;
 
+    private static readonly string[] WorkbookAssemblies =
+    [
+        "DocumentFormat.OpenXml.wasm", "DocumentFormat.OpenXml.Framework.wasm", "System.IO.Packaging.wasm", "ExcelDataReader.wasm",
+        "ExcelNumberFormat.wasm", "System.Text.Encoding.CodePages.wasm",
+    ];
+
     private CancellationTokenSource? loadToken;
 
     internal static async Task<byte[]> ReadBytes(Stream content, CancellationToken token)
@@ -211,12 +217,20 @@ public partial class FileContentPreview
         await this.ShowUrl(await this.Previews.CreatePngUrl(content, token), token);
     }
 
+    // The readers load on the first workbook; the reading touches their types only once they are there.
     private async Task ReadWorkbook(Stream content, CancellationToken token)
     {
-        var sheets = await this.Previews.ReadWorkbook(content, MaxSheetRows, token);
+        var bytes = await ReadBytes(content, token);
 
-        if (!token.IsCancellationRequested)
+        await this.Assemblies.LoadAssembliesAsync(WorkbookAssemblies);
+
+        if (token.IsCancellationRequested)
+            return;
+
+        if (WorkbookReader.ReadOrDefault(bytes, MaxSheetRows) is { } sheets)
             this.workbook = sheets;
+        else
+            this.unsupported = true;
     }
 
     private async Task ReadEmail(string fileName, Stream content, CancellationToken token)
@@ -338,8 +352,7 @@ public partial class FileContentPreview
     // A signed document's content is read by the library of its own type.
     private static bool UsesLibrary(FilePreviewKind preview)
     {
-        return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Workbook or FilePreviewKind.Email
-            or FilePreviewKind.SignedDocument;
+        return preview is FilePreviewKind.ConvertedImage or FilePreviewKind.Document or FilePreviewKind.Email or FilePreviewKind.SignedDocument;
     }
 
     // Only the start of a long file is read; the cut may split a character, which shows as one replacement mark. The text

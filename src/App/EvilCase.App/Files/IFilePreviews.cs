@@ -78,11 +78,6 @@ internal interface IFilePreviews
     public Task DisposePdf(ElementReference host);
 
     /// <summary>
-    /// Reads every sheet of a workbook, no more than <paramref name="maxRows"/> rows of each.
-    /// </summary>
-    public Task<IReadOnlyList<SheetPreview>> ReadWorkbook(Stream content, int maxRows, CancellationToken token);
-
-    /// <summary>
     /// The text of an HTML e-mail body, read in an inert document so nothing in it runs or loads.
     /// </summary>
     public Task<string> HtmlToText(string html, CancellationToken token);
