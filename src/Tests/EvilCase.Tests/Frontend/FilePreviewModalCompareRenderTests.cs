@@ -167,19 +167,38 @@ public class FilePreviewModalCompareRenderTests
     }
 
     [Test]
-    public void ASideOverTheLimitSaysWhyAndIsNeverRead()
+    public void ASideOverTheLimitShowsBothPreviewsAndSaysWhy()
     {
         using var ctx = NewContext(out var compares, out _);
 
-        var read = new List<int?>();
         var file = File("a.txt", 2);
-        var component = Render(ctx, file, Texts("a\n", "b\n"), compareOnOpen: true, sizes: [FileTypeDisplay.MaxTextBytes + 1, 10], onRead: read.Add);
+        var component = Render(ctx, file, Texts("a\n", "b\n"), compareOnOpen: true, sizes: [FileTypeDisplay.MaxTextBytes + 1, 10]);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(component.Find(".ec-text-compare-notice-warning").TextContent, Does.Contain("Verzi 1 nelze porovnat: soubor je větší než 1 MB"));
-            Assert.That(read, Does.Not.Contain(1), "the compare never reads the side over the limit");
+            Assert.That(component.Find(".ec-text-compare-notice-warning").TextContent, Does.Contain("Verzi 1 nelze porovnat: soubor je větší než 1 MB"), "below lg the pair says why");
+            Assert.That(component.FindComponents<TextEditor>().Select(static editor => editor.Instance.Text), Is.EqualTo(["a\n", "b\n"]), "from lg the two previews stand side by side");
             Assert.That(compares.Opened, Is.Empty);
+        }
+    }
+
+    [Test]
+    public async Task AnImageComparesItsVersionsSideBySide()
+    {
+        await using var ctx = NewContext(out _, out _);
+
+        var file = File("a.png", 3);
+        var component = Render(ctx, file, Texts("a", "b", "c"));
+
+        await component.Find("button[aria-label='Porovnat']").ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.Find(Header).TextContent, Does.Contain("Porovnání verze 2 s verzí 3"));
+            Assert.That(
+                component.FindAll(".ec-version-side img").Select(static image => image.GetAttribute("src")),
+                Is.EqualTo([$"/api/files/{file.FileId}/content?version=2", $"/api/files/{file.FileId}/content"]),
+                "each side shows its own version, the older on the left");
         }
     }
 

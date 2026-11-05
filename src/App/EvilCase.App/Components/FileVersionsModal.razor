@@ -50,8 +50,11 @@
                         <div class="ec-versions-actions">
                             @if (FileTypeDisplay.Compares(this.File.FileName) && number != this.versions[^1].Number)
                             {
-                                <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Compare"
-                                          AriaLabel="@($"Porovnat s předchozí, verze {number}")" OnClick="() => this.OnCompare.InvokeAsync(number)"><span class="ec-versions-action-label">Porovnat s předchozí</span></EcButton>
+                                @* Below lg only the versions that compare by content compare. *@
+                                <span class="@(FileTypeDisplay.ComparesByContent(this.File.FileName) ? "ec-versions-compare" : "ec-versions-compare ec-compare-wide")">
+                                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Compare"
+                                              AriaLabel="@($"Porovnat s předchozí, verze {number}")" OnClick="() => this.OnCompare.InvokeAsync(number)"><span class="ec-versions-action-label">Porovnat s předchozí</span></EcButton>
+                                </span>
                             }
                             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
                                       AriaLabel="@($"Stáhnout verzi {number}")" OnClick="() => this.OnDownload.InvokeAsync(number)" />
