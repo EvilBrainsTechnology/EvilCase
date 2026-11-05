@@ -17,7 +17,8 @@ public class WorkbookReaderTests
 
     private const string Ods = """
         <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
-            xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0">
+            xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+            xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0">
           <office:body><office:spreadsheet>
             <table:table table:name="Přehled">
               <table:table-column table:number-columns-repeated="1024"/>
@@ -29,7 +30,7 @@ public class WorkbookReaderTests
                 <table:table-cell office:value-type="date" office:date-value="2026-11-05"><office:annotation><text:p>Poznámka</text:p></office:annotation><text:p>5. 11. 2026</text:p></table:table-cell>
                 <table:table-cell table:number-columns-repeated="1019"/>
               </table:table-row>
-              <table:table-row table:number-rows-repeated="3"><table:table-cell><text:p>x</text:p></table:table-cell></table:table-row>
+              <table:table-row table:number-rows-repeated="3"><table:table-cell><draw:custom-shape><text:p>Tvar</text:p></draw:custom-shape><text:p><text:span>x</text:span> <text:span>y</text:span></text:p></table:table-cell></table:table-row>
               <table:table-row table:number-rows-repeated="1048567"><table:table-cell table:number-columns-repeated="1024"/></table:table-row>
             </table:table>
             <table:table table:name="Prázdný"><table:table-row table:number-rows-repeated="1048576"><table:table-cell table:number-columns-repeated="1024"/></table:table-row></table:table>
@@ -116,7 +117,7 @@ public class WorkbookReaderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(sheets.Select(static sheet => sheet.Name), Is.EqualTo(["Přehled", "Prázdný"]));
-            Assert.That(Lines(sheets[0]), Is.EqualTo(["||||", "||||", "|1 234,50|a  b\nc|a  b\nc|5. 11. 2026", "x||||", "x||||"]), "a repeated cell or row shows each time and a comment is no part of the cell");
+            Assert.That(Lines(sheets[0]), Is.EqualTo(["||||", "||||", "|1 234,50|a  b\nc|a  b\nc|5. 11. 2026", "x y||||", "x y||||"]), "a repeated cell or row shows each time, a space between spans holds and a comment or shape is no part of the cell");
             Assert.That((sheets[0].RowCount, sheets[0].ColumnCount), Is.EqualTo((6, 5)), "the empty rows and columns after the last value are not counted");
             Assert.That((sheets[1].Rows.Count, sheets[1].RowCount, sheets[1].ColumnCount), Is.EqualTo((0, 0, 0)), "a sheet of empty cells is empty");
         }

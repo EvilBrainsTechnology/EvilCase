@@ -9,8 +9,6 @@ internal static partial class WorkbookReader
 {
     private const string SpreadsheetMediaType = "application/vnd.oasis.opendocument.spreadsheet";
 
-    private const string OfficeNamespace = "urn:oasis:names:tc:opendocument:xmlns:office:1.0";
-
     private const string TableNamespace = "urn:oasis:names:tc:opendocument:xmlns:table:1.0";
 
     private const string TextNamespace = "urn:oasis:names:tc:opendocument:xmlns:text:1.0";
@@ -24,7 +22,6 @@ internal static partial class WorkbookReader
         XmlResolver = null,
         IgnoreComments = true,
         IgnoreProcessingInstructions = true,
-        IgnoreWhitespace = true,
     };
 
     // The archive when it is an ODS spreadsheet; any other ZIP is left to the Excel reader.
@@ -143,7 +140,7 @@ internal static partial class WorkbookReader
         return (cells, width);
     }
 
-    // The paragraphs of the cell, its comment left out.
+    // The paragraphs of the cell; its comment and the shapes anchored to it are left out.
     private static string ReadOpenDocumentCell(XmlReader xml)
     {
         if (xml.IsEmptyElement)
@@ -159,7 +156,7 @@ internal static partial class WorkbookReader
 
         while (!cell.EOF)
         {
-            if (IsElement(cell, OfficeNamespace, "annotation"))
+            if (cell.Depth == 1 && cell.NodeType == XmlNodeType.Element && !IsElement(cell, TextNamespace, "p"))
             {
                 cell.Skip();
 
@@ -174,7 +171,7 @@ internal static partial class WorkbookReader
                 text.Append('\t');
             else if (IsElement(cell, TextNamespace, "s"))
                 text.Append(' ', Math.Min(Repeat(cell, "c", TextNamespace), MaxSpaces));
-            else if (cell.NodeType is XmlNodeType.Text or XmlNodeType.SignificantWhitespace)
+            else if (cell.Depth > 1 && cell.NodeType is XmlNodeType.Text or XmlNodeType.Whitespace or XmlNodeType.SignificantWhitespace)
                 text.Append(cell.Value);
 
             cell.Read();
