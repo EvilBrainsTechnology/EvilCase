@@ -1,6 +1,6 @@
 @using EvilBrains.EvilCase.Api.Contract.Files
-@* The bar over the preview of a file with versions: the version shown, the choice of another and the way back to the
-   current one. *@
+@* The bar over the preview of a file with versions: the version shown, the choice of another, the restore of an older
+   one and the way back to the current one. *@
 @{
     var shown = this.OlderVersion ?? this.File.Version;
     var shownItem = this.Versions?.FirstOrDefault(version => version.Number == shown);
@@ -43,6 +43,7 @@
     @if (this.OlderVersion is not null)
     {
         <span class="ec-preview-versions-note">Starší verze. Stáhnout stáhne tuto verzi.</span>
+        <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.OnRestore"><span class="ec-text-wide">Vrátit se k této verzi</span><span class="ec-text-narrow">Vrátit</span></EcButton>
         <EcButton Variant="EcButtonVariant.Quiet" Size="EcButtonSize.Compact" OnClick="this.OnShowCurrent"><span class="ec-text-wide">Zobrazit aktuální verzi</span><span class="ec-text-narrow">Aktuální</span></EcButton>
     }
 </div>
@@ -70,6 +71,12 @@
 
     [Parameter]
     public EventCallback OnManage { get; set; }
+
+    /// <summary>
+    /// Asks to store the older version shown as the file's new version.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnRestore { get; set; }
 
     [Parameter]
     public EventCallback OnShowCurrent { get; set; }

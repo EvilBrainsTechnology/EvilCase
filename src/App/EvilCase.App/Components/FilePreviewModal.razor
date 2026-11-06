@@ -176,7 +176,8 @@
                     @if (attachment is null && file.VersionCount > 1 && (this.OlderVersion is not null || this.versionsOpen))
                     {
                         <PreviewVersionBar File="file" OlderVersion="this.OlderVersion" Versions="this.versions" OnSelect="number => this.SelectVersion(file, number)"
-                                           OnManage="() => this.OnManageVersions.InvokeAsync(file)" OnShowCurrent="this.ShowCurrentVersion" />
+                                           OnManage="() => this.OnManageVersions.InvokeAsync(file)" OnRestore="() => this.restoring = this.OlderVersion"
+                                           OnShowCurrent="this.ShowCurrentVersion" />
                     }
                     @if (this.versionFailure is not null)
                     {
@@ -216,6 +217,14 @@
     {
         <MarkdownLinkModal Href="@this.linkHref" Open OpenChanged="() => this.linkHref = null" OnApply="this.ApplyLink" />
     }
+    @if (this.restoring is { } restoringNumber)
+    {
+        <ConfirmModal Title="Vrátit se k verzi" ConfirmText="Vrátit" ConfirmVariant="EcButtonVariant.Primary" ConfirmIcon="@AppIcons.ArrowBackUp"
+                      Action="token => this.RestoreVersion(file, restoringNumber, token)" NotFoundText="Verze už neexistuje."
+                      FailureText="Verzi se nepodařilo vrátit. Zkuste to za chvíli znovu." Open OpenChanged="() => this.restoring = null" OnDone="this.VersionRestored">
+            <p class="ec-confirm-text">Vznikne nová verze souboru <strong>@file.FileName</strong> s obsahem verze @restoringNumber.</p>
+        </ConfirmModal>
+    }
 }
 
 @code {
@@ -250,6 +259,12 @@
     /// </summary>
     [Parameter, EditorRequired]
     public required Func<FileListItem, IBrowserFile, Task<(string? Failure, string? Notice)>> UploadVersion { get; set; }
+
+    /// <summary>
+    /// Stores the numbered version as the file's new version.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, int, CancellationToken, Task> RestoreVersion { get; set; }
 
     [Parameter]
     public EventCallback<FileListItem> OnManageVersions { get; set; }

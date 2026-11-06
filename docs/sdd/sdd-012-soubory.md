@@ -274,13 +274,16 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   není.
 - Pruh verzí nese výběr verze („Verze 2 z 3 · okamžik · e-mail“, za „z“ stojí číslo aktuální
   verze) se seznamem verzí od nejnovější a se Spravovat verze, které otevře okno Verze souboru.
-  Na mobilu je pruh jeden řádek bez e-mailu a bez textu o starší verzi a Zobrazit aktuální verzi
-  nese text Aktuální.
+  Na mobilu je pruh jeden řádek bez e-mailu a bez textu o starší verzi, Vrátit se k této verzi
+  nese text Vrátit a Zobrazit aktuální verzi text Aktuální.
 - Starší verze se ukáže vždy s pruhem verzí v barvě upozornění, s textem „Starší verze. Stáhnout
-  stáhne tuto verzi.“ a se Zobrazit aktuální verzi. Hlavička ukáže velikost a okamžik nahrání té
-  verze; obsah, podpis datové zprávy, podepisující i stažení jsou té verze. Pruh samostatného
-  podpisu u starší verze není. Hlavička nese vedle názvu štítek „verze 2“ a tlačítko Verze je
-  neaktivní; k aktuální verzi vede pruh verzí.
+  stáhne tuto verzi.“, s Vrátit se k této verzi a se Zobrazit aktuální verzi. Hlavička ukáže
+  velikost a okamžik nahrání té verze; obsah, podpis datové zprávy, podepisující i stažení jsou
+  té verze. Pruh samostatného podpisu u starší verze není. Hlavička nese vedle názvu štítek
+  „verze 2“ a tlačítko Verze je neaktivní; k aktuální verzi vede pruh verzí.
+- Vrátit se k této verzi otevře nad náhledem potvrzení, že vznikne nová verze souboru s obsahem
+  té verze. Po vrácení ukáže náhled aktuální verzi a hlášku neukazuje; karta zvýrazní soubor
+  jako novou verzi. Okno Verze souboru vrácení nenabízí.
 
 ### Úpravy textu
 
