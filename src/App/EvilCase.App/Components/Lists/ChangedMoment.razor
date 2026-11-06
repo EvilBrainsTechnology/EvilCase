@@ -1,0 +1,7 @@
+@* The Změněno cell: the day above the time from lg up, the whole moment in the tooltip. *@
+<span data-tooltip="@MomentDisplay.Text(this.Moment)"><span class="ec-moment" aria-hidden="true"><span>@MomentDisplay.Day(this.Moment, DateTime.Now)</span> <span>@MomentDisplay.Time(this.Moment)</span></span><span class="ec-visually-hidden">@MomentDisplay.Text(this.Moment)</span></span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required DateTime Moment { get; set; }
+}

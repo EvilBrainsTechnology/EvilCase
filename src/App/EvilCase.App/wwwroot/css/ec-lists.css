@@ -150,7 +150,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Od lg nese úzký sloupec stavu nebo směru jen tečku či ikonu a text ukáže bublina; prázdný zůstane prázdný. */
+/* From lg up a narrow status or direction column shows only the dot or icon; the tooltip names it. */
 @media (min-width: 992px) {
     .ec-cell-glyph > .ec-cell-empty {
         visibility: hidden;
@@ -165,17 +165,20 @@
             position: absolute;
             width: 1px;
             height: 1px;
+            padding: 0;
+            margin: -1px;
             overflow: hidden;
             clip: rect(0, 0, 0, 0);
             white-space: nowrap;
+            border: 0;
         }
     }
 
-    /* Den nad časem. */
     .ec-moment {
         display: flex;
         flex-direction: column;
         line-height: var(--ec-leading-tight);
+        white-space: nowrap;
     }
 }
 
