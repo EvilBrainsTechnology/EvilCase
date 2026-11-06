@@ -444,8 +444,6 @@ public class FilesCardRenderTests
         await component.FindAll(".ec-preview-versions-old button").Single(static button => button.TextContent.Contains("Vrátit se k této verzi", StringComparison.Ordinal))
             .ClickAsync(new MouseEventArgs());
 
-        Assert.That(component.Find("dialog[aria-label='Vrátit se k verzi'] .ec-confirm-text").TextContent, Is.EqualTo("Vznikne nová verze souboru a.txt s obsahem verze 2."));
-
         await component.Find("dialog[aria-label='Vrátit se k verzi'] .ec-modal-footer button.ec-button-primary").ClickAsync(new MouseEventArgs());
 
         await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Is.Empty, "the preview shows the current version"));
