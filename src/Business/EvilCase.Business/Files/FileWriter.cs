@@ -392,7 +392,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         if (string.Equals(current.ContentHash, blob.ContentHash, StringComparison.Ordinal))
         {
-            logger.LogInformation("An upload onto file {FileAssetId} matched its current version {FileVersionNumber} and stored no version", fileId, current.Number);
+            logger.LogInformation("New content for file {FileAssetId} matched its current version {FileVersionNumber} and stored no version", fileId, current.Number);
 
             return FileVersionUploadOutcome.Unchanged;
         }

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 /// <summary>
-/// The answers the file uploads, through the API and through a file link, and the file renames share.
+/// The answers the file uploads, through the API and through a file link, the version restore and the file renames share.
 /// </summary>
 internal static class FileUploadAnswer
 {
