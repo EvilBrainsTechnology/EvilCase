@@ -414,7 +414,7 @@ public class FilesCardRenderTests
 
     [TestCase(true)]
     [TestCase(false)]
-    public async Task RestoringAnOlderVersionShowsTheCurrentOneAndMarksAStoredVersion(bool stored)
+    public async Task RestoringAnOlderVersionShowsTheCurrentOneAndReportsWhetherAVersionWasStored(bool stored)
     {
         await using var ctx = FrontendContext.Create();
 
@@ -454,7 +454,10 @@ public class FilesCardRenderTests
             Assert.That(component.FindAll("dialog[aria-label='Vrátit se k verzi']"), Is.Empty);
             Assert.That(component.FindAll(".ec-modal-large"), Has.Count.EqualTo(1), "the preview stays open");
             Assert.That(component.FindAll(".ec-file-row .ec-badge-fresh").Select(static badge => badge.TextContent.Trim()), Is.EqualTo(stored ? ["nová verze"] : Array.Empty<string>()));
-            Assert.That(component.FindAll(".ec-file-notice"), Is.Empty, "a restore shows no notice");
+            Assert.That(
+                component.FindAll(".ec-file-notice span").Select(static notice => notice.TextContent),
+                Is.EqualTo([stored ? "a.txt: obnoveno jako verze 4." : "a.txt: obsah je stejný jako poslední verze, nová verze nevznikla."]),
+                "the card reports the stored version, or that the content equals the current one");
         }
     }
 

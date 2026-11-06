@@ -363,7 +363,7 @@
 
             case FileUploadOutcome.Unchanged:
             {
-                var same = $"{file.FileName}: obsah je stejný jako poslední verze, nová verze nevznikla.";
+                var same = UnchangedNotice(file);
 
                 this.State.Notices.Add(same);
 
@@ -373,6 +373,11 @@
             default:
                 throw new UnreachableException();
         }
+    }
+
+    private static string UnchangedNotice(FileListItem file)
+    {
+        return $"{file.FileName}: obsah je stejný jako poslední verze, nová verze nevznikla.";
     }
 
     private static string FreshText(FileUploadOutcome outcome)
@@ -496,14 +501,19 @@
             this.State.Failures.Add(failure);
     }
 
-    // Called from the preview through a plain delegate, so it redraws the card itself. A restore marks the file as an
-    // uploaded version does; one that stored nothing marks nothing.
+    // Called from the preview through a plain delegate, so it redraws the card itself. A restore marks the file and
+    // prints its notice as an uploaded version does; one that stored nothing marks nothing.
     private async Task RestoreVersion(FileListItem file, int number, CancellationToken token)
     {
         var restored = await this.RestoreFileVersion(file, number, token);
+        var stored = restored.Version > file.Version;
 
-        if (restored.Version > file.Version)
+        if (stored)
             this.State.Fresh.TryAdd(file.FileId, FileUploadOutcome.NewVersion);
+
+        this.State.Failures.Clear();
+        this.State.Notices.Clear();
+        this.State.Notices.Add(stored ? $"{restored.FileName}: obnoveno jako verze {restored.Version}." : UnchangedNotice(restored));
 
         await this.ReloadFiles();
 
