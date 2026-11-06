@@ -88,6 +88,11 @@ myší.
 
 Řádek seznamu má na desktopu ve všech seznamech stejnou výšku 48 px, ať nese jeden, nebo dva
 řádky textu. Výjimkou jsou soubory, jejichž řádek nese dlaždici typu, a výsledky hledání.
+Sloupce mezi sebou mají 12 px. Stav a směr v seznamu spisů a úkonů jsou na desktopu jen kroužek
+v barvě odznaku a jejich název ukáže bublina: stav spisu nese tečku, směr úkonu šipku, stav úkonu
+tužku (Rozpracováno) nebo fajfku (Odesláno); bez stavu nebo směru je buňka prázdná. Na mobilu
+nesou odznaky i název. Sloupec Změněno má na desktopu den nad časem. Úzký sloupec je široký jako
+jeho záhlaví.
 
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned pod
 názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící údaj je

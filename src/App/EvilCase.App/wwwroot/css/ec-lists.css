@@ -42,7 +42,7 @@
 .ec-table-head {
     display: grid;
     grid-template-columns: var(--ec-table-columns);
-    column-gap: var(--ec-space-5);
+    column-gap: var(--ec-space-4);
     min-height: var(--ec-control-md);
     padding: 0 var(--ec-space-6);
     border-top: 1px solid var(--ec-border-subtle);
@@ -86,7 +86,7 @@
 .ec-table-row {
     display: grid;
     grid-template-columns: var(--ec-table-columns);
-    column-gap: var(--ec-space-5);
+    column-gap: var(--ec-space-4);
     min-height: var(--ec-list-row-height);
     padding: 0 var(--ec-space-6);
     border-bottom: 1px solid var(--ec-border-subtle);
@@ -148,6 +148,38 @@
 
 .ec-cell-num {
     font-variant-numeric: tabular-nums;
+}
+
+/* From lg up a narrow status or direction column shows only the dot or icon; the tooltip names it. */
+@media (min-width: 992px) {
+    .ec-cell-glyph > .ec-cell-empty {
+        visibility: hidden;
+    }
+
+    .ec-table-cell .ec-badge-compact {
+        justify-content: center;
+        width: var(--ec-list-badge-height);
+        padding: 0;
+
+        & .ec-badge-text {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    }
+
+    .ec-moment {
+        display: flex;
+        flex-direction: column;
+        line-height: var(--ec-leading-tight);
+        white-space: nowrap;
+    }
 }
 
 .ec-cell-date {
@@ -486,15 +518,6 @@
     color: var(--ec-accent-text);
 }
 
-.ec-recent-cases {
-    --ec-list-col-date: var(--ec-recent-col-date);
-}
-
-.ec-recent-acts {
-    --ec-list-col-date: var(--ec-recent-col-date);
-    --ec-list-col-status: var(--ec-recent-col-direction);
-}
-
 @media (min-width: 992px) {
     .ec-recent-acts {
         --ec-list-col-contact: var(--ec-recent-col-contact);
@@ -643,8 +666,6 @@
 .ec-contact-occurrences {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
-    --ec-list-col-date: var(--ec-case-act-col-date);
-    --ec-list-col-status: var(--ec-case-act-col-status);
 
     /* Prázdný seznam vedle plného je jen tak vysoký, jak potřebuje jeho věta. */
     & .ec-table .ec-empty {
@@ -670,8 +691,6 @@
 .ec-case-acts {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
-    --ec-list-col-date: var(--ec-case-act-col-date);
-    --ec-list-col-status: var(--ec-case-act-col-direction);
 }
 
 .ec-case-acts .ec-card-header + .ec-table-bar {

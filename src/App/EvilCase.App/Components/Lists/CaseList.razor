@@ -18,7 +18,7 @@
                 Width = "var(--ec-list-col-moment)",
                 SortKey = nameof(CaseSortKey.Changed),
                 CellClass = "ec-cell-num",
-                Cell = item =>@<span data-tooltip="@MomentDisplay.Text(item.Changed)"><span aria-hidden="true">@MomentDisplay.Relative(item.Changed, DateTime.Now)</span><span class="ec-visually-hidden">@MomentDisplay.Text(item.Changed)</span></span>,
+                Cell = item =>@<ChangedMoment Moment="item.Changed" />,
             },
             CaseColumn.Date => new EcColumn<CaseListItem>
             {
@@ -50,7 +50,8 @@
             {
                 Header = "Stav",
                 Width = "var(--ec-list-col-status)",
-                Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" />,
+                CellClass = "ec-cell-glyph",
+                Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" Compact="true" />,
             },
             CaseColumn.MainFile => new EcColumn<CaseListItem>
             {
