@@ -640,6 +640,84 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
+    public async Task ARestoredVersionIsTheNextVersionWithItsContentUploadedByWhoRestoredIt()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", "text/x-first", "abc"), CancellationToken.None);
+        var fileId = uploaded.File!.FileId;
+        await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "abd"), CancellationToken.None);
+        var first = await this.Tenant.Context.FileVersions.AsNoTracking().SingleAsync(version => version.FileAssetId == fileId && version.Number == 1);
+        var colleague = await this.Tenant.AddUser();
+
+        FileVersionUploadResult result;
+
+        using (this.Tenant.EnterAs(colleague.Id))
+            result = await this.writer.RestoreFileVersion(fileId, 1, CancellationToken.None);
+
+        var restored = await this.CurrentVersion(fileId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionAdded));
+            Assert.That(result.File?.Version, Is.EqualTo(3));
+            Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1, 2, 3]), "the restored version stays and the restore adds one");
+            Assert.That(restored.ContentHash, Is.EqualTo(first.ContentHash));
+            Assert.That(restored.MediaType, Is.EqualTo("text/x-first"), "the media type comes from the restored version");
+            Assert.That(restored.UserId, Is.EqualTo(colleague.Id), "the new version carries who restored it");
+            Assert.That(restored.StoragePath, Is.Not.EqualTo(first.StoragePath), "the restore writes a blob of its own");
+            Assert.That(this.blobs.WrittenByPath[restored.StoragePath], Is.EqualTo("abc"));
+        }
+    }
+
+    [Test]
+    public async Task ARestoreOfTheCurrentContentStoresNoVersion()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
+        var fileId = uploaded.File!.FileId;
+        await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "abd"), CancellationToken.None);
+        await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "abc"), CancellationToken.None);
+
+        var result = await this.writer.RestoreFileVersion(fileId, 1, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.Unchanged));
+            Assert.That(result.File?.Version, Is.EqualTo(3));
+            Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1, 2, 3]), "content equal to the current version stores no version");
+        }
+    }
+
+    [Test]
+    public async Task RestoringAnUnknownVersionOrAnotherTenantsFileIsNotFound()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
+        var fileId = uploaded.File!.FileId;
+        var withoutBlob = await this.Tenant.AddCaseFile(@case);
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        var otherFile = await other.AddCaseFile(otherCase);
+        this.blobs.WrittenByPath[otherFile.Versions.Single().StoragePath] = "cizí";
+        var written = this.blobs.Written.Count;
+
+        var unknownNumber = await this.writer.RestoreFileVersion(fileId, 9, CancellationToken.None);
+        var unknownFile = await this.writer.RestoreFileVersion(Guid.CreateVersion7(), 1, CancellationToken.None);
+        var missingBlob = await this.writer.RestoreFileVersion(withoutBlob.Id, 1, CancellationToken.None);
+        var anotherTenants = await this.writer.RestoreFileVersion(otherFile.Id, 1, CancellationToken.None);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unknownNumber.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound));
+            Assert.That(unknownFile.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound));
+            Assert.That(missingBlob.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound), "a version without its blob is not found");
+            Assert.That(anotherTenants.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound), "the file id alone never reaches another tenant's file");
+            Assert.That(this.blobs.Written, Has.Count.EqualTo(written), "a refused restore writes no blob");
+            Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1]));
+        }
+    }
+
+    [Test]
     public async Task DeletingAFileDeletesAllItsVersions()
     {
         var @case = await this.Tenant.AddCase(Day);

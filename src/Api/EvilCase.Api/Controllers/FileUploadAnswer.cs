@@ -37,6 +37,7 @@ internal static class FileUploadAnswer
             FileVersionUploadOutcome.Unchanged => controller.Ok(result.File),
             FileVersionUploadOutcome.FileNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
             FileVersionUploadOutcome.ExtensionMismatch => ExtensionMismatchProblem(controller),
+            FileVersionUploadOutcome.VersionNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.VersionNotFound),
             _ => throw new UnreachableException(),
         };
     }

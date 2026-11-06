@@ -23,9 +23,9 @@ jedinečné bez ohledu na velikost písmen.
   (`EvilBrains__EvilCase__Files__RootPath`, povinný); databáze nese jen metadata: název
   souboru a u každé verze velikost, `MediaType`, SHA-256 hash a cestu k blobu. Blob se jmenuje
   podle id verze, bez přípony.
-- Blob se nikdy fyzicky nemaže. Neúspěšný upload, upload beze změny i smazaný soubor nebo verze
-  (SDD-007) zanechají osiřelý blob; osiřelé blob nejde ani vypsat, ani uklidit — úložiště jen
-  roste.
+- Blob se nikdy fyzicky nemaže. Neúspěšný upload, upload a vrácení verze beze změny i smazaný
+  soubor nebo verze (SDD-007) zanechají osiřelý blob; osiřelé blob nejde ani vypsat, ani
+  uklidit — úložiště jen roste.
 
 ### Pravidla
 
@@ -54,13 +54,17 @@ jedinečné bez ohledu na velikost písmen.
 - Obsah shodný s aktuální verzí (stejný SHA-256) verzi nevytvoří a upload odpoví 200 s aktuální
   verzí; nový soubor nebo nová verze je 201.
 - Nová verze má číslo nejvyšší existující verze + 1, čísla se nepřečíslovávají.
+- Vrácení starší verze uloží její obsah a `MediaType` jako novou verzi; nahrál ji ten, kdo verzi
+  vrátil, v okamžiku vrácení. Obsah shodný s aktuální verzí verzi nevytvoří a odpoví 200
+  s aktuální verzí, nová verze je 201. Neznámá verze a verze cizího souboru jsou 404.
 - Verzi jde smazat; po smazání aktuální verze je aktuální nejvyšší zbývající. Jediná zbývající
   verze se samostatně smazat nedá (409). Smazání souboru smaže všechny jeho verze.
 - Obsah, podpis datové zprávy a podepisující se čtou z aktuální verze, nebo z verze, kterou
   požadavek jmenuje číslem; verze, která neexistuje nebo patří cizímu souboru, je 404.
 - Výpis verzí jde od nejnovější: číslo, velikost, okamžik nahrání a e-mail toho, kdo verzi
   nahrál.
-- Novou verzi nahrát, verzi smazat i soubor přejmenovat a smazat smí kdokoli z tenantu.
+- Novou verzi nahrát, starší verzi vrátit, verzi smazat i soubor přejmenovat a smazat smí kdokoli
+  z tenantu.
 
 ### Hlavní soubor
 
