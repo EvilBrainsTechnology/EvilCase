@@ -265,8 +265,6 @@
         if (firstRender && this.Inline)
         {
             this.self = DotNetObjectReference.Create(this);
-            // The module import answers null while the first render batch is still being applied.
-            await Task.Yield();
 
             var labels = await this.Script();
 

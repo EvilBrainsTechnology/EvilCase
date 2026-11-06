@@ -213,10 +213,6 @@
 </div>
 
 @code {
-    private const int AttachAttempts = 20;
-
-    private static readonly TimeSpan AttachDelay = TimeSpan.FromMilliseconds(100);
-
     private readonly SearchDebouncer debouncer = new();
 
     private ElementReference input;
@@ -261,7 +257,11 @@
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
-            await this.Attach();
+        {
+            this.module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-top-search.js");
+
+            await this.module.InvokeVoidAsync("attach", this.input);
+        }
 
         if (this.scrollPending && this.module is not null)
         {
@@ -269,20 +269,6 @@
 
             await this.module.InvokeVoidAsync("scrollActiveIntoView", this.list);
         }
-    }
-
-    // The import answers null until the first render batch is applied, so the field retries a few times.
-    private async Task Attach()
-    {
-        for (var attempt = 0; attempt < AttachAttempts && this.module is null; attempt++)
-        {
-            await Task.Delay(AttachDelay);
-
-            this.module = await this.JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/ec-top-search.js");
-        }
-
-        if (this.module is not null)
-            await this.module.InvokeVoidAsync("attach", this.input);
     }
 
     private static string OwnerHref(Guid? caseId, Guid? actId)
