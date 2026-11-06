@@ -15,18 +15,20 @@ public static class MomentDisplay
     }
 
     /// <summary>
-    /// Today's and yesterday's moment as a word and the time; any other in full.
+    /// Today's and yesterday's day as a word; any other as the date.
     /// </summary>
-    public static string Relative(DateTime moment, DateTime now)
+    public static string Day(DateTime moment, DateTime now)
     {
-        var local = moment.ToLocalTime();
-        var time = local.ToString(TimeFormat, CultureInfo.InvariantCulture);
-
-        return (now.Date - local.Date).Days switch
+        return (now.Date - moment.ToLocalTime().Date).Days switch
         {
-            0 => $"dnes {time}",
-            1 => $"včera {time}",
-            _ => Text(moment),
+            0 => "dnes",
+            1 => "včera",
+            _ => DateDisplay.Day(moment),
         };
+    }
+
+    public static string Time(DateTime moment)
+    {
+        return moment.ToLocalTime().ToString(TimeFormat, CultureInfo.InvariantCulture);
     }
 }

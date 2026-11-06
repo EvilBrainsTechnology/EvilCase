@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.App.Components.Ec;
+using EvilBrains.EvilCase.App.Icons;
 using EvilBrains.EvilCase.Domain.Acts;
 
 namespace EvilBrains.EvilCase.App.Models;
@@ -38,6 +39,16 @@ public static class ActStatusDisplay
         {
             ActStatus.InProgress => "in-progress",
             ActStatus.Sent => "sent",
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    public static string Icon(ActStatus status)
+    {
+        return status switch
+        {
+            ActStatus.InProgress => AppIcons.Pencil,
+            ActStatus.Sent => AppIcons.Check,
             _ => throw new UnreachableException(),
         };
     }

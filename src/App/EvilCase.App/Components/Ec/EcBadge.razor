@@ -1,6 +1,6 @@
 @using System.Diagnostics
 
-<span class="@this.CssClass">
+<span class="@this.CssClass" data-tooltip="@(this.Compact ? this.Text : null)">
     @if (this.ShowDot)
     {
         <span class="ec-badge-dot" aria-hidden="true"></span>
@@ -9,7 +9,14 @@
     {
         <EcIcon Paths="@this.Icon" Size="EcIconSize.Small" />
     }
-    @this.Text
+    @if (this.Compact)
+    {
+        <span class="ec-badge-text">@this.Text</span>
+    }
+    else
+    {
+        @this.Text
+    }
 </span>
 
 @code {
@@ -30,6 +37,12 @@
     /// </summary>
     [Parameter]
     public string Icon { get; set; } = "";
+
+    /// <summary>
+    /// In a list from lg up, only the dot or icon shows and the text moves to a tooltip.
+    /// </summary>
+    [Parameter]
+    public bool Compact { get; set; }
 
     private string CssClass
     {
@@ -53,7 +66,7 @@
                 _ => throw new UnreachableException(),
             };
 
-            return $"ec-badge {tone}";
+            return this.Compact ? $"ec-badge ec-badge-compact {tone}" : $"ec-badge {tone}";
         }
     }
 }
