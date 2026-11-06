@@ -283,7 +283,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   „verze 2“ a tlačítko Verze je neaktivní; k aktuální verzi vede pruh verzí.
 - Vrátit se k této verzi otevře nad náhledem potvrzení, že vznikne nová verze souboru s obsahem
   té verze. Po vrácení ukáže náhled aktuální verzi a hlášku neukazuje; karta zvýrazní soubor
-  jako novou verzi. Okno Verze souboru vrácení nenabízí.
+  jako novou verzi a vypíše „Smlouva.pdf: obnoveno jako verze 4.“. Vrácení obsahu shodného
+  s aktuální verzí karta nezvýrazní a vypíše stejnou hlášku jako nahrání beze změny. Okno Verze
+  souboru vrácení nenabízí.
 
 ### Úpravy textu
 
