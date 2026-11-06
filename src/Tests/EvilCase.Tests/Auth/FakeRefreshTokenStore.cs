@@ -30,9 +30,8 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
 
     public async Task AddRefreshToken(RefreshToken refreshToken, CancellationToken token)
     {
-        // The database stamps Created (SDD-018); this stands in for that trigger.
         lock (this.writes)
-            this.tokens.Add(refreshToken with { Created = timeProvider.GetUtcNow().UtcDateTime });
+            this.Store(refreshToken);
     }
 
     public async Task<RefreshToken?> FindRefreshToken(string tokenHash, CancellationToken token)
@@ -40,12 +39,20 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         return this.tokens.Find(token => string.Equals(token.TokenHash, tokenHash, StringComparison.Ordinal));
     }
 
-    public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken token)
+    public async Task<bool> RotateRefreshToken(Guid refreshTokenId, RefreshToken replacement, DateTime now, CancellationToken token)
     {
         if (this.gate is { } paused)
             await paused.Task;
 
-        return this.RevokeMatching(token => token.Id == refreshTokenId, now, alsoUsed: true) > 0;
+        lock (this.writes)
+        {
+            if (this.RevokeMatching(token => token.Id == refreshTokenId, now, alsoUsed: true) == 0)
+                return false;
+
+            this.Store(replacement);
+        }
+
+        return true;
     }
 
     public async Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken token)
@@ -75,5 +82,11 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
         }
 
         return revoked;
+    }
+
+    private void Store(RefreshToken refreshToken)
+    {
+        // The database stamps Created (SDD-018); this stands in for that trigger.
+        this.tokens.Add(refreshToken with { Created = timeProvider.GetUtcNow().UtcDateTime });
     }
 }

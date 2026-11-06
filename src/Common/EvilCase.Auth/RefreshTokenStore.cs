@@ -17,18 +17,32 @@ internal sealed class RefreshTokenStore(IDbSession dbSession) : IRefreshTokenSto
         return await dbSession.Current.RefreshTokens.SingleOrDefaultAsync(token => token.TokenHash == tokenHash, token);
     }
 
-    // The RevokedAt filter is the whole of the concurrency control: the statement is atomic, so of two
-    // callers spending the same token exactly one sees a row change.
-    public async Task<bool> RevokeRefreshToken(Guid refreshTokenId, DateTime now, CancellationToken token)
+    // The RevokedAt filter is the whole of the concurrency control: the update's row lock holds to the
+    // commit, and a second caller spending the same token re-evaluates the filter after it and changes no row.
+    public async Task<bool> RotateRefreshToken(Guid refreshTokenId, RefreshToken replacement, DateTime now, CancellationToken token)
     {
-        return await dbSession.Current.RefreshTokens
+        var context = dbSession.Current;
+
+        await using var transaction = await dbSession.BeginTransaction(token);
+
+        var spent = await context.RefreshTokens
             .Where(token => token.Id == refreshTokenId)
             .Where(static token => token.RevokedAt == null)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(static token => token.RevokedAt, now)
                     .SetProperty(static token => token.LastUsed, now),
-                token) > 0;
+                token);
+
+        if (spent == 0)
+            return false;
+
+        context.RefreshTokens.Add(replacement);
+        await context.SaveChangesAsync(token);
+
+        await transaction.CommitAsync(token);
+
+        return true;
     }
 
     public async Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken token)
