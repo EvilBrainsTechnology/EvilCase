@@ -50,7 +50,9 @@ internal sealed class AuthService(
         await userStore.RecordSuccessfulLogin(user.Id, token);
 
         var sessionExpires = now.Add(options.Value.RefreshToken.SessionExpiration);
-        var session = await this.IssueSession(user, Guid.NewGuid(), sessionExpires, client, now, token);
+        var (stored, session) = this.NewSession(user, Guid.NewGuid(), sessionExpires, client, now);
+
+        await refreshTokenStore.AddRefreshToken(stored, token);
 
         logger.LogInformation("User {UserId} signed in", user.Id);
 
@@ -75,12 +77,12 @@ internal sealed class AuthService(
         if (user is null)
             return RefreshResult.Failed(RefreshStatus.Rejected);
 
-        // The revoke settles the race, not the read above: only the caller whose update finds
-        // the row unrevoked may spend it.
-        if (!await refreshTokenStore.RevokeRefreshToken(stored.Id, now, token))
-            return RefreshResult.Failed(RefreshStatus.Raced);
+        var (replacement, session) = this.NewSession(user, stored.AuthSessionId, stored.SessionExpires, client, now);
 
-        var session = await this.IssueSession(user, stored.AuthSessionId, stored.SessionExpires, client, now, token);
+        // The rotation settles the race, not the read above: only the caller whose update finds
+        // the row unrevoked may spend it.
+        if (!await refreshTokenStore.RotateRefreshToken(stored.Id, replacement, now, token))
+            return RefreshResult.Failed(RefreshStatus.Raced);
 
         return RefreshResult.Succeeded(session);
     }
@@ -115,13 +117,15 @@ internal sealed class AuthService(
         return RefreshResult.Failed(RefreshStatus.Rejected);
     }
 
-    private async Task<AuthSession> IssueSession(
+    /// <summary>
+    /// Writes nothing: the caller stores the token, and the session is valid only once it has.
+    /// </summary>
+    private (RefreshToken Stored, AuthSession Session) NewSession(
         User user,
         Guid authSessionId,
         DateTime sessionExpires,
         ClientInfo client,
-        DateTime now,
-        CancellationToken token)
+        DateTime now)
     {
         var value = RefreshTokenValue.Create();
         var expires = now.Add(options.Value.RefreshToken.Expiration);
@@ -129,22 +133,20 @@ internal sealed class AuthService(
         if (expires > sessionExpires)
             expires = sessionExpires;
 
-        await refreshTokenStore.AddRefreshToken(
-            new RefreshToken
-            {
-                UserId = user.Id,
-                AuthSessionId = authSessionId,
-                TokenHash = RefreshTokenValue.Hash(value),
-                Expires = expires,
-                SessionExpires = sessionExpires,
-                CreatedByIp = client.IpAddress,
-                UserAgent = client.UserAgent,
-            },
-            token);
+        var stored = new RefreshToken
+        {
+            UserId = user.Id,
+            AuthSessionId = authSessionId,
+            TokenHash = RefreshTokenValue.Hash(value),
+            Expires = expires,
+            SessionExpires = sessionExpires,
+            CreatedByIp = client.IpAddress,
+            UserAgent = client.UserAgent,
+        };
 
         var accessToken = authTokenService.Generate(user, authSessionId);
 
-        return new()
+        var session = new AuthSession
         {
             AccessToken = accessToken.Value,
             AccessTokenExpires = accessToken.ExpiresAt,
@@ -153,5 +155,7 @@ internal sealed class AuthService(
             Email = user.Email,
             Role = user.Role,
         };
+
+        return (stored, session);
     }
 }
