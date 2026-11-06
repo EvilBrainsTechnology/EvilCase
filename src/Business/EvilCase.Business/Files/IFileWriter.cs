@@ -10,6 +10,11 @@ public interface IFileWriter
 
     public Task<FileVersionUploadResult> UploadFileVersion(Guid fileId, FileUpload upload, CancellationToken token);
 
+    /// <summary>
+    /// Stores the content of the numbered version as the file's next version, unless it equals the current one.
+    /// </summary>
+    public Task<FileVersionUploadResult> RestoreFileVersion(Guid fileId, int number, CancellationToken token);
+
     public Task<FileVersionDeleteOutcome> DeleteFileVersion(Guid fileId, int number, CancellationToken token);
 
     public Task<FileRenameOutcome> RenameCaseFile(Guid caseId, Guid fileId, string fileName, CancellationToken token);

@@ -412,6 +412,52 @@ public class FilesCardRenderTests
         Assert.That(component.FindAll(".ec-modal-large"), Is.Empty, "the preview closes once the file is deleted");
     }
 
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task RestoringAnOlderVersionShowsTheCurrentOneAndMarksAStoredVersion(bool stored)
+    {
+        await using var ctx = FrontendContext.Create();
+
+        IReadOnlyList<FileListItem> files = [Versioned("a.txt", 3, 3)];
+        var restored = new List<int>();
+        var component = new Card
+        {
+            LoadFiles = _ => Task.FromResult(files),
+            LoadFileVersions = static (_, _) => Task.FromResult(VersionItems()),
+            RestoreFileVersion = (file, number, _) =>
+            {
+                restored.Add(number);
+
+                if (stored)
+                    files = [file with { Version = 4, VersionCount = 4 }];
+
+                return Task.FromResult(files[0]);
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await MenuItem(component, "Verze (3)").ClickAsync(new MouseEventArgs());
+        await component.FindAll(".ec-versions-row")[1].QuerySelector(".ec-versions-main")!.ClickAsync(new MouseEventArgs());
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Has.Count.EqualTo(1)));
+
+        await component.FindAll(".ec-preview-versions-old button").Single(static button => button.TextContent.Contains("Vrátit se k této verzi", StringComparison.Ordinal))
+            .ClickAsync(new MouseEventArgs());
+
+        await component.Find("dialog[aria-label='Vrátit se k verzi'] .ec-modal-footer button.ec-button-primary").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-versions-old"), Is.Empty, "the preview shows the current version"));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(restored, Is.EqualTo([2]));
+            Assert.That(component.FindAll("dialog[aria-label='Vrátit se k verzi']"), Is.Empty);
+            Assert.That(component.FindAll(".ec-modal-large"), Has.Count.EqualTo(1), "the preview stays open");
+            Assert.That(component.FindAll(".ec-file-row .ec-badge-fresh").Select(static badge => badge.TextContent.Trim()), Is.EqualTo(stored ? ["nová verze"] : Array.Empty<string>()));
+            Assert.That(component.FindAll(".ec-file-notice"), Is.Empty, "a restore shows no notice");
+        }
+    }
+
     [Test]
     public async Task ACancelAfterTheDeleteFoundTheFileGoneClosesItsPreview()
     {
@@ -547,6 +593,8 @@ public class FilesCardRenderTests
 
         public Func<FileListItem, int, CancellationToken, Task> DeleteFileVersion { get; init; } = static (_, _, _) => Task.CompletedTask;
 
+        public Func<FileListItem, int, CancellationToken, Task<FileListItem>> RestoreFileVersion { get; init; } = static (file, _, _) => Task.FromResult(file);
+
         public Func<FileListItem, int?, CancellationToken, Task<Stream>> LoadContent { get; init; } = static (_, _, _) => Task.FromResult<Stream>(new MemoryStream("abc"u8.ToArray()));
 
         public Func<FileListItem, bool, CancellationToken, Task> ChangeMainFile { get; init; } = static (_, _, _) => Task.CompletedTask;
@@ -566,6 +614,7 @@ public class FilesCardRenderTests
                 .Add(static card => card.UploadFileVersion, this.UploadFileVersion)
                 .Add(static card => card.LoadFileVersions, this.LoadFileVersions)
                 .Add(static card => card.DeleteFileVersion, this.DeleteFileVersion)
+                .Add(static card => card.RestoreFileVersion, this.RestoreFileVersion)
                 .Add(static card => card.RenameFile, this.RenameFile)
                 .Add(static card => card.DeleteFile, this.DeleteFile)
                 .Add(static card => card.ChangeMainFile, this.ChangeMainFile)

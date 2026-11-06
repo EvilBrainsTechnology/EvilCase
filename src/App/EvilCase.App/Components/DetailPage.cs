@@ -176,6 +176,11 @@ public abstract class DetailPage<TDetail> : ComponentBase
         await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
     }
 
+    protected async Task<FileListItem> RestoreFileVersion(FileListItem file, int number, CancellationToken token)
+    {
+        return await this.FileVersions.RestoreFileVersion(file.FileId, number, token);
+    }
+
     protected async Task ChangeMainFile(FileListItem file, bool main, CancellationToken token)
     {
         if (main)

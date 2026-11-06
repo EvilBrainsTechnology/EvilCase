@@ -64,26 +64,24 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         if (!FileNameRules.SameExtension(fileName, upload.FileName))
             return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.ExtensionMismatch };
 
-        var fileVersionId = Guid.CreateVersion7();
+        return await this.StoreNextVersion(fileId, upload.MediaType, upload.Content, token);
+    }
 
-        // The blob is written before the row it backs; a blob orphaned by a failed write or an unchanged upload is tolerated (SDD-012).
-        var blob = await blobStore.WriteFileBlob(userContext.TenantId, fileVersionId, upload.Content, token);
+    public async Task<FileVersionUploadResult> RestoreFileVersion(Guid fileId, int number, CancellationToken token)
+    {
+        var restored = await dbSession.Current.FileVersions.ReadFileVersion(fileId, number, token);
+        if (restored is null)
+            return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionNotFound };
 
-        for (var attempt = 1; ; attempt++)
-        {
-            try
-            {
-                var outcome = await this.SaveNextVersion(fileId, fileVersionId, upload.MediaType, blob, token);
-                if (outcome == FileVersionUploadOutcome.FileNotFound)
-                    return new FileVersionUploadResult { Outcome = outcome };
+        await using var content = blobStore.ReadFileBlob(restored.StoragePath);
+        if (content is null)
+            return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionNotFound };
 
-                return new FileVersionUploadResult { Outcome = outcome, File = await this.ReadListItem(fileId, token) };
-            }
-            catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
-            {
-                this.ForgetLostRace();
-            }
-        }
+        var result = await this.StoreNextVersion(fileId, restored.MediaType, content, token);
+        if (result.Outcome == FileVersionUploadOutcome.VersionAdded)
+            logger.LogInformation("File version {FileVersionNumber} of {FileAssetId} was restored as version {RestoredAsNumber}", number, fileId, result.File!.Version);
+
+        return result;
     }
 
     public async Task<FileVersionDeleteOutcome> DeleteFileVersion(Guid fileId, int number, CancellationToken token)
@@ -341,7 +339,8 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
                 {
                     FileVersionUploadOutcome.VersionAdded => UploadFileOutcome.VersionAdded,
                     FileVersionUploadOutcome.Unchanged => UploadFileOutcome.Unchanged,
-                    FileVersionUploadOutcome.FileNotFound or FileVersionUploadOutcome.ExtensionMismatch => throw new UnreachableException(),
+                    FileVersionUploadOutcome.FileNotFound or FileVersionUploadOutcome.ExtensionMismatch or FileVersionUploadOutcome.VersionNotFound =>
+                        throw new UnreachableException(),
                     _ => throw new UnreachableException(),
                 };
 
@@ -354,6 +353,30 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         }
 
         throw new InvalidOperationException("The upload lost every race for its file name.");
+    }
+
+    private async Task<FileVersionUploadResult> StoreNextVersion(Guid fileId, string? mediaType, Stream content, CancellationToken token)
+    {
+        var fileVersionId = Guid.CreateVersion7();
+
+        // The blob is written before the row it backs; a blob orphaned by a failed write or an unchanged upload is tolerated (SDD-012).
+        var blob = await blobStore.WriteFileBlob(userContext.TenantId, fileVersionId, content, token);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                var outcome = await this.SaveNextVersion(fileId, fileVersionId, mediaType, blob, token);
+                if (outcome == FileVersionUploadOutcome.FileNotFound)
+                    return new FileVersionUploadResult { Outcome = outcome };
+
+                return new FileVersionUploadResult { Outcome = outcome, File = await this.ReadListItem(fileId, token) };
+            }
+            catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
+            {
+                this.ForgetLostRace();
+            }
+        }
     }
 
     /// <summary>
@@ -369,7 +392,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         if (string.Equals(current.ContentHash, blob.ContentHash, StringComparison.Ordinal))
         {
-            logger.LogInformation("An upload onto file {FileAssetId} matched its current version {FileVersionNumber} and stored no version", fileId, current.Number);
+            logger.LogInformation("New content for file {FileAssetId} matched its current version {FileVersionNumber} and stored no version", fileId, current.Number);
 
             return FileVersionUploadOutcome.Unchanged;
         }

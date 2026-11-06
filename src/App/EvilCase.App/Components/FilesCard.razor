@@ -145,9 +145,9 @@
     <FilePreviewModal Files="this.State.Items" FileId="previewId" FileIdChanged="this.PreviewFile"
                       Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                       LoadContent="this.LoadContent" Rename="this.RenameFile"
-                      LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
-                      OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
-                      EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
+                      LoadVersions="this.LoadFileVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion"
+                      OnManageVersions="this.ManageVersions" OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain"
+                      OnDelete="this.ConfirmDelete" EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
 }
 
 @if (this.versionsFileId is { } versionsId && this.State.Items.FirstOrDefault(item => item.FileId == versionsId) is { } versionsFile)
@@ -190,6 +190,12 @@
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, int, CancellationToken, Task> DeleteFileVersion { get; set; }
+
+    /// <summary>
+    /// Stores the numbered version as the file's new version; answers the file as it stands after it.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required Func<FileListItem, int, CancellationToken, Task<FileListItem>> RestoreFileVersion { get; set; }
 
     [Parameter, EditorRequired]
     public required Func<FileListItem, string, CancellationToken, Task> RenameFile { get; set; }
@@ -488,6 +494,20 @@
     {
         if (await this.ChangeMain(file, main) is { } failure && !this.State.Failures.Contains(failure))
             this.State.Failures.Add(failure);
+    }
+
+    // Called from the preview through a plain delegate, so it redraws the card itself. A restore marks the file as an
+    // uploaded version does; one that stored nothing marks nothing.
+    private async Task RestoreVersion(FileListItem file, int number, CancellationToken token)
+    {
+        var restored = await this.RestoreFileVersion(file, number, token);
+
+        if (restored.Version > file.Version)
+            this.State.Fresh.TryAdd(file.FileId, FileUploadOutcome.NewVersion);
+
+        await this.ReloadFiles();
+
+        this.StateHasChanged();
     }
 
     // Called from the preview through a plain delegate, so it redraws the card itself.

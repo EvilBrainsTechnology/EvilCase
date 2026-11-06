@@ -132,6 +132,25 @@ internal static class FileTools
         return Answer(await writer.DeleteActFile(actId, fileId, token));
     }
 
+    [McpServerTool(Name = "restore_file_version", Destructive = false, OpenWorld = false)]
+    [Description(
+        "Stores the content of an older version as the file's new current version. Content equal to the current version "
+            + "stores nothing. Returns the file with its current version.")]
+    public static async Task<FileListItem> RestoreFileVersion(
+        IFileWriter writer, [Description("The file.")] Guid fileId, [Description("The version number to restore.")] int number, CancellationToken token)
+    {
+        var result = await writer.RestoreFileVersion(fileId, number, token);
+
+        return result.Outcome switch
+        {
+            FileVersionUploadOutcome.VersionAdded or FileVersionUploadOutcome.Unchanged => result.File!,
+            FileVersionUploadOutcome.FileNotFound => throw McpProblem.Of(FileProblems.NotFound),
+            FileVersionUploadOutcome.VersionNotFound => throw McpProblem.Of(FileProblems.VersionNotFound),
+            FileVersionUploadOutcome.ExtensionMismatch => throw new UnreachableException(),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     [McpServerTool(Name = "delete_file_version", Destructive = true, OpenWorld = false)]
     [Description("Deletes one version of a file. The only version is deleted only with the file (delete_case_file, delete_act_file). Cannot be undone.")]
     public static async Task<string> DeleteFileVersion(

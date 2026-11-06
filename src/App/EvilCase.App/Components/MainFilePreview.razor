@@ -26,7 +26,7 @@ else if (this.File is { } file)
     {
         <FilePreviewModal Files="[file]" FileId="file.FileId" Version="this.previewVersion" VersionChanged="this.PreviewVersion"
                           LoadContent="this.LoadContent" Rename="this.Rename"
-                          LoadVersions="this.LoadVersions" UploadVersion="this.UploadVersion" OnManageVersions="this.ManageVersions"
+                          LoadVersions="this.LoadVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion" OnManageVersions="this.ManageVersions"
                           OnDownload="this.Download" OnRenamed="this.Changed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
                           CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
     }
@@ -139,6 +139,16 @@ else if (this.File is { } file)
     private async Task DeleteVersion(FileListItem file, int number, CancellationToken token)
     {
         await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
+    }
+
+    // Called from the preview through a plain delegate, so it redraws itself.
+    private async Task RestoreVersion(FileListItem file, int number, CancellationToken token)
+    {
+        await this.FileVersions.RestoreFileVersion(file.FileId, number, token);
+
+        await this.Changed();
+
+        this.StateHasChanged();
     }
 
     private async Task Delete(FileListItem file, CancellationToken token)

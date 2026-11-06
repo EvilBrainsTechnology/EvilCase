@@ -12,7 +12,7 @@
     </ChildContent>
     <Footer>
         <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Form" Icon="@AppIcons.X" OnClick="this.Cancel">@this.CancelText</EcButton>
-        <EcButton Variant="EcButtonVariant.Danger" Size="EcButtonSize.Form" Icon="@AppIcons.Trash"
+        <EcButton Variant="@this.ConfirmVariant" Size="EcButtonSize.Form" Icon="@this.ConfirmIcon"
                   Disabled="@this.busy" OnClick="this.Confirm">@this.ConfirmText</EcButton>
     </Footer>
 </EcModal>
@@ -26,6 +26,15 @@
 
     [Parameter, EditorRequired]
     public required string ConfirmText { get; set; }
+
+    /// <summary>
+    /// A delete by default.
+    /// </summary>
+    [Parameter]
+    public EcButtonVariant ConfirmVariant { get; set; } = EcButtonVariant.Danger;
+
+    [Parameter]
+    public string ConfirmIcon { get; set; } = AppIcons.Trash;
 
     [Parameter]
     public string CancelText { get; set; } = "Zrušit";

@@ -25,6 +25,9 @@ public partial class FilePreviewModal
 
     private bool focusVersionsToggle;
 
+    // The older version Vrátit se k této verzi asks to restore.
+    private int? restoring;
+
     private FileVersionItem? ShownVersionItem => this.OlderVersion is { } number ? this.versions?.FirstOrDefault(version => version.Number == number) : null;
 
     private async Task LoadVersionList(FileListItem file)
@@ -78,6 +81,13 @@ public partial class FilePreviewModal
         this.focusVersionsToggle = true;
 
         await this.VersionChanged.InvokeAsync(null);
+    }
+
+    private async Task VersionRestored()
+    {
+        this.restoring = null;
+
+        await this.ShowCurrentVersion();
     }
 
     private async Task SelectVersion(FileListItem file, int number)

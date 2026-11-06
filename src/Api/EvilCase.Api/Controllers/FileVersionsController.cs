@@ -27,6 +27,15 @@ public class FileVersionsController : ControllerBase
             : this.Ok(new FileVersionListResponse { Items = items });
     }
 
+    [HttpPost("{number:int}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FileListItem>> RestoreFileVersion([FromServices] IFileWriter writer, [FromRoute] Guid fileId, [FromRoute] int number, CancellationToken token)
+    {
+        return this.Answer(await writer.RestoreFileVersion(fileId, number, token));
+    }
+
     [HttpDelete("{number:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

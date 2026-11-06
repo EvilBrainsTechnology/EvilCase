@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EvilBrains.EvilCase.Api.Controllers;
 
 /// <summary>
-/// The answers the file uploads, through the API and through a file link, and the file renames share.
+/// The answers the file uploads, through the API and through a file link, the version restore and the file renames share.
 /// </summary>
 internal static class FileUploadAnswer
 {
@@ -37,6 +37,7 @@ internal static class FileUploadAnswer
             FileVersionUploadOutcome.Unchanged => controller.Ok(result.File),
             FileVersionUploadOutcome.FileNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
             FileVersionUploadOutcome.ExtensionMismatch => ExtensionMismatchProblem(controller),
+            FileVersionUploadOutcome.VersionNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.VersionNotFound),
             _ => throw new UnreachableException(),
         };
     }

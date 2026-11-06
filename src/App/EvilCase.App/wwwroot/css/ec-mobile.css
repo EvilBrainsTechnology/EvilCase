@@ -547,7 +547,7 @@
         flex-direction: column;
     }
 
-    /* One row: the version picker and the way back to the current version. */
+    /* One row: the version picker, the restore and the way back to the current version. */
     .ec-preview-versions {
         flex-wrap: nowrap;
         gap: var(--ec-space-2);
@@ -565,6 +565,9 @@
 
     .ec-preview-versions > .ec-button {
         min-height: var(--ec-touch-min);
+    }
+
+    .ec-preview-versions-note + .ec-button {
         margin-left: auto;
     }
 
