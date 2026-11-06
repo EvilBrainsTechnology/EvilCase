@@ -6,7 +6,8 @@ public class MarkdownDiffLibraryTests
 {
     // Prints the differences of two documents given as blocks: [kind, text or rows, { marks, in }] with kind p, h1 to h6,
     // code or table, marks as [from, to, marks] and in naming the containers outside in: quote, bullet, ordered, task,
-    // done. A line names each mark, each deletion one column shows and the summary.
+    // done; or the front matter ["properties", [[key, value]]] with a text or any other value, or ["properties", text] where
+    // it is not valid YAML. A line names each mark, each deletion one column shows and the summary.
     private const string Script = """
         const [{ diffMarkdown }, { diffTexts }] = await Promise.all([import(process.argv[1]), import(process.argv[2])]);
         const specs = JSON.parse(process.argv[3]);
@@ -41,7 +42,28 @@ public class MarkdownDiffLibraryTests
                     }
                 }
                 let block;
-                if (kind === 'table') {
+                if (kind === 'properties' && typeof value === 'string') {
+                    const node = pos++;
+                    const raw = textBlock('property_raw', 0, value, null, []);
+                    block = { type: 'properties', node, end: ++pos, chain, table: node + 1, entries: [], raw };
+                    names.set(node, 'properties');
+                } else if (kind === 'properties') {
+                    const node = pos;
+                    pos += 2;
+                    const entries = value.map(([key, shown]) => {
+                        const entry = { key, node: pos++, value: JSON.stringify(shown), text: null };
+                        if (typeof shown === 'string') entry.text = textBlock('property_text', 0, shown, null, []);
+                        else pos++;
+                        entry.end = ++pos;
+                        names.set(entry.node, 'property "' + key + '"');
+                        return entry;
+                    });
+                    block = { type: 'properties', node, chain, table: pos, entries, raw: null };
+                    names.set(node, 'properties');
+                    names.set(pos, 'the end of the properties');
+                    pos += 2;
+                    block.end = pos;
+                } else if (kind === 'table') {
                     const node = pos++;
                     const rows = value.map((cells) => {
                         const row = { node: pos++ };
@@ -246,6 +268,62 @@ public class MarkdownDiffLibraryTests
         ];
 
         Assert.That(lines, Is.EqualTo(expected), "one column shows a removed item inside the list it stood in, as an item of its own");
+    }
+
+    [Test]
+    public async Task PropertiesCompareByKeyEachDifferingPropertyAChangeOfItsOwn()
+    {
+        var lines = await this.Diff("""
+            [
+              [["properties", [["nazev", "Žádost o informace"], ["stav", "rozpracováno"], ["datum", "5. 1. 2026"],
+                               ["stitky", ["podání"]], ["spis", "SP 1/2026"]]],
+               ["p", "Text."]],
+              [["properties", [["datum", "12. 1. 2026"], ["nazev", "Žádost o informace"], ["stitky", ["podání", "lhůta"]],
+                               ["vyrizuje", "Jana Vzorová"]]],
+               ["p", "Text."]]
+            ]
+            """);
+
+        string[] expected =
+        [
+            "older removed property \"stav\"",
+            "older deleted \"5\"",
+            "older changed property \"datum\"",
+            "older changed property \"stitky\"",
+            "older removed property \"spis\"",
+            "newer inserted \"12\"",
+            "newer changed property \"datum\"",
+            "newer changed property \"stitky\"",
+            "newer added property \"vyrizuje\"",
+            "deletion property \"stav\" before property \"datum\"",
+            "deletion \"5\" before \"1\"",
+            "deletion property \"stitky\" before property \"stitky\"",
+            "deletion property \"spis\" before the end of the properties",
+            "summary +3 −4 in 5",
+        ];
+
+        Assert.That(lines, Is.EqualTo(expected), "a property is known by its key wherever it stands, a text value differs word by word and each differing property is a change of its own");
+    }
+
+    [Test]
+    public async Task OneColumnShowsTheOlderPropertiesWhereOnlyOneSideIsValidYaml()
+    {
+        var lines = await this.Diff("""
+            [
+              [["properties", [["nazev", "Žádost"]]], ["p", "Text."]],
+              [["properties", "nazev: [Žádost"], ["p", "Text."]]
+            ]
+            """);
+
+        string[] expected =
+        [
+            "older changed properties",
+            "newer changed properties",
+            "deletion properties before properties",
+            "summary +1 −1 in 1",
+        ];
+
+        Assert.That(lines, Is.EqualTo(expected), "the older front matter stands before the newer one in one column when only one of them is valid YAML");
     }
 
     private async Task<string[]> Diff(string specs)

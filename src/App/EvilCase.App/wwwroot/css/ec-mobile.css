@@ -932,6 +932,27 @@
         padding: var(--ec-space-5);
     }
 
+    /* A property's key stands above its value. */
+    .ec-markdown-properties {
+        & .ec-markdown-properties-toggle {
+            min-height: var(--ec-touch-min);
+        }
+
+        & :is(table, tbody, tr, th, td) {
+            display: block;
+        }
+
+        & th {
+            width: auto;
+            padding-bottom: 0;
+        }
+
+        & td {
+            padding-top: 0;
+            border-top: 0;
+        }
+    }
+
     .ec-text-compare-toolbar > .ec-preview-toolbar-search-collapsible {
         flex: 1 1 100%;
     }

@@ -205,6 +205,14 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   nevykoná, ukáže se jako text. Odkaz zůstane jen na webovou (http, https) nebo e-mailovou
   adresu a otevře se v nové záložce; jiný odkaz se ukáže jako prostý text. Obrázky se
   nenačítají: místo obrázku se ukáže jeho popis, bez popisu slovo „obrázek“.
+- Vlastnosti na začátku Markdownu (YAML mezi řádky ---) se ukážou nad textem jako blok Vlastnosti
+  s počtem vlastností, při každém otevření sbalený. Rozbalený blok je tabulka klíčů a hodnot:
+  klíč tak, jak je zapsaný v souboru, hodnota jako text, seznam jako odrážky, seznam objektů jako
+  malé tabulky pod sebou a vnořené vlastnosti jako vnořená tabulka. Prázdná hodnota zůstane
+  prázdná, datum a číslo se ukážou tak, jak jsou zapsané. Hodnota je vždy jen text, nikdy odkaz
+  ani HTML. Vlastnosti, které nejsou platný YAML nebo nejsou klíče s hodnotami, ukáže blok jako
+  zdrojový text s poznámkou „Vlastnosti nejsou platný YAML.“ Hledání prohledá i klíče a hodnoty
+  vlastností; výskyt ve sbaleném bloku blok rozbalí.
 - Lišta náhledu Markdownu nese přepínač Formátovaně / Zdrojový kód, na mobilu Formát / Zdroj.
   Zdrojový kód ukáže text s čísly řádků a barevně zvýrazněnými značkami Markdownu, se stejnou
   lištou jako formátované zobrazení. Zvolené zobrazení platí pro každý další soubor Markdown,
@@ -326,6 +334,9 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   soubor nezmění. Syrové HTML a obrázky v souboru zůstanou. Vložený obsah z jiné aplikace si
   ponechá nadpisy, odstavce, seznamy, citace, tabulky, kód, formát písma a odkazy na webové
   a e-mailové adresy; obrázky a ostatní HTML vynechá.
+- Ve formátovaných úpravách se vlastnosti ukážou stejně jako v náhledu, ale nejdou změnit ani
+  smazat; mění se jen ve zdrojovém kódu. Formátovaně uložený Markdown zapíše vlastnosti přesně tak,
+  jak byly v souboru.
 - Uložit, i Ctrl+S nebo Cmd+S, nahraje text jako novou verzi souboru pod jeho jménem stejně jako
   Nová verze a náhled se vrátí ke čtení aktuální verze, bez hlášky o nahrané verzi. Dokud se text neliší od načteného, je
   Uložit neaktivní. Uložení zachová UTF-8, BOM, pokud ho soubor měl, a konce řádků souboru; konce
@@ -385,6 +396,10 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
   který otevře najetí myší nebo klepnutí a klepnutí jinam zavře. Přidaný blok je celý zelený, odebraný celý
   červený. Tabulka se porovná po buňkách; řádky se poznají podle první buňky, když
   se první buňky v každé z tabulek liší. Pod porovnáním stojí legenda barev.
+- Vlastnosti se porovnají po klíčích. Přidaná vlastnost je zelená v novější verzi, odebraná
+  červená ve starší; u změněné jsou zvýrazněné obě a v textové hodnotě i vložený a smazaný text.
+  Každá vlastnost, která se liší, je v souhrnu jeden blok a jedna změna pro Předchozí a Další
+  změnu. Když se vlastnosti liší, blok Vlastnosti se v porovnání rozbalí, jinak zůstane sbalený.
 - Vedle sebe stojí protější bloky na stejné výšce. V jednom sloupci stojí odebraný obsah tam, kde
   byl, i odebrané řádky tabulky a položky seznamu. Souhrn počítá bloky („+3 −2 bloky“): změněný
   blok na obou stranách, řádek tabulky jako blok. Nezměněné úseky se nesbalují. Obrázky se

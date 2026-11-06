@@ -2,7 +2,7 @@
 import { commandsCtx, editorViewCtx, serializerCtx } from '@milkdown/kit/core';
 import { insertTableCommand } from '@milkdown/kit/preset/gfm';
 import { replaceAll } from '@milkdown/kit/utils';
-import { Plugin, PluginKey, TextSelection } from '@milkdown/kit/prose/state';
+import { Plugin, PluginKey, Selection, TextSelection } from '@milkdown/kit/prose/state';
 import { Decoration, DecorationSet } from '@milkdown/kit/prose/view';
 import { keymap } from '@milkdown/kit/prose/keymap';
 import { redo, undo, undoDepth } from '@milkdown/kit/prose/history';
@@ -11,6 +11,7 @@ import type { CommandManager } from '@milkdown/kit/core';
 import type { Node as ProseNode } from '@milkdown/kit/prose/model';
 import type { Command, EditorState } from '@milkdown/kit/prose/state';
 import type { EditorView } from '@milkdown/kit/prose/view';
+import { showProperties } from './properties.js';
 import type { Match } from './shared.js';
 
 interface SearchState {
@@ -36,9 +37,7 @@ export async function createMarkdown(parent: HTMLElement, text: string, editable
         editable, view: null, initial: null, reported: '', commands: null,
     };
 
-    const commands: Record<string, Command> = {
-        undo,
-        redo,
+    const formats: Record<string, Command> = {
         heading1: heading(1),
         heading2: heading(2),
         heading3: heading(3),
@@ -58,6 +57,9 @@ export async function createMarkdown(parent: HTMLElement, text: string, editable
             return state.commands!.get(insertTableCommand.key)({ row: 3, col: 3 })(s, dispatch);
         },
     };
+    // No format applies in the front matter.
+    const commands: Record<string, Command> = { undo, redo };
+    for (const [name, command] of Object.entries(formats)) commands[name] = (s, dispatch, v) => !within(s, 'front_matter') && command(s, dispatch, v);
 
     const report = (force: boolean) => {
         const { view } = state;
@@ -176,6 +178,7 @@ export async function createMarkdown(parent: HTMLElement, text: string, editable
     };
     const selectMatch = ([from, to]: Match) => {
         view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, from, to)));
+        if (within(view.state, 'front_matter')) showProperties(view, true);
         reveal(view, scroller, from, to);
     };
 
@@ -238,7 +241,10 @@ export async function createMarkdown(parent: HTMLElement, text: string, editable
         // A new query selects its first match from the cursor on; again steps to the next or, with previous, the previous
         // match. Both wrap around.
         find(query: string, again: boolean, previous: boolean) {
-            const { from, to } = view.state.selection;
+            const { selection } = view.state;
+            const { to } = selection;
+            // From the start of the text a search starts before the front matter.
+            const from = selection.eq(Selection.atStart(view.state.doc)) ? 0 : selection.from;
             const shown = searchKey.getState(view.state)!;
             const fresh = !again || shown.query !== query;
             finding = true;

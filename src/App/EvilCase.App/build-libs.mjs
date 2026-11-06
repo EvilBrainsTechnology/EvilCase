@@ -22,7 +22,8 @@ const js = join(root, 'wwwroot', 'js');
 const sources = join(root, 'ts');
 
 const allowedLicenses = [/^MIT(-0)?$/, /^Apache-2\.0$/, /^BSD-/, /^ISC$/, /^OFL-1\.1$/, /^LGPL-3\.0(-only|-or-later)?$/, /^Zlib$/];
-const licenseFiles = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'LICENSE.markdown', 'LICENCE', 'license', 'license.md'];
+// A package without a license file states its license in its readme.
+const licenseFiles = ['LICENSE', 'LICENSE.txt', 'LICENSE.md', 'LICENSE.markdown', 'LICENCE', 'license', 'license.md', 'README.md', 'Readme.md'];
 
 function fail(message) {
     console.error(`build-libs: ${message}`);
@@ -52,7 +53,9 @@ function isAllowed(expression) {
 }
 
 function checkLicense(name) {
-    const { license, version } = readPackage(name);
+    const { license: expression, licenses, version } = readPackage(name);
+    // The older form lists the license types instead of an SPDX expression.
+    const license = expression ?? (Array.isArray(licenses) ? licenses.map((each) => each.type).join(' OR ') : undefined);
 
     if (typeof license !== 'string' || !isAllowed(license)) {
         fail(`${name}@${version} has license "${license}", which is not in the allow-list.`);

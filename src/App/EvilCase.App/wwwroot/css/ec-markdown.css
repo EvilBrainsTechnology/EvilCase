@@ -113,6 +113,158 @@
     }
 }
 
+/* The front matter as properties above the text: a button that names them and their count, and under it, once open,
+   a table of keys and values. A list of properties stands as small tables under each other. */
+.ec-markdown-properties {
+    margin: 0 0 var(--ec-space-5);
+    border: 1px solid var(--ec-border);
+    border-radius: var(--ec-radius-md);
+    background: var(--ec-surface-sunken);
+    line-height: var(--ec-leading-body);
+
+    & .ec-markdown-properties-toggle,
+    & .ec-markdown-properties-header {
+        display: flex;
+        align-items: center;
+        gap: var(--ec-space-3);
+        width: 100%;
+        box-sizing: border-box;
+        padding: var(--ec-space-3) var(--ec-space-4);
+        border: 0;
+        border-radius: var(--ec-radius-md);
+        background: none;
+        color: var(--ec-text-soft);
+        font: inherit;
+        font-size: var(--ec-text-sm);
+        font-weight: var(--ec-weight-semibold);
+        text-align: left;
+    }
+
+    & .ec-markdown-properties-toggle {
+        cursor: pointer;
+    }
+
+    & .ec-markdown-properties-toggle:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    & .ec-markdown-properties-chevron {
+        flex: 0 0 auto;
+        width: var(--ec-icon-sm);
+        height: var(--ec-icon-sm);
+        background: var(--ec-select-chevron) center / contain no-repeat;
+        transform: rotate(-90deg);
+    }
+
+    & .ec-markdown-properties-toggle[aria-expanded="true"] > .ec-markdown-properties-chevron {
+        transform: none;
+    }
+
+    & .ec-markdown-properties-count {
+        min-width: var(--ec-chip-sm-height);
+        padding: 0 var(--ec-space-2);
+        box-sizing: border-box;
+        border-radius: var(--ec-radius-pill);
+        background: var(--ec-surface-track);
+        color: var(--ec-text-muted);
+        font-size: var(--ec-text-xs);
+        font-weight: var(--ec-weight-medium);
+        line-height: var(--ec-chip-sm-height);
+        text-align: center;
+    }
+
+    & .ec-markdown-properties-count[hidden] {
+        display: none;
+    }
+
+    & .ec-markdown-properties-body {
+        padding: 0 var(--ec-space-4) var(--ec-space-4);
+    }
+
+    & .ec-markdown-properties-body[hidden] {
+        display: none;
+    }
+
+    & table {
+        width: 100%;
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: var(--ec-text-sm);
+    }
+
+    & th,
+    & td {
+        padding: var(--ec-space-2) var(--ec-space-3);
+        border: 0;
+        border-top: 1px solid var(--ec-border-subtle);
+        background: none;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    & tr:first-child > :is(th, td) {
+        border-top: 0;
+    }
+
+    & th {
+        width: var(--ec-markdown-property-key);
+        color: var(--ec-text-muted);
+        font-family: var(--ec-font-mono);
+        font-weight: var(--ec-weight-regular);
+    }
+
+    & td table {
+        border: 1px solid var(--ec-border);
+        border-radius: var(--ec-radius-sm);
+        background: var(--ec-surface);
+    }
+
+    & td th,
+    & td td {
+        padding: var(--ec-space-1) var(--ec-space-3);
+    }
+
+    & .ec-markdown-property-text {
+        white-space: pre-wrap;
+    }
+
+    & .ec-markdown-property-list {
+        margin: 0;
+        padding-left: var(--ec-space-5);
+    }
+
+    & .ec-markdown-property-tables {
+        display: flex;
+        flex-direction: column;
+        gap: var(--ec-space-2);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    & li + li {
+        margin-top: 0;
+    }
+
+    & .ec-markdown-property-list > li + li {
+        margin-top: var(--ec-space-1);
+    }
+
+    & .ec-markdown-properties-note {
+        margin: 0 0 var(--ec-space-3);
+        color: var(--ec-text-muted);
+        font-size: var(--ec-text-sm);
+    }
+
+    & pre {
+        margin: 0;
+        background: var(--ec-surface);
+        white-space: pre-wrap;
+    }
+}
+
 /* The formatted Markdown compare: side by side two texts in columns whose facing blocks stand level, in one column the
    newer with what the older had in its place; a legend under them names the marks. */
 .ec-markdown-compare {

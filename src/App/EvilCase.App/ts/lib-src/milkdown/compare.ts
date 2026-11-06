@@ -4,6 +4,7 @@ import { Plugin, PluginKey } from '@milkdown/kit/prose/state';
 import { Decoration, DecorationSet } from '@milkdown/kit/prose/view';
 import { DOMSerializer, Fragment } from '@milkdown/kit/prose/model';
 import { markdownEditor, matchesIn, reveal } from './shared.js';
+import { propertiesEnd, showProperties } from './properties.js';
 import type { Editor } from '@milkdown/kit/core';
 import type { Node as ProseNode } from '@milkdown/kit/prose/model';
 import type { EditorView } from '@milkdown/kit/prose/view';
@@ -50,7 +51,28 @@ export interface TableBlock {
     rows: TableRow[];
 }
 
-export type Block = TextBlock | TableBlock;
+// A property of the front matter: its key, its row, its value as the compare tells two apart and, where the value is a
+// text, its text block.
+export interface PropertyEntry {
+    key: string;
+    node: number;
+    end: number;
+    value: string;
+    text: TextBlock | null;
+}
+
+// The front matter: its properties, and table where their rows end; raw is its text where it is not valid YAML.
+export interface PropertiesBlock {
+    type: 'properties';
+    node: number;
+    end: number;
+    chain: ChainEntry[];
+    table: number;
+    entries: PropertyEntry[];
+    raw: TextBlock | null;
+}
+
+export type Block = TextBlock | TableBlock | PropertiesBlock;
 
 export interface Blocks {
     size: number;
@@ -107,8 +129,9 @@ function setMarks(view: EditorView, key: PluginKey<DecorationSet>, decorations: 
 }
 
 // The blocks of doc in order as a compare reads them: { size, blocks }. A block is a text block or rule
-// { type, level, node, end, pos, chain, text, runs }, or a table { type, node, end, chain, rows } whose rows
-// { node, end, cells } hold cells { node, end, block }. node and end bound the block, pos is where its text starts,
+// { type, level, node, end, pos, chain, text, runs }, a table { type, node, end, chain, rows } whose rows
+// { node, end, cells } hold cells { node, end, block }, or the front matter { type, node, end, chain, table, entries,
+// raw } whose entries are { key, node, end, value, text }. node and end bound the block, pos is where its text starts,
 // runs are [from, to, marks] of its text with marks by name and a link by its address; chain holds the blocks around it,
 // the outermost first, a list item with its kind: bullet, ordered, task or done.
 function blocksOf(doc: ProseNode): Blocks {
@@ -141,7 +164,29 @@ function blocksOf(doc: ProseNode): Blocks {
             text: node.textBetween(0, node.content.size, null, '\uFFFC'), runs,
         };
     };
+    const properties = (node: ProseNode, pos: number): PropertiesBlock => {
+        const inner = node.firstChild!;
+        const block: PropertiesBlock = { type: 'properties', node: pos, end: pos + node.nodeSize, chain: [], table: pos + inner.nodeSize, entries: [], raw: null };
+        if (inner.type.name === 'property_raw') {
+            block.raw = textBlock(inner, pos + 1, []);
+            return block;
+        }
+        inner.forEach((row, offset) => {
+            const rowPos = pos + 2 + offset;
+            const [key, value] = [row.child(0), row.child(1)];
+            const valuePos = rowPos + 1 + key.nodeSize;
+            block.entries.push({
+                key: key.textContent, node: rowPos, end: rowPos + row.nodeSize, value: JSON.stringify(value.toJSON()),
+                text: value.firstChild!.type.name === 'property_text' ? textBlock(value.firstChild!, valuePos + 1, []) : null,
+            });
+        });
+        return block;
+    };
     doc.descendants((node, pos) => {
+        if (node.type.name === 'front_matter') {
+            blocks.push(properties(node, pos));
+            return false;
+        }
         if (node.type.name === 'table') {
             const rows: TableRow[] = [];
             node.forEach((row, rowOffset) => {
@@ -216,6 +261,13 @@ export async function createMarkdownCompare(parent: HTMLElement, scroller: HTMLE
     onFind: () => void, match: (text: string, query: string) => Match[], differences: (older: Blocks, newer: Blocks) => Differences) {
     const holder = parent.appendChild(element('div', unified ? 'ec-markdown-compare-column' : 'ec-markdown-compare-columns'));
     const editors: Editor[] = [];
+    let level = () => {};
+    let views: EditorView[] = [];
+    // Side by side the front matter opens and closes on both sides at once.
+    const showBoth = (open: boolean) => {
+        for (const view of views) showProperties(view, open);
+        level();
+    };
     try {
         for (const [text, label, side] of unified ? [[newer, labels[2], 'newer']] : [[older, labels[0], 'older'], [newer, labels[1], 'newer']]) {
             const article = holder.appendChild(element('article', 'ec-preview-markdown ec-markdown-compare-text ec-markdown-compare-' + side));
@@ -226,6 +278,7 @@ export async function createMarkdownCompare(parent: HTMLElement, scroller: HTMLE
                 editable: () => false,
                 attributes: () => ({ class: 'ec-markdown-content' }),
                 plugins: [marksOf(differencesKey), marksOf(hitsKey), marksOf(spacersKey)],
+                onProperties: showBoth,
             }));
         }
     } catch (error) {
@@ -234,7 +287,7 @@ export async function createMarkdownCompare(parent: HTMLElement, scroller: HTMLE
         throw error;
     }
 
-    const views = editors.map((editor) => editor.action((ctx) => ctx.get(editorViewCtx)));
+    views = editors.map((editor) => editor.action((ctx) => ctx.get(editorViewCtx)));
     // A first transaction lets the plugins settle each document before its positions are read.
     for (const view of views) {
         view.dom.removeAttribute('role');
@@ -250,6 +303,12 @@ export async function createMarkdownCompare(parent: HTMLElement, scroller: HTMLE
         setMarks(views[0], differencesKey, differenceMarks(result.older));
         setMarks(views[1], differencesKey, differenceMarks(result.newer));
     }
+    // The front matter opens where the properties differ.
+    const ends = [propertiesEnd(views[0]), propertiesEnd(newerView)];
+    const inside = (marks: DifferenceMark[], end: number) => marks.some((mark) => (mark.node ?? mark.from!) < end);
+    if (inside(unified ? [] : result.older, ends[0]) || inside(result.newer, ends[1]) || (unified && result.deletions.some((deletion) => deletion.at < ends[1]))) {
+        showBoth(true);
+    }
 
     // Side by side a spacer stands at the start of each block that faces one on the other side; its height brings the two
     // level. A text block holds it before its text, any other block stands after it.
@@ -263,7 +322,8 @@ export async function createMarkdownCompare(parent: HTMLElement, scroller: HTMLE
         }));
     });
     // Two rounds: a spacer that grows from nothing can change how the margins around it collapse.
-    const level = () => {
+    level = () => {
+        if (unified) return;
         const heights = spacers.map(() => [0, 0]);
         for (const pair of spacers) for (const spacer of pair) spacer.style.height = '';
         for (let round = 0; round < 2; round++) {
@@ -320,6 +380,7 @@ export async function createMarkdownCompare(parent: HTMLElement, scroller: HTMLE
         },
         showMatch(index: number, [from, to]: Match) {
             paint({ index, from });
+            if (from < propertiesEnd(views[index])) showBoth(true);
             reveal(views[index], scroller, from, to);
         },
         changes: () => result.changes.length,

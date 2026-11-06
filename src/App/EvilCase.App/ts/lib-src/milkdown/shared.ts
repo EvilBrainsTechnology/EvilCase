@@ -10,6 +10,7 @@ import { liftListItem, wrapInList } from '@milkdown/kit/prose/schema-list';
 import type { Node as ProseNode } from '@milkdown/kit/prose/model';
 import type { Command, EditorState, Plugin, Selection, Transaction } from '@milkdown/kit/prose/state';
 import type { EditorView, NodeView, NodeViewConstructor, ViewMutationRecord } from '@milkdown/kit/prose/view';
+import { frontMatterPlugins, keepFrontMatter, propertiesView } from './properties.js';
 
 // [from, to] positions or offsets.
 export type Match = [number, number];
@@ -252,12 +253,14 @@ function taskItemView(editable: () => boolean) {
 }
 
 // Makes a Milkdown editor of text in parent with the schema every Markdown view shares. editable() and attributes()
-// answer the view's state now; plugins are ProseMirror plugins of its own.
-export function markdownEditor(parent: HTMLElement, text: string, { editable, attributes, plugins, history: withHistory }: {
+// answer the view's state now; plugins are ProseMirror plugins of its own; onProperties(open) hears the front matter's
+// button.
+export function markdownEditor(parent: HTMLElement, text: string, { editable, attributes, plugins, history: withHistory, onProperties }: {
     editable: () => boolean;
     attributes: () => Record<string, string>;
     plugins: Plugin[];
     history?: boolean;
+    onProperties?: (open: boolean) => void;
 }) {
     let editor = Editor.make()
         .config((ctx) => {
@@ -267,14 +270,15 @@ export function markdownEditor(parent: HTMLElement, text: string, { editable, at
                 ...options,
                 editable,
                 attributes,
-                nodeViews: { list_item: taskItemView(editable) as NodeViewConstructor },
+                nodeViews: { list_item: taskItemView(editable) as NodeViewConstructor, front_matter: propertiesView(onProperties) },
                 // A dropped file is not inserted.
                 handleDrop: (view, event) => Boolean(event.dataTransfer && event.dataTransfer.files.length > 0),
             }));
         })
         // An empty paragraph is not written as raw HTML.
         .use(commonmark.filter((plugin) => !remarkPreserveEmptyLinePlugin.includes(plugin)))
-        .use(gfm);
+        .use(gfm)
+        .use(frontMatterPlugins);
     if (withHistory) editor = editor.use(history);
     editor = editor
         .use(clipboard)
@@ -282,7 +286,7 @@ export function markdownEditor(parent: HTMLElement, text: string, { editable, at
         .use(images)
         .use(html)
         .use(headings);
-    for (const plugin of plugins) editor = editor.use($prose(() => plugin));
+    for (const plugin of [keepFrontMatter(editable), ...plugins]) editor = editor.use($prose(() => plugin));
     return editor.create();
 }
 
