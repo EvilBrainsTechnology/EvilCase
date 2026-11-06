@@ -15,6 +15,7 @@ internal static class ActDetailQuery
     {
         return await acts
             .WithId(actId)
+            .AsSingleQuery()
             .Select(static act => new ActDetail
             {
                 ActId = act.Id,

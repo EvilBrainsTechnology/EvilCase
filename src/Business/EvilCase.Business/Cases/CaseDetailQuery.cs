@@ -14,6 +14,7 @@ internal static class CaseDetailQuery
     {
         return await cases
             .WithId(caseId)
+            .AsSingleQuery()
             .Select(static @case => new CaseDetail
             {
                 CaseId = @case.Id,
