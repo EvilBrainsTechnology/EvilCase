@@ -30,7 +30,11 @@ public static class Bootstrap
 
         SelfLog.Enable(static message => Console.Error.WriteLine(message));
 
-        Log.Logger = CreateLogger(builder.Services, options, sink);
+        // The console writes through Blazor's runtime, never one of its own.
+        var jsRuntime = builder.Services.LastOrDefault(static service => service.ServiceType == typeof(IJSRuntime) && !service.IsKeyedService)?.ImplementationInstance as IJSRuntime
+            ?? throw new InvalidOperationException("The host registered no IJSRuntime instance for the browser console to write through.");
+
+        Log.Logger = CreateLogger(jsRuntime, options, sink);
 
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(Log.Logger, dispose: true);
@@ -72,12 +76,8 @@ public static class Bootstrap
         return host;
     }
 
-    internal static Logger CreateLogger(IServiceCollection services, ClientLoggingOptions options, ClientLogSink shipped)
+    internal static Logger CreateLogger(IJSRuntime jsRuntime, ClientLoggingOptions options, ClientLogSink shipped)
     {
-        // The host registers Blazor's runtime as an instance. A runtime of the sink's own numbers its
-        // calls apart from Blazor's, and its answers complete Blazor's calls of the same number.
-        var jsRuntime = (IJSRuntime)services.Last(static service => service.ServiceType == typeof(IJSRuntime)).ImplementationInstance!;
-
         // The pipeline lets through whatever either destination asks for; each one then restricts
         // itself. Sharing a single threshold would silently cap the more verbose of the two.
 #pragma warning disable RCS0054 // Fix formatting of a call chain

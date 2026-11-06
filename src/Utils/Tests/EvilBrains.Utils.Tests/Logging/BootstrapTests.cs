@@ -1,5 +1,4 @@
 using EvilBrains.Logging.WebAssembly;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 
 namespace EvilBrains.Utils.Tests.Logging;
@@ -10,13 +9,11 @@ public class BootstrapTests
     public void ConsoleWritesThroughTheHostRuntime()
     {
         var runtime = new RecordingJSRuntime();
-        var services = new ServiceCollection();
-        services.AddSingleton<IJSRuntime>(runtime);
 
-        using var logger = Bootstrap.CreateLogger(services, new ClientLoggingOptions(), new ClientLogSink());
+        using var logger = Bootstrap.CreateLogger(runtime, new ClientLoggingOptions(), new ClientLogSink());
         logger.Information("Message");
 
-        Assert.That(runtime.Identifiers, Is.EqualTo(["console.info"]), "a runtime of the sink's own completes the host's calls of the same number");
+        Assert.That(runtime.Identifiers, Is.EqualTo(["console.info"]), "the console writes through the runtime it is given, never one of its own");
     }
 
     private sealed class RecordingJSRuntime : IJSRuntime
