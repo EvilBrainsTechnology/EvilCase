@@ -57,33 +57,34 @@ internal sealed class FakeRefreshTokenStore(TimeProvider timeProvider) : IRefres
 
     public async Task RevokeSession(Guid authSessionId, DateTime now, CancellationToken token)
     {
-        this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
+        lock (this.writes)
+            this.RevokeMatching(token => token.AuthSessionId == authSessionId, now, alsoUsed: false);
     }
 
     public async Task RevokeAll(Guid userId, DateTime now, CancellationToken token)
     {
-        this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
+        lock (this.writes)
+            this.RevokeMatching(token => token.UserId == userId, now, alsoUsed: false);
     }
 
+    // The caller holds the write lock.
     private int RevokeMatching(Func<RefreshToken, bool> match, in DateTime now, bool alsoUsed)
     {
         var revoked = 0;
 
-        lock (this.writes)
+        for (var i = 0; i < this.tokens.Count; i++)
         {
-            for (var i = 0; i < this.tokens.Count; i++)
+            if (this.tokens[i].RevokedAt is null && match(this.tokens[i]))
             {
-                if (this.tokens[i].RevokedAt is null && match(this.tokens[i]))
-                {
-                    this.tokens[i] = this.tokens[i] with { RevokedAt = now, LastUsed = alsoUsed ? now : this.tokens[i].LastUsed };
-                    revoked++;
-                }
+                this.tokens[i] = this.tokens[i] with { RevokedAt = now, LastUsed = alsoUsed ? now : this.tokens[i].LastUsed };
+                revoked++;
             }
         }
 
         return revoked;
     }
 
+    // The caller holds the write lock.
     private void Store(RefreshToken refreshToken)
     {
         // The database stamps Created (SDD-018); this stands in for that trigger.
