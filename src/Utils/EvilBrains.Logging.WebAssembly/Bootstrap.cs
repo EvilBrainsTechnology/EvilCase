@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.JSInterop;
 using Serilog;
+using Serilog.Core;
 using Serilog.Debugging;
 using Serilog.Events;
 
@@ -29,16 +30,11 @@ public static class Bootstrap
 
         SelfLog.Enable(static message => Console.Error.WriteLine(message));
 
-        // The pipeline lets through whatever either destination asks for; each one then restricts
-        // itself. Sharing a single threshold would silently cap the more verbose of the two.
-#pragma warning disable RCS0054 // Fix formatting of a call chain
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Is(MoreVerbose(options.MinimumLevel, options.ServerMinimumLevel))
-            .Enrich.FromLogContext()
-            .WriteTo.BrowserConsole(restrictedToMinimumLevel: options.MinimumLevel, formatProvider: CultureInfo.InvariantCulture)
-            .WriteTo.Logger(ShipToServer(options))
-            .CreateLogger();
-#pragma warning restore RCS0054
+        // The console writes through Blazor's runtime, never one of its own.
+        var jsRuntime = builder.Services.LastOrDefault(static service => service.ServiceType == typeof(IJSRuntime) && !service.IsKeyedService)?.ImplementationInstance as IJSRuntime
+            ?? throw new InvalidOperationException("The host registered no IJSRuntime instance for the browser console to write through.");
+
+        Log.Logger = CreateLogger(jsRuntime, options, sink);
 
         builder.Logging.ClearProviders();
         builder.Logging.AddSerilog(Log.Logger, dispose: true);
@@ -80,13 +76,27 @@ public static class Bootstrap
         return host;
     }
 
+    internal static Logger CreateLogger(IJSRuntime jsRuntime, ClientLoggingOptions options, ClientLogSink shipped)
+    {
+        // The pipeline lets through whatever either destination asks for; each one then restricts
+        // itself. Sharing a single threshold would silently cap the more verbose of the two.
+#pragma warning disable RCS0054 // Fix formatting of a call chain
+        return new LoggerConfiguration()
+            .MinimumLevel.Is(MoreVerbose(options.MinimumLevel, options.ServerMinimumLevel))
+            .Enrich.FromLogContext()
+            .WriteTo.BrowserConsole(restrictedToMinimumLevel: options.MinimumLevel, formatProvider: CultureInfo.InvariantCulture, jsRuntime: jsRuntime)
+            .WriteTo.Logger(ShipToServer(options, shipped))
+            .CreateLogger();
+#pragma warning restore RCS0054
+    }
+
     private static LogEventLevel MoreVerbose(LogEventLevel first, LogEventLevel second)
     {
         return first < second ? first : second;
     }
 
-    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options)
+    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options, ClientLogSink shipped)
     {
-        return shipped => shipped.WriteTo.Sink(sink!, options.ServerMinimumLevel);
+        return configuration => configuration.WriteTo.Sink(shipped, options.ServerMinimumLevel);
     }
 }
