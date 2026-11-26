@@ -25,10 +25,10 @@ internal static class LabelTools
 
         var result = await writer.CreateLabel(request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            LabelCreateOutcome.Created => result.Label!,
-            LabelCreateOutcome.NameTaken => throw McpProblem.Of(LabelProblems.NameTaken, LabelProblems.NameTakenDetail),
+            LabelItem created => created,
+            LabelCreateFailure.NameTaken => throw McpProblem.Of(LabelProblems.NameTaken, LabelProblems.NameTakenDetail),
             _ => throw new UnreachableException(),
         };
     }

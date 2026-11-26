@@ -32,14 +32,14 @@ internal sealed class CaseWriter(
             var known = await context.Cases.Exists(parentCaseId, token);
 
             if (!known)
-                return new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent };
+                return CaseCreateFailure.InvalidParent;
         }
 
         if (request.ContactId is { } contactId && !await context.Contacts.Exists(contactId, token))
-            return new CaseCreateResult { Outcome = CaseCreateOutcome.ContactNotFound };
+            return CaseCreateFailure.ContactNotFound;
 
         if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)
-            return new CaseCreateResult { Outcome = CaseCreateOutcome.LabelNotFound };
+            return CaseCreateFailure.LabelNotFound;
 
         for (var attempt = 1; ; attempt++)
         {
@@ -69,7 +69,7 @@ internal sealed class CaseWriter(
                 .AsListItems()
                 .SingleAsync(token);
 
-            return new CaseCreateResult { Outcome = CaseCreateOutcome.Created, Case = item };
+            return item;
         }
     }
 

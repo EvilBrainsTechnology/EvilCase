@@ -55,12 +55,12 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
+        var created = UnionAssert.Holds<ActListItem>(result);
         var acts = await this.Tenant.Context.Acts.OfCase(@case.Id).ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
-            Assert.That(result.Act!.ActNumber, Is.EqualTo(free), "the loser of the race files under the next free number");
+            Assert.That(created.ActNumber, Is.EqualTo(free), "the loser of the race files under the next free number");
             Assert.That(acts, Has.Count.EqualTo(2));
         }
     }
@@ -86,12 +86,13 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(Request(reissued.Id) with { Date = actDay }, CancellationToken.None);
 
+        var created = UnionAssert.Holds<ActListItem>(result);
+
         using (Assert.EnterMultipleScope())
         {
             Assert.That(freed, Is.EqualTo(renumbered.CaseNumber), "the rewrite frees the case number for a new case");
-            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
             Assert.That(
-                result.Act!.ActNumber,
+                created.ActNumber,
                 Is.EqualTo(ActNumberFormat.Compose(freed, actDay, 2)),
                 $"the act of the renumbered case keeps {held.ActNumber}, so the new case takes the next one");
         }
@@ -104,11 +105,7 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(Request(), CancellationToken.None);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.CaseNotFound), "an act only exists inside a case of the tenant");
-            Assert.That(result.Act, Is.Null);
-        }
+        Assert.That(result.Value, Is.EqualTo(ActCreateFailure.CaseNotFound), "an act only exists inside a case of the tenant");
     }
 
     [Test]
@@ -121,7 +118,7 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "a contact the tenant does not hold never reaches the row");
+        Assert.That(result.Value, Is.EqualTo(ActCreateFailure.ContactNotFound), "a contact the tenant does not hold never reaches the row");
     }
 
     [Test]
@@ -132,11 +129,11 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(Request(@case.Id), CancellationToken.None);
 
-        var reloaded = await this.Tenant.Context.Acts.SingleAsync(act => act.Id == result.Act!.ActId);
+        var created = UnionAssert.Holds<ActListItem>(result);
+        var reloaded = await this.Tenant.Context.Acts.SingleAsync(act => act.Id == created.ActId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
             Assert.That(reloaded.Direction, Is.Null, "an act records no counterparty until one is known");
             Assert.That(reloaded.ContactId, Is.Null, "an act records no counterparty until one is known");
         }
@@ -161,7 +158,7 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.ContactNotFound), "an act never names a contact of another tenant");
+        Assert.That(result.Value, Is.EqualTo(ActCreateFailure.ContactNotFound), "an act never names a contact of another tenant");
     }
 
     [Test]
@@ -175,10 +172,12 @@ public class ActWriterTests : TenantFixture
 
         var result = await writer.CreateAct(request with { CaseId = @case.Id }, CancellationToken.None);
 
+        var created = UnionAssert.Holds<ActListItem>(result);
+
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Act!.ContactName, Is.EqualTo("Krajský soud ve Vzorově"));
-            Assert.That(result.Act!.ActNumber, Does.StartWith(@case.CaseNumber + "/"));
+            Assert.That(created.ContactName, Is.EqualTo("Krajský soud ve Vzorově"));
+            Assert.That(created.ActNumber, Does.StartWith(@case.CaseNumber + "/"));
         }
     }
 

@@ -50,12 +50,12 @@ internal static class CaseTools
 
         var result = await writer.CreateCase(request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            CaseCreateOutcome.Created => result.Case!,
-            CaseCreateOutcome.InvalidParent => throw McpProblem.Of(CaseProblems.InvalidParent, CaseProblems.ParentNotFoundDetail),
-            CaseCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
-            CaseCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
+            CaseListItem created => created,
+            CaseCreateFailure.InvalidParent => throw McpProblem.Of(CaseProblems.InvalidParent, CaseProblems.ParentNotFoundDetail),
+            CaseCreateFailure.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
+            CaseCreateFailure.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }

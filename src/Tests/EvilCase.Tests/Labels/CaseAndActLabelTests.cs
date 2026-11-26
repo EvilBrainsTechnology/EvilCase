@@ -42,14 +42,14 @@ public class CaseAndActLabelTests : TenantFixture
             new CreateCaseRequest { Date = new DateOnly(2026, 1, 5), Title = "Spis", LabelIds = [label.Id] },
             CancellationToken.None);
 
-        var detail = await this.caseReader.GetCaseDetail(result.Case!.CaseId, CancellationToken.None);
+        var created = UnionAssert.Holds<CaseListItem>(result);
+        var detail = await this.caseReader.GetCaseDetail(created.CaseId, CancellationToken.None);
 
         string[] expected = ["Priorita"];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
-            Assert.That(result.Case?.Labels.Select(static item => item.Name), Is.EqualTo(expected), "the answer to a create already carries the labels");
+            Assert.That(created.Labels.Select(static item => item.Name), Is.EqualTo(expected), "the answer to a create already carries the labels");
             Assert.That(detail?.Labels.Select(static item => item.Name), Is.EqualTo(expected));
             Assert.That(detail?.Labels[0].Color, Is.EqualTo(LabelColor.Red));
         }
@@ -62,7 +62,7 @@ public class CaseAndActLabelTests : TenantFixture
             new CreateCaseRequest { Date = new DateOnly(2026, 1, 5), Title = "Spis", LabelIds = [Guid.CreateVersion7()] },
             CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.LabelNotFound));
+        Assert.That(result.Value, Is.EqualTo(CaseCreateFailure.LabelNotFound));
     }
 
     [Test]
@@ -124,14 +124,14 @@ public class CaseAndActLabelTests : TenantFixture
             new CreateActRequest { CaseId = @case.Id, Date = new DateOnly(2026, 1, 6), Title = "Úkon", LabelIds = [label.Id] },
             CancellationToken.None);
 
-        var detail = await this.actReader.GetActDetail(result.Act!.ActId, CancellationToken.None);
+        var created = UnionAssert.Holds<ActListItem>(result);
+        var detail = await this.actReader.GetActDetail(created.ActId, CancellationToken.None);
 
         string[] expected = ["Soud"];
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(ActCreateOutcome.Created));
-            Assert.That(result.Act?.Labels.Select(static item => item.Name), Is.EqualTo(expected), "the answer to a create already carries the labels");
+            Assert.That(created.Labels.Select(static item => item.Name), Is.EqualTo(expected), "the answer to a create already carries the labels");
             Assert.That(detail?.Labels.Select(static item => item.Name), Is.EqualTo(expected));
             Assert.That(detail?.Labels[0].Color, Is.EqualTo(LabelColor.Indigo));
         }

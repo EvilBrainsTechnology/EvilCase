@@ -17,7 +17,7 @@ public class ActsControllerTests
         var writer = Substitute.For<IActWriter>();
         writer
             .CreateAct(Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
-            .Returns(new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound });
+            .Returns(new ActCreateResult(ActCreateFailure.ContactNotFound));
         var controller = new ActsController();
 
         var result = await controller.CreateAct(writer, Request(), CancellationToken.None);
@@ -33,7 +33,7 @@ public class ActsControllerTests
         var writer = Substitute.For<IActWriter>();
         writer
             .CreateAct(Arg.Any<CreateActRequest>(), Arg.Any<CancellationToken>())
-            .Returns(new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound });
+            .Returns(new ActCreateResult(ActCreateFailure.CaseNotFound));
         var controller = new ActsController();
 
         var result = await controller.CreateAct(writer, Request(), CancellationToken.None);

@@ -13,7 +13,7 @@ public class CasesControllerTests
     [Test]
     public async Task FilingUnderAParentThatIsNoCaseIsAConflict()
     {
-        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.InvalidParent });
+        var writer = CreatingWriter(new CaseCreateResult(CaseCreateFailure.InvalidParent));
         var controller = new CasesController();
 
         var result = await controller.CreateCase(
@@ -29,7 +29,7 @@ public class CasesControllerTests
     [Test]
     public async Task FilingWithAContactThatIsNotThereIsAConflict()
     {
-        var writer = CreatingWriter(new CaseCreateResult { Outcome = CaseCreateOutcome.ContactNotFound });
+        var writer = CreatingWriter(new CaseCreateResult(CaseCreateFailure.ContactNotFound));
         var controller = new CasesController();
 
         var result = await controller.CreateCase(

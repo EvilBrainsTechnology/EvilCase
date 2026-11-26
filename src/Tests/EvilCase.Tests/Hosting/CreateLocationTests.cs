@@ -33,19 +33,15 @@ public class CreateLocationTests
             var caseWriter = Substitute.For<ICaseWriter>();
             caseWriter
                 .CreateCase(Arg.Any<CreateCaseRequest>(), Arg.Any<CancellationToken>())
-                .Returns(static call => new CaseCreateResult
+                .Returns(static call => new CaseCreateResult(new CaseListItem
                 {
-                    Outcome = CaseCreateOutcome.Created,
-                    Case = new CaseListItem
-                    {
-                        CaseId = FiledCaseId,
-                        CaseNumber = "EC/20260821-001",
-                        Title = call.Arg<CreateCaseRequest>().Title,
-                        Date = call.Arg<CreateCaseRequest>().Date,
-                        Status = CaseStatus.Active,
-                        Changed = DateTime.UtcNow,
-                    },
-                });
+                    CaseId = FiledCaseId,
+                    CaseNumber = "EC/20260821-001",
+                    Title = call.Arg<CreateCaseRequest>().Title,
+                    Date = call.Arg<CreateCaseRequest>().Date,
+                    Status = CaseStatus.Active,
+                    Changed = DateTime.UtcNow,
+                }));
             services.AddSingleton(caseWriter);
 
             var contactWriter = Substitute.For<IContactWriter>();
@@ -62,16 +58,12 @@ public class CreateLocationTests
             var labelWriter = Substitute.For<ILabelWriter>();
             labelWriter
                 .CreateLabel(Arg.Any<LabelEditRequest>(), Arg.Any<CancellationToken>())
-                .Returns(static call => new LabelCreateResult
+                .Returns(static call => new LabelCreateResult(new LabelItem
                 {
-                    Outcome = LabelCreateOutcome.Created,
-                    Label = new LabelItem
-                    {
-                        LabelId = Guid.CreateVersion7(),
-                        Name = call.Arg<LabelEditRequest>().Name,
-                        Color = call.Arg<LabelEditRequest>().Color,
-                    },
-                });
+                    LabelId = Guid.CreateVersion7(),
+                    Name = call.Arg<LabelEditRequest>().Name,
+                    Color = call.Arg<LabelEditRequest>().Color,
+                }));
             services.AddSingleton(labelWriter);
         });
         this.client = this.host.CreateClient();

@@ -31,18 +31,18 @@ public class ActsController : ControllerBase
     {
         var result = await writer.CreateAct(request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            ActCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetAct), new { actId = result.Act!.ActId }, result.Act),
-            ActCreateOutcome.CaseNotFound => this.Problem(
+            ActListItem created => this.CreatedAtAction(nameof(this.GetAct), new { actId = created.ActId }, created),
+            ActCreateFailure.CaseNotFound => this.Problem(
                 detail: CaseProblems.UnknownCaseDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: CaseProblems.UnknownCase),
-            ActCreateOutcome.ContactNotFound => this.Problem(
+            ActCreateFailure.ContactNotFound => this.Problem(
                 detail: ContactProblems.UnknownContactDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
-            ActCreateOutcome.LabelNotFound => this.Problem(
+            ActCreateFailure.LabelNotFound => this.Problem(
                 detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),

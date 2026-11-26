@@ -30,13 +30,13 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
             .SingleOrDefaultAsync(token);
 
         if (caseNumber is null)
-            return new ActCreateResult { Outcome = ActCreateOutcome.CaseNotFound };
+            return ActCreateFailure.CaseNotFound;
 
         if (!await this.ContactKnown(request.ContactId, token))
-            return new ActCreateResult { Outcome = ActCreateOutcome.ContactNotFound };
+            return ActCreateFailure.ContactNotFound;
 
         if (await context.Labels.ReadLabels(request.LabelIds, token) is not { } labels)
-            return new ActCreateResult { Outcome = ActCreateOutcome.LabelNotFound };
+            return ActCreateFailure.LabelNotFound;
 
         for (var attempt = 1; ; attempt++)
         {
@@ -66,7 +66,7 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
                 .AsListItems()
                 .SingleAsync(token);
 
-            return new ActCreateResult { Outcome = ActCreateOutcome.Created, Act = item };
+            return item;
         }
     }
 

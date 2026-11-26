@@ -15,7 +15,7 @@ internal sealed class LabelWriter(IDbSession dbSession, ILogger<LabelWriter> log
         var name = request.Name.Trim();
 
         if (await context.Labels.AnyAsync(label => label.Name == name, token))
-            return new LabelCreateResult { Outcome = LabelCreateOutcome.NameTaken };
+            return LabelCreateFailure.NameTaken;
 
         var label = new Label { Name = name, Color = request.Color };
 
@@ -24,11 +24,7 @@ internal sealed class LabelWriter(IDbSession dbSession, ILogger<LabelWriter> log
 
         logger.LogInformation("Label {LabelId} was created", label.Id);
 
-        return new LabelCreateResult
-        {
-            Outcome = LabelCreateOutcome.Created,
-            Label = new LabelItem { LabelId = label.Id, Name = label.Name, Color = label.Color },
-        };
+        return new LabelItem { LabelId = label.Id, Name = label.Name, Color = label.Color };
     }
 
     public async Task<LabelUpdateOutcome> UpdateLabel(Guid labelId, LabelEditRequest request, CancellationToken token)
