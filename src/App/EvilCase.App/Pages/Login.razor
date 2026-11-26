@@ -103,6 +103,6 @@
 
         var target = string.Concat(this.ReturnUrl.Where(static c => c is not ('\t' or '\n' or '\r'))).Replace('\\', '/');
 
-        return target.StartsWith('/') && !target.StartsWith("//", StringComparison.Ordinal) ? target : "/";
+        return target.StartsWith('/', StringComparison.Ordinal) && !target.StartsWith("//", StringComparison.Ordinal) ? target : "/";
     }
 }

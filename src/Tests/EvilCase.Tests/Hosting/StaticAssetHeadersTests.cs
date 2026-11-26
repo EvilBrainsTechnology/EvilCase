@@ -68,11 +68,12 @@ public class StaticAssetHeadersTests
 
     /// <summary>
     /// The boot config is inlined into dotnet.js. It names the runtime twice: once plain, once under the
-    /// fingerprint it is actually downloaded by.
+    /// fingerprint it is actually downloaded by. A client that accepts gzip would get dotnet.js compressed.
     /// </summary>
     private async Task<string> FingerprintedRuntime()
     {
-        var bootScript = await this.client.GetStringAsync(new Uri("/_framework/dotnet.js", UriKind.Relative));
+        using var plainClient = this.host.CreateClient();
+        var bootScript = await plainClient.GetStringAsync(new Uri("/_framework/dotnet.js", UriKind.Relative));
 
         for (var start = 0; (start = bootScript.IndexOf(RuntimePrefix, start, StringComparison.Ordinal)) >= 0; start++)
         {

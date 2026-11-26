@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Files;

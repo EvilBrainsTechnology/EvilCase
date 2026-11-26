@@ -18,7 +18,7 @@ internal static partial class TextLinks
         {
             var url = match.Value.TrimEnd(Punctuation);
 
-            while (url.EndsWith(')') && url.AsSpan().Count(')') > url.AsSpan().Count('('))
+            while (url.EndsWith(')', StringComparison.Ordinal) && url.AsSpan().Count(')') > url.AsSpan().Count('('))
                 url = url[..^1].TrimEnd(Punctuation);
 
             if (match.Index > from)

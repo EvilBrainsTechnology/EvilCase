@@ -8,7 +8,7 @@ namespace EvilBrains.EvilCase.Tests.Hosting;
 /// </summary>
 public class AuthSettingsValidationTests
 {
-    private const string KeyMember = "AuthSettings.Jwt.Key";
+    private const string KeyMember = "Jwt.Key";
 
     [Test]
     public void AnUnconfiguredKeyStopsTheStart()

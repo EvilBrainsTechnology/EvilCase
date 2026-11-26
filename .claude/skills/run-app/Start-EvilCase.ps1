@@ -190,7 +190,7 @@ if ($build.ExitCode -ne 0) {
     throw "dotnet r build failed with exit code $($build.ExitCode) — see $buildLog"
 }
 
-$assembly = Join-Path $root 'src/EvilCase.Host/bin/Release/net10.0/EvilBrains.EvilCase.Host.dll'
+$assembly = Join-Path $root 'src/EvilCase.Host/bin/Release/net11.0/EvilBrains.EvilCase.Host.dll'
 if (-not (Test-Path -LiteralPath $assembly)) { throw "the build produced no $assembly" }
 
 # Port 0 binds whatever is free; the window between closing it and Kestrel binding is the price of

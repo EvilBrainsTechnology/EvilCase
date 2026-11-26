@@ -206,7 +206,7 @@ public class ClientLogWriterTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(logEvent.Properties.Keys.Count(static x => x.StartsWith('P')), Is.Zero);
+            Assert.That(logEvent.Properties.Keys.Count(static x => x.StartsWith('P', StringComparison.Ordinal)), Is.Zero);
             Assert.That(logEvent.RenderMessage(CultureInfo.InvariantCulture), Is.EqualTo(template));
         }
     }

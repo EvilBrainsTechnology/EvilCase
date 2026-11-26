@@ -104,7 +104,7 @@
 
     private async Task SaveLabel()
     {
-        if (!this.editContext.Validate())
+        if (!await this.editContext.ValidateAsync())
             return;
 
         this.busy = true;

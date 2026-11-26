@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using EvilBrains.Cryptography;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Auth;

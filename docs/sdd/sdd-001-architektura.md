@@ -68,7 +68,7 @@ Api, Business, Auth, Data, Api.Contract → Domain
 
 ### Technologie
 
-.NET 10, ASP.NET Core, EF Core nad PostgreSQL, Blazor WebAssembly s vlastními primitivy a
+.NET 11, ASP.NET Core, EF Core nad PostgreSQL, Blazor WebAssembly s vlastními primitivy a
 vlastním CSS (SDD-020), NUnit. Logování jde přes `EvilBrains.Logging.*` na serveru i ve
 WebAssembly; Seq je volitelný a zapíná ho URL z prostředí (SDD-002).
 

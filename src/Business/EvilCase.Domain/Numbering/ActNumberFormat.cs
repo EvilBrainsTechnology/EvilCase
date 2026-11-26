@@ -25,7 +25,7 @@ public static class ActNumberFormat
     public static ActNumberParts? ParseOrDefault(string? value)
     {
         // A case number carries slashes of its own, so the act's day and sequence are what stands after the last one.
-        var separator = value?.LastIndexOf('/') ?? -1;
+        var separator = value?.LastIndexOf('/', StringComparison.Ordinal) ?? -1;
 
         if (value is null || separator <= 0)
             return null;

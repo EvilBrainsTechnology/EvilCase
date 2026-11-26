@@ -113,7 +113,11 @@
     public void ToggleMaximized()
     {
         this.maximized = !this.maximized;
+
+        // A call from JS renders nothing on its own.
+#pragma warning disable BL0012
         this.StateHasChanged();
+#pragma warning restore BL0012
     }
 
     [JSInvokable]
