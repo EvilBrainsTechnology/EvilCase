@@ -40,8 +40,8 @@ public class FileLinkEndpointTests
         this.links
             .ConsumeFileLink(Secret, Arg.Any<CancellationToken>())
             .Returns(_ => this.link is null
-                ? new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.NotFound }
-                : new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.Consumed, Link = this.link });
+                ? new FileLinkConsumeResult(FileLinkConsumeFailure.NotFound)
+                : new FileLinkConsumeResult(this.link));
 
         this.host = new EvilCaseHost(configureServices: services =>
         {
