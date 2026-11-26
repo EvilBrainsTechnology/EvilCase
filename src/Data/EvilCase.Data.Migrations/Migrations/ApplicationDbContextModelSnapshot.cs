@@ -17,7 +17,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("ProductVersion", "11.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "pg_trgm");
@@ -244,6 +244,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasKey("CaseId");
 
                     b.ToTable((string)null);
+
+                    b.ToView("case_ancestors", (string)null);
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.Comment", b =>

@@ -80,8 +80,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder.Entity<CaseAncestor>()
             .HasKey(static ancestor => ancestor.CaseId);
 
+        // Never queried: EF Core 11 materializes the function's keyed rows only through a mapped view.
         modelBuilder.Entity<CaseAncestor>()
-            .ToTable((string?)null);
+            .ToView("case_ancestors");
     }
 
     private static void ConfigureExtensions(ModelBuilder modelBuilder)
