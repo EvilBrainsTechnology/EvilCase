@@ -1,6 +1,6 @@
 # Deployment
 
-The application runs as a single container image published to `ghcr.io/evilbrainstechnology/evilcase`.
+The application runs as a single container image published to `ghcr.io/vdolek/evilcase`.
 
 ## Image
 
@@ -28,7 +28,7 @@ The manual-run rule exists so such a run matches at least one tag: an empty tag 
 
 The release tag also becomes the assembly version, through the `VERSION` build argument; `SOURCE_REVISION` carries the commit. Anything else builds as `0.0.0`. No MinVer or GitVersion — `.git` is not in the build context.
 
-The provenance statement is stored on GitHub, not in the registry. Verify with `gh attestation verify oci://ghcr.io/evilbrainstechnology/evilcase --repo <owner>/<repo>`.
+The provenance statement is stored on GitHub, not in the registry. Verify with `gh attestation verify oci://ghcr.io/vdolek/evilcase --repo <owner>/<repo>`.
 
 ## Hosting keys
 

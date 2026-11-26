@@ -2,7 +2,7 @@ name: evilcase
 
 services:
   app:
-    image: ghcr.io/evilbrainstechnology/evilcase:${EVILCASE_TAG:-latest}
+    image: ghcr.io/vdolek/evilcase:${EVILCASE_TAG:-latest}
     restart: unless-stopped
     ports:
       # Loopback only: the service trusts the forwarded headers of the proxy in front, so a caller that
