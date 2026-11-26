@@ -29,15 +29,15 @@ public class MainFileTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        var first = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf"), CancellationToken.None);
-        var second = await this.writer.UploadCaseFile(@case.Id, Upload("priloha.pdf"), CancellationToken.None);
-        var version = await this.writer.UploadCaseFile(@case.Id, Upload("Priloha.pdf", content: "b"), CancellationToken.None);
+        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf"), CancellationToken.None));
+        var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("priloha.pdf"), CancellationToken.None));
+        var version = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("Priloha.pdf", content: "b"), CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(first.File!.IsMain, Is.True, "the first file of an empty case becomes its main file");
-            Assert.That(second.File!.IsMain, Is.False, "an upload into a case that has a file does not take the mark");
-            Assert.That(version.File!.IsMain, Is.False, "a new version never changes the main file");
+            Assert.That(first.File.IsMain, Is.True, "the first file of an empty case becomes its main file");
+            Assert.That(second.File.IsMain, Is.False, "an upload into a case that has a file does not take the mark");
+            Assert.That(version.File.IsMain, Is.False, "a new version never changes the main file");
             Assert.That(await this.MainFileIds(), Is.EqualTo([first.File.FileId]));
         }
     }
@@ -46,12 +46,12 @@ public class MainFileTests : TenantFixture
     public async Task AnUploadAfterTheMarkWasUnsetDoesNotTakeIt()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var first = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf"), CancellationToken.None);
+        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf"), CancellationToken.None));
 
-        await this.writer.UnsetMainFile(first.File!.FileId, CancellationToken.None);
-        var later = await this.writer.UploadCaseFile(@case.Id, Upload("priloha.pdf"), CancellationToken.None);
+        await this.writer.UnsetMainFile(first.File.FileId, CancellationToken.None);
+        var later = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("priloha.pdf"), CancellationToken.None));
 
-        Assert.That(later.File!.IsMain, Is.False, "only an upload into a case without any file becomes main");
+        Assert.That(later.File.IsMain, Is.False, "only an upload into a case without any file becomes main");
     }
 
     [Test]
@@ -190,8 +190,8 @@ public class MainFileTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(results.Select(static result => result.Outcome), Is.All.EqualTo(UploadFileOutcome.Uploaded), "the loser of the mark is stored all the same");
-            Assert.That(results.Count(static result => result.File!.IsMain), Is.EqualTo(1), "exactly one of two first uploads becomes main");
+            Assert.That(results.Select(static result => UnionAssert.Holds<UploadedFile>(result).Kind), Is.All.EqualTo(UploadKind.Uploaded), "the loser of the mark is stored all the same");
+            Assert.That(results.Count(static result => UnionAssert.Holds<UploadedFile>(result).File.IsMain), Is.EqualTo(1), "exactly one of two first uploads becomes main");
             Assert.That(await this.MainFileIds(), Has.Count.EqualTo(1));
         }
     }

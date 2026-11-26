@@ -130,7 +130,7 @@ public class FileTransferControllerTests
         var writer = Substitute.For<IFileWriter>();
         writer
             .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
-            .Returns(new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = file })
+            .Returns(new UploadFileResult(new UploadedFile { Kind = UploadKind.Uploaded, File = file }))
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
 
         return writer;

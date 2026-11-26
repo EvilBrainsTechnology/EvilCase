@@ -55,15 +55,15 @@ internal static class FileTools
     {
         var result = await reader.ReadFileText(fileId, version, page, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            FileTextOutcome.Read => result.Page!,
-            FileTextOutcome.FileNotFound => throw McpProblem.Of(FileProblems.NotFound),
-            FileTextOutcome.UnsupportedFormat => throw McpProblem.Of("No text", "Text is read from text formats, PDF and DOCX only."),
-            FileTextOutcome.TooLarge => throw McpProblem.Of("File too large", "The text of a file over 30 MB is not read."),
-            FileTextOutcome.NoText => throw McpProblem.Of("No text", "The file carries no text layer; it is a scan or an image."),
-            FileTextOutcome.Unreadable => throw McpProblem.Of("Unreadable file", "The content does not parse as its extension says."),
-            FileTextOutcome.PageNotFound => throw McpProblem.Of("Page not found", string.Create(CultureInfo.InvariantCulture, $"The text has {result.PageCount} page(s).")),
+            FileTextPage read => read,
+            FileTextFailure.FileNotFound => throw McpProblem.Of(FileProblems.NotFound),
+            FileTextFailure.UnsupportedFormat => throw McpProblem.Of("No text", "Text is read from text formats, PDF and DOCX only."),
+            FileTextFailure.TooLarge => throw McpProblem.Of("File too large", "The text of a file over 30 MB is not read."),
+            FileTextFailure.NoText => throw McpProblem.Of("No text", "The file carries no text layer; it is a scan or an image."),
+            FileTextFailure.Unreadable => throw McpProblem.Of("Unreadable file", "The content does not parse as its extension says."),
+            FileTextPageNotFound pageNotFound => throw McpProblem.Of("Page not found", string.Create(CultureInfo.InvariantCulture, $"The text has {pageNotFound.PageCount} page(s).")),
             _ => throw new UnreachableException(),
         };
     }
@@ -141,12 +141,12 @@ internal static class FileTools
     {
         var result = await writer.RestoreFileVersion(fileId, number, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            FileVersionUploadOutcome.VersionAdded or FileVersionUploadOutcome.Unchanged => result.File!,
-            FileVersionUploadOutcome.FileNotFound => throw McpProblem.Of(FileProblems.NotFound),
-            FileVersionUploadOutcome.VersionNotFound => throw McpProblem.Of(FileProblems.VersionNotFound),
-            FileVersionUploadOutcome.ExtensionMismatch => throw new UnreachableException(),
+            UploadedFile uploaded => uploaded.File,
+            FileVersionUploadFailure.FileNotFound => throw McpProblem.Of(FileProblems.NotFound),
+            FileVersionUploadFailure.VersionNotFound => throw McpProblem.Of(FileProblems.VersionNotFound),
+            FileVersionUploadFailure.ExtensionMismatch => throw new UnreachableException(),
             _ => throw new UnreachableException(),
         };
     }

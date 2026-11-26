@@ -62,7 +62,7 @@ public class FileLinkEndpointTests
 
                         this.uploads.Add((userContext.TenantId, userContext.UserId, upload.FileName, await reader.ReadToEndAsync()));
 
-                        return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = File(upload.FileName) };
+                        return new UploadFileResult(new UploadedFile { Kind = UploadKind.Uploaded, File = File(upload.FileName) });
                     });
 
                 return writer;

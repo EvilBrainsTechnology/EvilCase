@@ -15,29 +15,29 @@ internal static class FileUploadAnswer
 
     public static ActionResult<FileListItem> Answer(this ControllerBase controller, UploadFileResult result, string ownerNotFound)
     {
-        return result.Outcome switch
+        return result switch
         {
-            UploadFileOutcome.Uploaded or UploadFileOutcome.VersionAdded => controller.CreatedAtAction(
-                nameof(Controllers.FileTransferController.DownloadFileContent), FileTransferController, new { fileId = result.File!.FileId }, result.File),
-            UploadFileOutcome.Unchanged => controller.Ok(result.File),
-            UploadFileOutcome.OwnerNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: ownerNotFound),
+            UploadedFile { Kind: UploadKind.Unchanged } unchanged => controller.Ok(unchanged.File),
+            UploadedFile uploaded => controller.CreatedAtAction(
+                nameof(Controllers.FileTransferController.DownloadFileContent), FileTransferController, new { fileId = uploaded.File.FileId }, uploaded.File),
+            UploadFileFailure.OwnerNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: ownerNotFound),
             _ => throw new UnreachableException(),
         };
     }
 
     public static ActionResult<FileListItem> Answer(this ControllerBase controller, FileVersionUploadResult result)
     {
-        return result.Outcome switch
+        return result switch
         {
-            FileVersionUploadOutcome.VersionAdded => controller.CreatedAtAction(
+            UploadedFile { Kind: UploadKind.Unchanged } unchanged => controller.Ok(unchanged.File),
+            UploadedFile added => controller.CreatedAtAction(
                 nameof(Controllers.FileTransferController.DownloadFileContent),
                 FileTransferController,
-                new { fileId = result.File!.FileId, version = result.File.Version },
-                result.File),
-            FileVersionUploadOutcome.Unchanged => controller.Ok(result.File),
-            FileVersionUploadOutcome.FileNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
-            FileVersionUploadOutcome.ExtensionMismatch => ExtensionMismatchProblem(controller),
-            FileVersionUploadOutcome.VersionNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.VersionNotFound),
+                new { fileId = added.File.FileId, version = added.File.Version },
+                added.File),
+            FileVersionUploadFailure.FileNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
+            FileVersionUploadFailure.ExtensionMismatch => ExtensionMismatchProblem(controller),
+            FileVersionUploadFailure.VersionNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.VersionNotFound),
             _ => throw new UnreachableException(),
         };
     }
