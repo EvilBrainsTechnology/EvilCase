@@ -73,8 +73,7 @@ public class RefreshTokenTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(raced.Session, Is.Null);
-            Assert.That(raced.Status, Is.EqualTo(RefreshStatus.Raced));
+            Assert.That(raced.Value, Is.EqualTo(RefreshFailure.Raced));
             Assert.That(afterwards, Is.Not.Null);
         }
     }
@@ -96,8 +95,8 @@ public class RefreshTokenTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(results.Count(static result => result.Session is not null), Is.EqualTo(1));
-            Assert.That(results.Select(static result => result.Status), Does.Contain(RefreshStatus.Raced));
+            Assert.That(results.Count(static result => result.Value is AuthSession), Is.EqualTo(1));
+            Assert.That(results.Select(static result => result.Value), Does.Contain(RefreshFailure.Raced));
             Assert.That(this.harness.RefreshTokens.All.Where(static token => token.RevokedAt is null), Has.Exactly(1).Items);
         }
     }
@@ -174,7 +173,7 @@ public class RefreshTokenTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(renewed, Is.Not.Null, "a lockout leaves live sessions alone");
-            Assert.That(signIn.Status, Is.EqualTo(LoginStatus.LockedOut));
+            Assert.That(signIn.Value, Is.EqualTo(LoginFailure.LockedOut));
         }
     }
 

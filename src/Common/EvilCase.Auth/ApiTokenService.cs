@@ -28,15 +28,11 @@ internal sealed class ApiTokenService(IApiTokenStore apiTokenStore, TimeProvider
         };
 
         if (!await apiTokenStore.AddApiToken(apiToken, now, ApiTokenLimits.MaxActive, token))
-            return new() { Outcome = ApiTokenCreateOutcome.LimitReached };
+            return ApiTokenCreateFailure.LimitReached;
 
         logger.LogInformation("API token {ApiTokenId} was created for user {UserId} with scope {ApiTokenScope}", apiToken.Id, userId, apiToken.Scope);
 
-        return new()
-        {
-            Outcome = ApiTokenCreateOutcome.Created,
-            Created = new() { Token = Describe(apiToken), Secret = secret },
-        };
+        return new ApiTokenCreated { Token = Describe(apiToken), Secret = secret };
     }
 
     public async Task<ApiTokenRevokeOutcome> RevokeApiToken(Guid userId, Guid apiTokenId, CancellationToken token)

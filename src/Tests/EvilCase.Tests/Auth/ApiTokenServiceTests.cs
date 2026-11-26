@@ -27,12 +27,12 @@ public class ApiTokenServiceTests : TenantFixture
     [Test]
     public async Task TheSecretTravelsOnceAndOnlyItsHashIsStored()
     {
-        var result = await this.service.CreateApiToken(this.Tenant.UserId, Request, CancellationToken.None);
-        var secret = result.Created!.Secret;
+        var created = UnionAssert.Holds<ApiTokenCreated>(await this.service.CreateApiToken(this.Tenant.UserId, Request, CancellationToken.None));
+        var secret = created.Secret;
 
         var stored = await this.Tenant.Context.ApiTokens
             .AsNoTracking()
-            .SingleAsync(apiToken => apiToken.Id == result.Created.Token.ApiTokenId);
+            .SingleAsync(apiToken => apiToken.Id == created.Token.ApiTokenId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -54,7 +54,7 @@ public class ApiTokenServiceTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(past.Outcome, Is.EqualTo(ApiTokenCreateOutcome.LimitReached));
+            Assert.That(past.Value, Is.EqualTo(ApiTokenCreateFailure.LimitReached));
             Assert.That(count, Is.EqualTo(ApiTokenLimits.MaxActive), "the refused token writes nothing");
         }
     }
@@ -78,7 +78,7 @@ public class ApiTokenServiceTests : TenantFixture
 
         var result = await this.service.CreateApiToken(this.Tenant.UserId, Request, CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(ApiTokenCreateOutcome.Created), "the limit counts unexpired tokens only");
+        Assert.That(result.Value, Is.TypeOf<ApiTokenCreated>(), "the limit counts unexpired tokens only");
     }
 
     [Test]
@@ -98,7 +98,8 @@ public class ApiTokenServiceTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(results.Select(static result => result.Outcome), Is.EquivalentTo([ApiTokenCreateOutcome.Created, ApiTokenCreateOutcome.LimitReached]));
+            Assert.That(results.Count(static result => result.Value is ApiTokenCreated), Is.EqualTo(1));
+            Assert.That(results.Select(static result => result.Value), Does.Contain(ApiTokenCreateFailure.LimitReached));
             Assert.That(count, Is.EqualTo(ApiTokenLimits.MaxActive), "the second creation counts after the first has written");
         }
     }

@@ -29,13 +29,13 @@ internal sealed class AuthService(
             // The same work a real verification costs, so response time does not sort known e-mails
             // from unknown ones.
             PasswordHasher.FakeVerify();
-            return LoginResult.Failed(LoginStatus.InvalidCredentials);
+            return LoginFailure.InvalidCredentials;
         }
 
         var lockout = options.Value.Lockout;
 
         if (!await userStore.CountLoginAttempt(user.Id, lockout.MaxFailedAttempts, now, now.Add(lockout.Duration), token))
-            return LoginResult.Failed(LoginStatus.LockedOut);
+            return LoginFailure.LockedOut;
 
         if (!PasswordHasher.Verify(password, user.PasswordHash))
         {
@@ -44,7 +44,7 @@ internal sealed class AuthService(
             if (lockedOut)
                 logger.LogWarning("User {UserId} was locked out after {Attempts} failed sign-in attempts", user.Id, lockout.MaxFailedAttempts);
 
-            return LoginResult.Failed(lockedOut ? LoginStatus.LockedOut : LoginStatus.InvalidCredentials);
+            return lockedOut ? LoginFailure.LockedOut : LoginFailure.InvalidCredentials;
         }
 
         await userStore.RecordSuccessfulLogin(user.Id, token);
@@ -56,7 +56,7 @@ internal sealed class AuthService(
 
         logger.LogInformation("User {UserId} signed in", user.Id);
 
-        return LoginResult.Succeeded(session);
+        return session;
     }
 
     public async Task<RefreshResult> Refresh(string refreshToken, ClientInfo client, CancellationToken token)
@@ -65,26 +65,26 @@ internal sealed class AuthService(
         var stored = await refreshTokenStore.FindRefreshToken(RefreshTokenValue.Hash(refreshToken), token);
 
         if (stored is null)
-            return RefreshResult.Failed(RefreshStatus.Rejected);
+            return RefreshFailure.Rejected;
 
         if (stored.RevokedAt is { } revokedAt)
             return await this.HandleReplay(stored, revokedAt, now, token);
 
         if (stored.Expires <= now || stored.SessionExpires <= now)
-            return RefreshResult.Failed(RefreshStatus.Rejected);
+            return RefreshFailure.Rejected;
 
         var user = await userStore.FindById(stored.UserId, token);
         if (user is null)
-            return RefreshResult.Failed(RefreshStatus.Rejected);
+            return RefreshFailure.Rejected;
 
         var (replacement, session) = this.NewSession(user, stored.AuthSessionId, stored.SessionExpires, client, now);
 
         // The rotation settles the race, not the read above: only the caller whose update finds
         // the row unrevoked may spend it.
         if (!await refreshTokenStore.RotateRefreshToken(stored.Id, replacement, now, token))
-            return RefreshResult.Failed(RefreshStatus.Raced);
+            return RefreshFailure.Raced;
 
-        return RefreshResult.Succeeded(session);
+        return session;
     }
 
     public async Task SignOut(string refreshToken, CancellationToken token)
@@ -105,7 +105,7 @@ internal sealed class AuthService(
     private async Task<RefreshResult> HandleReplay(RefreshToken stored, DateTime revokedAt, DateTime now, CancellationToken token)
     {
         if (now - revokedAt <= ReplayGracePeriod)
-            return RefreshResult.Failed(RefreshStatus.Raced);
+            return RefreshFailure.Raced;
 
         logger.LogWarning(
             "A refresh token of session {AuthSessionId} was replayed {Age} after it was revoked; the session is being ended",
@@ -114,7 +114,7 @@ internal sealed class AuthService(
 
         await refreshTokenStore.RevokeSession(stored.AuthSessionId, now, token);
 
-        return RefreshResult.Failed(RefreshStatus.Rejected);
+        return RefreshFailure.Rejected;
     }
 
     /// <summary>

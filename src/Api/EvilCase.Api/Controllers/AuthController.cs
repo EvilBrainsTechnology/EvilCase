@@ -30,10 +30,10 @@ public class AuthController : ControllerBase
     {
         var result = await authService.Login(request.Email, request.Password, this.DescribeClient(), token);
 
-        if (result.Session is not { } session)
+        if (result is not AuthSession session)
         {
             // A separate status for the lockout, so the page can say why without parsing a message.
-            return result.Status == LoginStatus.LockedOut
+            return result is LoginFailure.LockedOut
                 ? this.Problem(statusCode: StatusCodes.Status423Locked, title: "Account temporarily locked")
                 : this.Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Invalid credentials");
         }
@@ -54,12 +54,12 @@ public class AuthController : ControllerBase
 
         var result = refreshToken is { Length: > 0 }
             ? await authService.Refresh(refreshToken, this.DescribeClient(), token)
-            : RefreshResult.Failed(RefreshStatus.Rejected);
+            : RefreshFailure.Rejected;
 
-        if (result.Session is not { } session)
+        if (result is not AuthSession session)
         {
             // The cookie already holds, or is about to hold, another tab's replacement; the caller retries.
-            if (result.Status == RefreshStatus.Raced)
+            if (result is RefreshFailure.Raced)
                 return this.Problem(statusCode: StatusCodes.Status409Conflict, title: "Refresh superseded");
 
             this.ClearCookies();
