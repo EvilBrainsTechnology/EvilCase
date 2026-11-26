@@ -71,7 +71,7 @@ internal static partial class FileArchiveLayout
     /// </summary>
     public static HashSet<string> ClaimedNames()
     {
-        return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        return [with(StringComparer.OrdinalIgnoreCase)];
     }
 
     /// <summary>

@@ -3,7 +3,7 @@
     <AssemblyName Condition="!$(MSBuildProjectName.StartsWith('EvilBrains'))">EvilBrains.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace Condition="!$(MSBuildProjectName.StartsWith('EvilBrains'))">EvilBrains.$(MSBuildProjectName)</RootNamespace>
     <TargetFramework>net11.0</TargetFramework>
-    <LangVersion>14</LangVersion>
+    <LangVersion>15</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
