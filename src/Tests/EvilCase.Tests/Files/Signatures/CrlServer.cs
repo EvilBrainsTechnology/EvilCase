@@ -10,7 +10,7 @@ internal sealed class CrlServer : IDisposable
 {
     private readonly HttpListener listener = new();
 
-    private readonly Dictionary<string, byte[]> crls = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, byte[]> crls = [with(StringComparer.Ordinal)];
 
     private readonly Task serving;
 
