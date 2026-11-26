@@ -36,10 +36,10 @@ public class ApiTokensController : ControllerBase
     {
         var result = await apiTokens.CreateApiToken(userContext.UserId, request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            ApiTokenCreateOutcome.Created => this.StatusCode(StatusCodes.Status201Created, result.Created),
-            ApiTokenCreateOutcome.LimitReached => this.Problem(
+            ApiTokenCreated created => this.StatusCode(StatusCodes.Status201Created, created),
+            ApiTokenCreateFailure.LimitReached => this.Problem(
                 detail: $"At most {ApiTokenLimits.MaxActive} unexpired tokens per user.",
                 statusCode: StatusCodes.Status400BadRequest,
                 title: ApiTokenProblems.LimitReached),

@@ -33,14 +33,14 @@ public class CaseCreateTests : TenantFixture
             new CreateCaseRequest { Date = ChildDay, Title = "Podřízený", ParentCaseId = parent.Id },
             CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
+        var created = UnionAssert.Holds<CaseListItem>(result);
 
-        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
+        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == created.CaseId);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(reloaded.ParentCaseId, Is.EqualTo(parent.Id));
-            Assert.That(result.Case!.ParentCaseTitle, Is.EqualTo("Rodič"), "the created case answers like a row of the case list");
+            Assert.That(created.ParentCaseTitle, Is.EqualTo("Rodič"), "the created case answers like a row of the case list");
         }
     }
 
@@ -56,8 +56,7 @@ public class CaseCreateTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.InvalidParent), "a parent from another tenant is no parent, and nothing is filed");
-            Assert.That(result.Case, Is.Null);
+            Assert.That(result.Value, Is.EqualTo(CaseCreateFailure.InvalidParent), "a parent from another tenant is no parent, and nothing is filed");
             Assert.That(await this.Tenant.Context.Cases.CountAsync(), Is.Zero);
         }
     }
@@ -71,9 +70,9 @@ public class CaseCreateTests : TenantFixture
             new CreateCaseRequest { Date = ChildDay, Title = "Přestupek", ContactId = contact.Id },
             CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
+        var created = UnionAssert.Holds<CaseListItem>(result);
 
-        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
+        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == created.CaseId);
 
         Assert.That(reloaded.ContactId, Is.EqualTo(contact.Id));
     }
@@ -87,7 +86,7 @@ public class CaseCreateTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.ContactNotFound));
+            Assert.That(result.Value, Is.EqualTo(CaseCreateFailure.ContactNotFound));
             Assert.That(await this.Tenant.Context.Cases.CountAsync(), Is.Zero);
         }
     }
@@ -104,7 +103,7 @@ public class CaseCreateTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.ContactNotFound), "a case never names a contact of another tenant");
+            Assert.That(result.Value, Is.EqualTo(CaseCreateFailure.ContactNotFound), "a case never names a contact of another tenant");
             Assert.That(await this.Tenant.Context.Cases.CountAsync(), Is.Zero);
         }
     }
@@ -116,9 +115,9 @@ public class CaseCreateTests : TenantFixture
             new CreateCaseRequest { Date = ChildDay, Title = "Samostatný", ParentCaseId = null },
             CancellationToken.None);
 
-        Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
+        var created = UnionAssert.Holds<CaseListItem>(result);
 
-        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == result.Case!.CaseId);
+        var reloaded = await this.Tenant.Context.Cases.SingleAsync(@case => @case.Id == created.CaseId);
 
         Assert.That(reloaded.ParentCaseId, Is.Null);
     }

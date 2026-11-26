@@ -92,9 +92,7 @@ internal static class FileLinkTools
     {
         var apiTokenId = Guid.Parse(httpContext.User.FindFirstValue(AuthClaims.ApiTokenId)!, CultureInfo.InvariantCulture);
 
-        var result = await writer.CreateFileLink(kind, targetId, version, apiTokenId, token);
-
-        if (result.Outcome == FileLinkCreateOutcome.TargetNotFound)
+        if (await writer.CreateFileLink(kind, targetId, version, apiTokenId, token) is not CreatedFileLink created)
         {
             throw kind switch
             {
@@ -107,8 +105,8 @@ internal static class FileLinkTools
         }
 
         var request = httpContext.Request;
-        var url = $"{request.Scheme}://{request.Host}{request.PathBase}{FileLinkRoute.Path}?{FileLinkRoute.SecretParameter}={result.Secret}";
+        var url = $"{request.Scheme}://{request.Host}{request.PathBase}{FileLinkRoute.Path}?{FileLinkRoute.SecretParameter}={created.Secret}";
 
-        return (url, result.Expires!.Value);
+        return (url, created.Expires);
     }
 }

@@ -35,16 +35,16 @@ public class CasesController : ControllerBase
     {
         var result = await writer.CreateCase(request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            CaseCreateOutcome.Created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = result.Case!.CaseId }, result.Case),
-            CaseCreateOutcome.InvalidParent => this.Problem(
+            CaseListItem created => this.CreatedAtAction(nameof(this.GetCase), new { caseId = created.CaseId }, created),
+            CaseCreateFailure.InvalidParent => this.Problem(
                 detail: CaseProblems.ParentNotFoundDetail, statusCode: StatusCodes.Status409Conflict, title: CaseProblems.InvalidParent),
-            CaseCreateOutcome.ContactNotFound => this.Problem(
+            CaseCreateFailure.ContactNotFound => this.Problem(
                 detail: ContactProblems.UnknownContactDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: ContactProblems.UnknownContact),
-            CaseCreateOutcome.LabelNotFound => this.Problem(
+            CaseCreateFailure.LabelNotFound => this.Problem(
                 detail: LabelProblems.UnknownLabelDetail,
                 statusCode: StatusCodes.Status409Conflict,
                 title: LabelProblems.UnknownLabel),

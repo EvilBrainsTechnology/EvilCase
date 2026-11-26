@@ -1,5 +1,4 @@
 using System.Data.Common;
-using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data;
@@ -25,11 +24,11 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         var caseExists = await context.Cases.Exists(caseId, token);
         if (!caseExists)
-            return new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound };
+            return UploadFileFailure.OwnerNotFound;
 
         var result = await this.StoreUpload(context.FileAssets.OfCase(caseId), caseId, actId: null, upload, token);
-        if (result.Outcome == UploadFileOutcome.Uploaded)
-            logger.LogInformation("File {FileAssetId} was stored on case {CaseId}, {SizeBytes} bytes", result.File!.FileId, caseId, result.File.SizeBytes);
+        if (result.Kind == UploadKind.Uploaded)
+            logger.LogInformation("File {FileAssetId} was stored on case {CaseId}, {SizeBytes} bytes", result.File.FileId, caseId, result.File.SizeBytes);
 
         return result;
     }
@@ -40,11 +39,11 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         var actExists = await context.Acts.Exists(actId, token);
         if (!actExists)
-            return new UploadFileResult { Outcome = UploadFileOutcome.OwnerNotFound };
+            return UploadFileFailure.OwnerNotFound;
 
         var result = await this.StoreUpload(context.FileAssets.OfAct(actId), caseId: null, actId, upload, token);
-        if (result.Outcome == UploadFileOutcome.Uploaded)
-            logger.LogInformation("File {FileAssetId} was stored on act {ActId}, {SizeBytes} bytes", result.File!.FileId, actId, result.File.SizeBytes);
+        if (result.Kind == UploadKind.Uploaded)
+            logger.LogInformation("File {FileAssetId} was stored on act {ActId}, {SizeBytes} bytes", result.File.FileId, actId, result.File.SizeBytes);
 
         return result;
     }
@@ -59,10 +58,10 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
             .SingleOrDefaultAsync(token);
 
         if (fileName is null)
-            return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.FileNotFound };
+            return FileVersionUploadFailure.FileNotFound;
 
         if (!FileNameRules.SameExtension(fileName, upload.FileName))
-            return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.ExtensionMismatch };
+            return FileVersionUploadFailure.ExtensionMismatch;
 
         return await this.StoreNextVersion(fileId, upload.MediaType, upload.Content, token);
     }
@@ -71,15 +70,15 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     {
         var restored = await dbSession.Current.FileVersions.ReadFileVersion(fileId, number, token);
         if (restored is null)
-            return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionNotFound };
+            return FileVersionUploadFailure.VersionNotFound;
 
         await using var content = blobStore.ReadFileBlob(restored.StoragePath);
         if (content is null)
-            return new FileVersionUploadResult { Outcome = FileVersionUploadOutcome.VersionNotFound };
+            return FileVersionUploadFailure.VersionNotFound;
 
         var result = await this.StoreNextVersion(fileId, restored.MediaType, content, token);
-        if (result.Outcome == FileVersionUploadOutcome.VersionAdded)
-            logger.LogInformation("File version {FileVersionNumber} of {FileAssetId} was restored as version {RestoredAsNumber}", number, fileId, result.File!.Version);
+        if (result is UploadedFile { Kind: UploadKind.VersionAdded } added)
+            logger.LogInformation("File version {FileVersionNumber} of {FileAssetId} was restored as version {RestoredAsNumber}", number, fileId, added.File.Version);
 
         return result;
     }
@@ -301,7 +300,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     /// <summary>
     /// A name the case or act already has, ignoring case, makes the upload that file's next version.
     /// </summary>
-    private async Task<UploadFileResult> StoreUpload(IQueryable<FileAsset> ownerFiles, Guid? caseId, Guid? actId, FileUpload upload, CancellationToken token)
+    private async Task<UploadedFile> StoreUpload(IQueryable<FileAsset> ownerFiles, Guid? caseId, Guid? actId, FileUpload upload, CancellationToken token)
     {
         var context = dbSession.Current;
 
@@ -328,23 +327,13 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
                     context.FileVersions.Add(NewVersion(file.Id, 1, fileVersionId, upload.MediaType, blob));
                     await context.SaveChangesAsync(token);
 
-                    return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = await this.ReadListItem(file.Id, token) };
+                    return new UploadedFile { Kind = UploadKind.Uploaded, File = await this.ReadListItem(file.Id, token) };
                 }
 
-                var outcome = await this.SaveNextVersion(existingFileId.Value, fileVersionId, upload.MediaType, blob, token);
-                if (outcome == FileVersionUploadOutcome.FileNotFound)
+                if (await this.SaveNextVersion(existingFileId.Value, fileVersionId, upload.MediaType, blob, token) is not { } kind)
                     continue; // deleted since it was found; the next attempt stores a new file
 
-                var uploadOutcome = outcome switch
-                {
-                    FileVersionUploadOutcome.VersionAdded => UploadFileOutcome.VersionAdded,
-                    FileVersionUploadOutcome.Unchanged => UploadFileOutcome.Unchanged,
-                    FileVersionUploadOutcome.FileNotFound or FileVersionUploadOutcome.ExtensionMismatch or FileVersionUploadOutcome.VersionNotFound =>
-                        throw new UnreachableException(),
-                    _ => throw new UnreachableException(),
-                };
-
-                return new UploadFileResult { Outcome = uploadOutcome, File = await this.ReadListItem(existingFileId.Value, token) };
+                return new UploadedFile { Kind = kind, File = await this.ReadListItem(existingFileId.Value, token) };
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {
@@ -366,11 +355,10 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         {
             try
             {
-                var outcome = await this.SaveNextVersion(fileId, fileVersionId, mediaType, blob, token);
-                if (outcome == FileVersionUploadOutcome.FileNotFound)
-                    return new FileVersionUploadResult { Outcome = outcome };
+                if (await this.SaveNextVersion(fileId, fileVersionId, mediaType, blob, token) is not { } kind)
+                    return FileVersionUploadFailure.FileNotFound;
 
-                return new FileVersionUploadResult { Outcome = outcome, File = await this.ReadListItem(fileId, token) };
+                return new UploadedFile { Kind = kind, File = await this.ReadListItem(fileId, token) };
             }
             catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
             {
@@ -381,20 +369,21 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
     /// <summary>
     /// Saves the blob as the file's next version, numbered after its highest; content equal to the current version saves nothing.
+    /// Null where the file is gone.
     /// </summary>
-    private async Task<FileVersionUploadOutcome> SaveNextVersion(Guid fileId, Guid fileVersionId, string? mediaType, FileBlobInfo blob, CancellationToken token)
+    private async Task<UploadKind?> SaveNextVersion(Guid fileId, Guid fileVersionId, string? mediaType, FileBlobInfo blob, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var current = await context.FileVersions.ReadFileVersion(fileId, version: null, token);
         if (current is null)
-            return FileVersionUploadOutcome.FileNotFound;
+            return null;
 
         if (string.Equals(current.ContentHash, blob.ContentHash, StringComparison.Ordinal))
         {
             logger.LogInformation("New content for file {FileAssetId} matched its current version {FileVersionNumber} and stored no version", fileId, current.Number);
 
-            return FileVersionUploadOutcome.Unchanged;
+            return UploadKind.Unchanged;
         }
 
         var version = NewVersion(fileId, current.Number + 1, fileVersionId, mediaType, blob);
@@ -404,7 +393,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         logger.LogInformation("File version {FileVersionNumber} of {FileAssetId} was stored, {SizeBytes} bytes", version.Number, fileId, version.SizeBytes);
 
-        return FileVersionUploadOutcome.VersionAdded;
+        return UploadKind.VersionAdded;
     }
 
     private void ForgetLostRace()

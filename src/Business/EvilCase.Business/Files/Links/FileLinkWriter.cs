@@ -36,7 +36,7 @@ internal sealed class FileLinkWriter(IDbSession dbSession, IUserContext userCont
         };
 
         if (!targetExists)
-            return new FileLinkCreateResult { Outcome = FileLinkCreateOutcome.TargetNotFound };
+            return FileLinkCreateFailure.TargetNotFound;
 
         var secret = Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(SecretSizeInBytes));
         var expires = timeProvider.GetUtcNow().UtcDateTime + Lifetime;
@@ -58,7 +58,7 @@ internal sealed class FileLinkWriter(IDbSession dbSession, IUserContext userCont
 
         logger.LogInformation("File link {FileLinkId} ({FileLinkKind}) was created for {TargetId}", link.Id, kind, targetId);
 
-        return new FileLinkCreateResult { Outcome = FileLinkCreateOutcome.Created, Secret = secret, Expires = expires };
+        return new CreatedFileLink { Secret = secret, Expires = expires };
     }
 
     public async Task<FileLinkConsumeResult> ConsumeFileLink(string secret, CancellationToken token)
@@ -72,21 +72,17 @@ internal sealed class FileLinkWriter(IDbSession dbSession, IUserContext userCont
             .ToListAsync(token);
 
         if (consumed.SingleOrDefault() is not { } link || link.Expires <= now)
-            return new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.NotFound };
+            return FileLinkConsumeFailure.NotFound;
 
         logger.LogInformation("File link {FileLinkId} ({FileLinkKind}) was used for {TargetId}", link.Id, link.Kind, link.TargetId);
 
-        return new FileLinkConsumeResult
+        return new ConsumedFileLink
         {
-            Outcome = FileLinkConsumeOutcome.Consumed,
-            Link = new ConsumedFileLink
-            {
-                TenantId = link.TenantId,
-                UserId = link.UserId,
-                Kind = link.Kind,
-                TargetId = link.TargetId,
-                Version = link.Version,
-            },
+            TenantId = link.TenantId,
+            UserId = link.UserId,
+            Kind = link.Kind,
+            TargetId = link.TargetId,
+            Version = link.Version,
         };
     }
 

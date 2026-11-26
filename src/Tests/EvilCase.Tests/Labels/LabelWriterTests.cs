@@ -27,13 +27,13 @@ public class LabelWriterTests : TenantFixture
 
         var result = await this.writer.CreateLabel(request, CancellationToken.None);
 
-        var reloaded = await this.Tenant.Context.Labels.SingleAsync(label => label.Id == result.Label!.LabelId);
+        var created = UnionAssert.Holds<LabelItem>(result);
+        var reloaded = await this.Tenant.Context.Labels.SingleAsync(label => label.Id == created.LabelId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(LabelCreateOutcome.Created));
-            Assert.That(result.Label?.Name, Is.EqualTo("Hlídat lhůtu"), "a name is stored without its surrounding space");
-            Assert.That(result.Label?.Color, Is.EqualTo(LabelColor.Orange));
+            Assert.That(created.Name, Is.EqualTo("Hlídat lhůtu"), "a name is stored without its surrounding space");
+            Assert.That(created.Color, Is.EqualTo(LabelColor.Orange));
             Assert.That(reloaded.Name, Is.EqualTo("Hlídat lhůtu"));
             Assert.That(reloaded.Color, Is.EqualTo(LabelColor.Orange));
         }
@@ -48,7 +48,7 @@ public class LabelWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(LabelCreateOutcome.NameTaken));
+            Assert.That(result.Value, Is.EqualTo(LabelCreateFailure.NameTaken));
             Assert.That(await this.Tenant.Context.Labels.CountAsync(), Is.EqualTo(1), "the refused create writes no second row");
         }
     }

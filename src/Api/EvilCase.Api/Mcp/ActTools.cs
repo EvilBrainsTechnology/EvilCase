@@ -45,12 +45,12 @@ internal static class ActTools
 
         var result = await writer.CreateAct(request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            ActCreateOutcome.Created => result.Act!,
-            ActCreateOutcome.CaseNotFound => throw McpProblem.Of(CaseProblems.UnknownCase, CaseProblems.UnknownCaseDetail),
-            ActCreateOutcome.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
-            ActCreateOutcome.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
+            ActListItem created => created,
+            ActCreateFailure.CaseNotFound => throw McpProblem.Of(CaseProblems.UnknownCase, CaseProblems.UnknownCaseDetail),
+            ActCreateFailure.ContactNotFound => throw McpProblem.Of(ContactProblems.UnknownContact, ContactProblems.UnknownContactDetail),
+            ActCreateFailure.LabelNotFound => throw McpProblem.Of(LabelProblems.UnknownLabel, LabelProblems.UnknownLabelDetail),
             _ => throw new UnreachableException(),
         };
     }

@@ -29,10 +29,10 @@ public class LabelsController : ControllerBase
     {
         var result = await writer.CreateLabel(request, token);
 
-        return result.Outcome switch
+        return result switch
         {
-            LabelCreateOutcome.Created => this.StatusCode(StatusCodes.Status201Created, result.Label),
-            LabelCreateOutcome.NameTaken => this.NameTakenProblem(),
+            LabelItem created => this.StatusCode(StatusCodes.Status201Created, created),
+            LabelCreateFailure.NameTaken => this.NameTakenProblem(),
             _ => throw new UnreachableException(),
         };
     }

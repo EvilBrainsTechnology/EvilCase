@@ -43,24 +43,22 @@ public class FileLinkWriterTests : TenantFixture
     public async Task ALinkIsSpentByItsFirstUse()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var created = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var created = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
 
         await using var anonymous = TestDatabase.CreateMigrated(new StubUserContext());
         var anonymousWriter = this.WriterOn(anonymous);
 
-        var first = await anonymousWriter.ConsumeFileLink(created.Secret!, CancellationToken.None);
-        var second = await anonymousWriter.ConsumeFileLink(created.Secret!, CancellationToken.None);
+        var first = UnionAssert.Holds<ConsumedFileLink>(await anonymousWriter.ConsumeFileLink(created.Secret, CancellationToken.None));
+        var second = await anonymousWriter.ConsumeFileLink(created.Secret, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(created.Outcome, Is.EqualTo(FileLinkCreateOutcome.Created));
             Assert.That(created.Expires, Is.EqualTo(this.time.UtcNow.AddMinutes(10)), "a link is valid ten minutes");
-            Assert.That(first.Outcome, Is.EqualTo(FileLinkConsumeOutcome.Consumed));
-            Assert.That(first.Link?.TenantId, Is.EqualTo(this.Tenant.UserContext.TenantId), "the use runs in the tenant that created the link, found before any tenant is known");
-            Assert.That(first.Link?.UserId, Is.EqualTo(this.Tenant.UserId), "the use runs as the user that created the link");
-            Assert.That(first.Link?.Kind, Is.EqualTo(FileLinkKind.CaseUpload));
-            Assert.That(first.Link?.TargetId, Is.EqualTo(@case.Id));
-            Assert.That(second.Outcome, Is.EqualTo(FileLinkConsumeOutcome.NotFound), "a link is spent by its first use");
+            Assert.That(first.TenantId, Is.EqualTo(this.Tenant.UserContext.TenantId), "the use runs in the tenant that created the link, found before any tenant is known");
+            Assert.That(first.UserId, Is.EqualTo(this.Tenant.UserId), "the use runs as the user that created the link");
+            Assert.That(first.Kind, Is.EqualTo(FileLinkKind.CaseUpload));
+            Assert.That(first.TargetId, Is.EqualTo(@case.Id));
+            Assert.That(second.Value, Is.EqualTo(FileLinkConsumeFailure.NotFound), "a link is spent by its first use");
         }
     }
 
@@ -68,37 +66,37 @@ public class FileLinkWriterTests : TenantFixture
     public async Task TwoUsesAtOnceSpendTheLinkOnce()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var created = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var created = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
 
         await using var one = TestDatabase.CreateMigrated(new StubUserContext());
         await using var two = TestDatabase.CreateMigrated(new StubUserContext());
 
         var uses = await Task.WhenAll(
-            this.WriterOn(one).ConsumeFileLink(created.Secret!, CancellationToken.None),
-            this.WriterOn(two).ConsumeFileLink(created.Secret!, CancellationToken.None));
+            this.WriterOn(one).ConsumeFileLink(created.Secret, CancellationToken.None),
+            this.WriterOn(two).ConsumeFileLink(created.Secret, CancellationToken.None));
 
-        Assert.That(uses.Count(static use => use.Outcome == FileLinkConsumeOutcome.Consumed), Is.EqualTo(1), "one statement finds and deletes the link, so only one of two concurrent uses gets it");
+        Assert.That(uses.Count(static use => use.Value is ConsumedFileLink), Is.EqualTo(1), "one statement finds and deletes the link, so only one of two concurrent uses gets it");
     }
 
     [Test]
     public async Task AnExpiredLinkIsRefused()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var created = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var created = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
 
         this.time.Advance(TimeSpan.FromMinutes(10));
-        var used = await this.writer.ConsumeFileLink(created.Secret!, CancellationToken.None);
+        var used = await this.writer.ConsumeFileLink(created.Secret, CancellationToken.None);
 
-        Assert.That(used.Outcome, Is.EqualTo(FileLinkConsumeOutcome.NotFound), "a link is never usable once expired, removed or not");
+        Assert.That(used.Value, Is.EqualTo(FileLinkConsumeFailure.NotFound), "a link is never usable once expired, removed or not");
     }
 
     [Test]
     public async Task TheCleanupRemovesOnlyExpiredLinks()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var older = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var older = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
         this.time.Advance(TimeSpan.FromMinutes(6));
-        var newer = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var newer = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
         this.time.Advance(TimeSpan.FromMinutes(5));
 
         await this.writer.DeleteExpiredFileLinks(CancellationToken.None);
@@ -127,7 +125,7 @@ public class FileLinkWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(created.Outcome, Is.EqualTo(FileLinkCreateOutcome.TargetNotFound), "a link reaches only a target of the caller's tenant");
+            Assert.That(created.Value, Is.EqualTo(FileLinkCreateFailure.TargetNotFound), "a link reaches only a target of the caller's tenant");
             Assert.That(stored, Is.Zero, "a refused link writes no row");
         }
     }
@@ -140,14 +138,14 @@ public class FileLinkWriterTests : TenantFixture
 
         var created = await this.writer.CreateFileLink(FileLinkKind.Download, file.Id, version: 2, this.apiToken.Id, CancellationToken.None);
 
-        Assert.That(created.Outcome, Is.EqualTo(FileLinkCreateOutcome.TargetNotFound));
+        Assert.That(created.Value, Is.EqualTo(FileLinkCreateFailure.TargetNotFound));
     }
 
     [Test]
     public async Task TheRowHoldsOnlyTheHashOfTheSecret()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var created = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var created = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
 
         var stored = await this.Tenant.Context.FileLinks
             .AsNoTracking()
@@ -164,15 +162,15 @@ public class FileLinkWriterTests : TenantFixture
     public async Task RevokingTheTokenTakesItsLinksAlong()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var created = await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None);
+        var created = UnionAssert.Holds<CreatedFileLink>(await this.writer.CreateFileLink(FileLinkKind.CaseUpload, @case.Id, version: null, this.apiToken.Id, CancellationToken.None));
 
         await this.Tenant.Context.ApiTokens
             .Where(stored => stored.Id == this.apiToken.Id)
             .ExecuteDeleteAsync();
 
-        var used = await this.writer.ConsumeFileLink(created.Secret!, CancellationToken.None);
+        var used = await this.writer.ConsumeFileLink(created.Secret, CancellationToken.None);
 
-        Assert.That(used.Outcome, Is.EqualTo(FileLinkConsumeOutcome.NotFound), "a revoked token's links stop working with it");
+        Assert.That(used.Value, Is.EqualTo(FileLinkConsumeFailure.NotFound), "a revoked token's links stop working with it");
     }
 
     private FileLinkWriter WriterOn(ApplicationDbContext context)

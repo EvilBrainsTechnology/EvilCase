@@ -23,12 +23,12 @@ public class CaseWriterDatabaseTests : TenantFixture
 
         var result = await writer.CreateCase(new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Přestupek" }, CancellationToken.None);
 
+        var created = UnionAssert.Holds<CaseListItem>(result);
         var cases = await this.Tenant.Context.Cases.ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(CaseCreateOutcome.Created));
-            Assert.That(result.Case?.CaseNumber, Is.EqualTo(free), "the loser of the race files under the next free number");
+            Assert.That(created.CaseNumber, Is.EqualTo(free), "the loser of the race files under the next free number");
             Assert.That(cases, Has.Count.EqualTo(2), "the row that lost the race is not written twice");
         }
     }

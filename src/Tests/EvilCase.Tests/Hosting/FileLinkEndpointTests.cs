@@ -40,8 +40,8 @@ public class FileLinkEndpointTests
         this.links
             .ConsumeFileLink(Secret, Arg.Any<CancellationToken>())
             .Returns(_ => this.link is null
-                ? new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.NotFound }
-                : new FileLinkConsumeResult { Outcome = FileLinkConsumeOutcome.Consumed, Link = this.link });
+                ? new FileLinkConsumeResult(FileLinkConsumeFailure.NotFound)
+                : new FileLinkConsumeResult(this.link));
 
         this.host = new EvilCaseHost(configureServices: services =>
         {
@@ -62,7 +62,7 @@ public class FileLinkEndpointTests
 
                         this.uploads.Add((userContext.TenantId, userContext.UserId, upload.FileName, await reader.ReadToEndAsync()));
 
-                        return new UploadFileResult { Outcome = UploadFileOutcome.Uploaded, File = File(upload.FileName) };
+                        return new UploadFileResult(new UploadedFile { Kind = UploadKind.Uploaded, File = File(upload.FileName) });
                     });
 
                 return writer;

@@ -34,15 +34,11 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
 
-        var result = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
+        var result = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None));
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.Uploaded));
-            Assert.That(result.File, Is.Not.Null);
-        }
+        Assert.That(result.Kind, Is.EqualTo(UploadKind.Uploaded));
 
-        var stored = await this.Reload(result.File!.FileId);
+        var stored = await this.Reload(result.File.FileId);
         var version = await this.CurrentVersion(result.File.FileId);
 
         using (Assert.EnterMultipleScope())
@@ -77,8 +73,7 @@ public class FileWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "an upload naming a case the tenant does not have must be refused");
-            Assert.That(result.File, Is.Null);
+            Assert.That(result.Value, Is.EqualTo(UploadFileFailure.OwnerNotFound), "an upload naming a case the tenant does not have must be refused");
             Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(), Is.False, "a refused upload must write no row");
             Assert.That(this.blobs.WrittenByPath, Is.Empty, "a refused upload must write no blob");
         }
@@ -88,8 +83,8 @@ public class FileWriterTests : TenantFixture
     public async Task ADeletedFileLeavesItsBlobOnDisk()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        var storagePath = (await this.CurrentVersion(uploaded.File!.FileId)).StoragePath;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None));
+        var storagePath = (await this.CurrentVersion(uploaded.File.FileId)).StoragePath;
 
         var outcome = await this.writer.DeleteCaseFile(@case.Id, uploaded.File.FileId, CancellationToken.None);
 
@@ -106,9 +101,9 @@ public class FileWriterTests : TenantFixture
     {
         var caseA = await this.Tenant.AddCase(Day);
         var caseB = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded.File!.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteCaseFile(caseB.Id, uploaded.File.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -133,9 +128,9 @@ public class FileWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
 
-        var result = await this.writer.UploadActFile(act.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
+        var result = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None));
 
-        var stored = await this.Reload(result.File!.FileId);
+        var stored = await this.Reload(result.File.FileId);
         var version = await this.CurrentVersion(result.File.FileId);
 
         using (Assert.EnterMultipleScope())
@@ -156,8 +151,7 @@ public class FileWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound));
-            Assert.That(result.File, Is.Null);
+            Assert.That(result.Value, Is.EqualTo(UploadFileFailure.OwnerNotFound));
             Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(), Is.False);
             Assert.That(this.blobs.WrittenByPath, Is.Empty);
         }
@@ -174,7 +168,7 @@ public class FileWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(UploadFileOutcome.OwnerNotFound), "the act id alone never reaches another tenant's act");
+            Assert.That(result.Value, Is.EqualTo(UploadFileFailure.OwnerNotFound), "the act id alone never reaches another tenant's act");
             Assert.That(await other.Context.FileAssets.AnyAsync(), Is.False);
             Assert.That(this.blobs.WrittenByPath, Is.Empty);
         }
@@ -202,8 +196,8 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
-        var uploaded = await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None);
-        var storagePath = (await this.CurrentVersion(uploaded.File!.FileId)).StoragePath;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None));
+        var storagePath = (await this.CurrentVersion(uploaded.File.FileId)).StoragePath;
 
         var outcome = await this.writer.DeleteActFile(act.Id, uploaded.File.FileId, CancellationToken.None);
 
@@ -221,9 +215,9 @@ public class FileWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var actA = await this.Tenant.AddAct(@case, Day);
         var actB = await this.Tenant.AddAct(@case, Day);
-        var uploaded = await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.DeleteActFile(actB.Id, uploaded.File!.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteActFile(actB.Id, uploaded.File.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -237,11 +231,11 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
-        var caseFile = await this.writer.UploadCaseFile(@case.Id, Upload("spis.txt"), CancellationToken.None);
-        var actFile = await this.writer.UploadActFile(act.Id, Upload("ukon.txt"), CancellationToken.None);
+        var caseFile = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("spis.txt"), CancellationToken.None));
+        var actFile = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("ukon.txt"), CancellationToken.None));
 
-        var actDeleteOutcome = await this.writer.DeleteActFile(act.Id, caseFile.File!.FileId, CancellationToken.None);
-        var caseDeleteOutcome = await this.writer.DeleteCaseFile(@case.Id, actFile.File!.FileId, CancellationToken.None);
+        var actDeleteOutcome = await this.writer.DeleteActFile(act.Id, caseFile.File.FileId, CancellationToken.None);
+        var caseDeleteOutcome = await this.writer.DeleteCaseFile(@case.Id, actFile.File.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -256,8 +250,8 @@ public class FileWriterTests : TenantFixture
     public async Task ARenamedCaseFileKeepsItsBytesAndTakesTheNewName()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("stary.txt", content: "abc"), CancellationToken.None);
-        var before = await this.CurrentVersion(uploaded.File!.FileId);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("stary.txt", content: "abc"), CancellationToken.None));
+        var before = await this.CurrentVersion(uploaded.File.FileId);
 
         var outcome = await this.writer.RenameCaseFile(@case.Id, uploaded.File.FileId, "novy.txt", CancellationToken.None);
 
@@ -278,9 +272,9 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
-        var uploaded = await this.writer.UploadActFile(act.Id, Upload("stary.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("stary.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameActFile(act.Id, uploaded.File!.FileId, "novy.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameActFile(act.Id, uploaded.File.FileId, "novy.txt", CancellationToken.None);
 
         var after = await this.Tenant.Context.FileAssets.AsNoTracking().SingleAsync(file => file.Id == uploaded.File.FileId);
 
@@ -296,9 +290,9 @@ public class FileWriterTests : TenantFixture
     {
         var caseA = await this.Tenant.AddCase(Day);
         var caseB = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameCaseFile(caseB.Id, uploaded.File!.FileId, "b.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameCaseFile(caseB.Id, uploaded.File.FileId, "b.txt", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -313,9 +307,9 @@ public class FileWriterTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day);
         var actA = await this.Tenant.AddAct(@case, Day);
         var actB = await this.Tenant.AddAct(@case, Day);
-        var uploaded = await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameActFile(actB.Id, uploaded.File!.FileId, "b.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameActFile(actB.Id, uploaded.File.FileId, "b.txt", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -356,18 +350,18 @@ public class FileWriterTests : TenantFixture
     public async Task AnUploadOfATakenNameAddsAVersionToThatFile()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var first = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
+        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None));
 
-        var second = await this.writer.UploadCaseFile(@case.Id, Upload("SMLOUVA.PDF", "application/pdf", "abd"), CancellationToken.None);
+        var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("SMLOUVA.PDF", "application/pdf", "abd"), CancellationToken.None));
 
         var files = await this.Tenant.Context.FileAssets.Where(file => file.CaseId == @case.Id).ToListAsync();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(second.Outcome, Is.EqualTo(UploadFileOutcome.VersionAdded));
-            Assert.That(second.File?.FileId, Is.EqualTo(first.File!.FileId), "a taken name, ignoring case, is the same file");
-            Assert.That(second.File?.Version, Is.EqualTo(2));
-            Assert.That(second.File?.VersionCount, Is.EqualTo(2));
+            Assert.That(second.Kind, Is.EqualTo(UploadKind.VersionAdded));
+            Assert.That(second.File.FileId, Is.EqualTo(first.File.FileId), "a taken name, ignoring case, is the same file");
+            Assert.That(second.File.Version, Is.EqualTo(2));
+            Assert.That(second.File.VersionCount, Is.EqualTo(2));
             Assert.That(files.Select(static file => file.FileName), Is.EqualTo(["smlouva.pdf"]), "the file keeps the name it was first uploaded under");
         }
     }
@@ -379,15 +373,15 @@ public class FileWriterTests : TenantFixture
         var act = await this.Tenant.AddAct(@case, Day);
         var otherCase = await this.Tenant.AddCase(Day);
 
-        var onCase = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        var onAct = await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None);
-        var onOtherCase = await this.writer.UploadCaseFile(otherCase.Id, Upload("a.txt"), CancellationToken.None);
+        var onCase = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None));
+        var onAct = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None));
+        var onOtherCase = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(otherCase.Id, Upload("a.txt"), CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(onCase.Outcome, Is.EqualTo(UploadFileOutcome.Uploaded));
-            Assert.That(onAct.Outcome, Is.EqualTo(UploadFileOutcome.Uploaded), "the acts of a case do not share its names");
-            Assert.That(onOtherCase.Outcome, Is.EqualTo(UploadFileOutcome.Uploaded), "another case does not share the names");
+            Assert.That(onCase.Kind, Is.EqualTo(UploadKind.Uploaded));
+            Assert.That(onAct.Kind, Is.EqualTo(UploadKind.Uploaded), "the acts of a case do not share its names");
+            Assert.That(onOtherCase.Kind, Is.EqualTo(UploadKind.Uploaded), "another case does not share the names");
         }
     }
 
@@ -395,15 +389,15 @@ public class FileWriterTests : TenantFixture
     public async Task AnUploadEqualToTheCurrentVersionStoresNoVersion()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var first = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
+        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None));
 
-        var second = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
+        var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(second.Outcome, Is.EqualTo(UploadFileOutcome.Unchanged));
-            Assert.That(second.File?.FileId, Is.EqualTo(first.File!.FileId));
-            Assert.That(second.File?.Version, Is.EqualTo(1));
+            Assert.That(second.Kind, Is.EqualTo(UploadKind.Unchanged));
+            Assert.That(second.File.FileId, Is.EqualTo(first.File.FileId));
+            Assert.That(second.File.Version, Is.EqualTo(1));
             Assert.That(await this.VersionNumbers(first.File.FileId), Is.EqualTo([1]), "the same content stores no version");
         }
     }
@@ -415,12 +409,12 @@ public class FileWriterTests : TenantFixture
         await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
         await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abd"), CancellationToken.None);
 
-        var third = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
+        var third = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(third.Outcome, Is.EqualTo(UploadFileOutcome.VersionAdded), "only the current version decides whether the content changed");
-            Assert.That(third.File?.Version, Is.EqualTo(3));
+            Assert.That(third.Kind, Is.EqualTo(UploadKind.VersionAdded), "only the current version decides whether the content changed");
+            Assert.That(third.File.Version, Is.EqualTo(3));
         }
     }
 
@@ -428,17 +422,17 @@ public class FileWriterTests : TenantFixture
     public async Task ANewVersionKeepsTheFileNameAndTakesTheNextNumber()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", "application/pdf", "abc"), CancellationToken.None));
 
-        var result = await this.writer.UploadFileVersion(uploaded.File!.FileId, Upload("jiny.PDF", "application/x-test", "abd"), CancellationToken.None);
+        var result = UnionAssert.Holds<UploadedFile>(await this.writer.UploadFileVersion(uploaded.File.FileId, Upload("jiny.PDF", "application/x-test", "abd"), CancellationToken.None));
 
         var stored = await this.Reload(uploaded.File.FileId);
         var version = await this.CurrentVersion(uploaded.File.FileId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionAdded));
-            Assert.That(result.File?.Version, Is.EqualTo(2));
+            Assert.That(result.Kind, Is.EqualTo(UploadKind.VersionAdded));
+            Assert.That(result.File.Version, Is.EqualTo(2));
             Assert.That(stored.FileName, Is.EqualTo("smlouva.pdf"), "a new version does not use the name it arrived under");
             Assert.That(version.Number, Is.EqualTo(2));
             Assert.That(version.MediaType, Is.EqualTo("application/x-test"), "the media type comes from the upload that made the version");
@@ -449,13 +443,13 @@ public class FileWriterTests : TenantFixture
     public async Task ANewVersionOfAnotherExtensionIsRefused()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", content: "abc"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", content: "abc"), CancellationToken.None));
 
-        var result = await this.writer.UploadFileVersion(uploaded.File!.FileId, Upload("smlouva.docx", content: "abd"), CancellationToken.None);
+        var result = await this.writer.UploadFileVersion(uploaded.File.FileId, Upload("smlouva.docx", content: "abd"), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.ExtensionMismatch));
+            Assert.That(result.Value, Is.EqualTo(FileVersionUploadFailure.ExtensionMismatch));
             Assert.That(await this.VersionNumbers(uploaded.File.FileId), Is.EqualTo([1]));
             Assert.That(this.blobs.Written, Has.Count.EqualTo(1), "a refused version writes no blob");
         }
@@ -468,8 +462,7 @@ public class FileWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.FileNotFound));
-            Assert.That(result.File, Is.Null);
+            Assert.That(result.Value, Is.EqualTo(FileVersionUploadFailure.FileNotFound));
             Assert.That(this.blobs.Written, Is.Empty, "a refused version writes no blob");
         }
     }
@@ -485,7 +478,7 @@ public class FileWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.FileNotFound), "the file id alone never reaches another tenant's file");
+            Assert.That(result.Value, Is.EqualTo(FileVersionUploadFailure.FileNotFound), "the file id alone never reaches another tenant's file");
             Assert.That(this.blobs.Written, Is.Empty);
         }
     }
@@ -494,14 +487,14 @@ public class FileWriterTests : TenantFixture
     public async Task ANewVersionEqualToTheCurrentIsUnchanged()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None));
 
-        var result = await this.writer.UploadFileVersion(uploaded.File!.FileId, Upload("a.txt", content: "abc"), CancellationToken.None);
+        var result = UnionAssert.Holds<UploadedFile>(await this.writer.UploadFileVersion(uploaded.File.FileId, Upload("a.txt", content: "abc"), CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.Unchanged));
-            Assert.That(result.File?.Version, Is.EqualTo(1));
+            Assert.That(result.Kind, Is.EqualTo(UploadKind.Unchanged));
+            Assert.That(result.File.Version, Is.EqualTo(1));
             Assert.That(await this.VersionNumbers(uploaded.File.FileId), Is.EqualTo([1]));
         }
     }
@@ -510,13 +503,13 @@ public class FileWriterTests : TenantFixture
     public async Task AnotherUserOfTheTenantVersionsRenamesAndDeletesAFileTheyDidNotUpload()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", content: "abc"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf", content: "abc"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         var colleague = await this.Tenant.AddUser();
 
         using (this.Tenant.EnterAs(colleague.Id))
         {
-            var added = await this.writer.UploadFileVersion(fileId, Upload("smlouva.pdf", content: "abd"), CancellationToken.None);
+            var added = UnionAssert.Holds<UploadedFile>(await this.writer.UploadFileVersion(fileId, Upload("smlouva.pdf", content: "abd"), CancellationToken.None));
             var uploader = (await this.CurrentVersion(fileId)).UserId;
             var renamed = await this.writer.RenameCaseFile(@case.Id, fileId, "nove.pdf", CancellationToken.None);
             var versionDeleted = await this.writer.DeleteFileVersion(fileId, 1, CancellationToken.None);
@@ -524,7 +517,7 @@ public class FileWriterTests : TenantFixture
 
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(added.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionAdded));
+                Assert.That(added.Kind, Is.EqualTo(UploadKind.VersionAdded));
                 Assert.That(uploader, Is.EqualTo(colleague.Id), "the version carries who uploaded it");
                 Assert.That(renamed, Is.EqualTo(FileRenameOutcome.Renamed));
                 Assert.That(versionDeleted, Is.EqualTo(FileVersionDeleteOutcome.Deleted));
@@ -537,8 +530,8 @@ public class FileWriterTests : TenantFixture
     public async Task DeletingAVersionKeepsTheOthersAndTheirNumbers()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "b"), CancellationToken.None);
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "c"), CancellationToken.None);
 
@@ -578,9 +571,9 @@ public class FileWriterTests : TenantFixture
     public async Task TheOnlyVersionIsNotDeletedAlone()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.DeleteFileVersion(uploaded.File!.FileId, 1, CancellationToken.None);
+        var outcome = await this.writer.DeleteFileVersion(uploaded.File.FileId, 1, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -593,8 +586,8 @@ public class FileWriterTests : TenantFixture
     public async Task DeletingAMissingVersionIsNotFound()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        await this.writer.UploadFileVersion(uploaded.File!.FileId, Upload("a.txt", content: "b"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None));
+        await this.writer.UploadFileVersion(uploaded.File.FileId, Upload("a.txt", content: "b"), CancellationToken.None);
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         var otherFile = await other.AddCaseFile(otherCase);
@@ -615,8 +608,8 @@ public class FileWriterTests : TenantFixture
     public async Task ADeletedVersionLeavesItsBlobOnDisk()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "b"), CancellationToken.None);
         var storagePath = (await this.CurrentVersion(fileId)).StoragePath;
 
@@ -629,37 +622,37 @@ public class FileWriterTests : TenantFixture
     public async Task ANewVersionAfterDeletingTheCurrentTakesTheNumberAfterTheHighestLeft()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "b"), CancellationToken.None);
         await this.writer.DeleteFileVersion(fileId, 2, CancellationToken.None);
 
-        var result = await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "c"), CancellationToken.None);
+        var result = UnionAssert.Holds<UploadedFile>(await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "c"), CancellationToken.None));
 
-        Assert.That(result.File?.Version, Is.EqualTo(2), "the number is the highest left plus one, not a counter");
+        Assert.That(result.File.Version, Is.EqualTo(2), "the number is the highest left plus one, not a counter");
     }
 
     [Test]
     public async Task ARestoredVersionIsTheNextVersionWithItsContentUploadedByWhoRestoredIt()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", "text/x-first", "abc"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", "text/x-first", "abc"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "abd"), CancellationToken.None);
         var first = await this.Tenant.Context.FileVersions.AsNoTracking().SingleAsync(version => version.FileAssetId == fileId && version.Number == 1);
         var colleague = await this.Tenant.AddUser();
 
-        FileVersionUploadResult result;
+        UploadedFile result;
 
         using (this.Tenant.EnterAs(colleague.Id))
-            result = await this.writer.RestoreFileVersion(fileId, 1, CancellationToken.None);
+            result = UnionAssert.Holds<UploadedFile>(await this.writer.RestoreFileVersion(fileId, 1, CancellationToken.None));
 
         var restored = await this.CurrentVersion(fileId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionAdded));
-            Assert.That(result.File?.Version, Is.EqualTo(3));
+            Assert.That(result.Kind, Is.EqualTo(UploadKind.VersionAdded));
+            Assert.That(result.File.Version, Is.EqualTo(3));
             Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1, 2, 3]), "the restored version stays and the restore adds one");
             Assert.That(restored.ContentHash, Is.EqualTo(first.ContentHash));
             Assert.That(restored.MediaType, Is.EqualTo("text/x-first"), "the media type comes from the restored version");
@@ -673,17 +666,17 @@ public class FileWriterTests : TenantFixture
     public async Task ARestoreOfTheCurrentContentStoresNoVersion()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "abc"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "abd"), CancellationToken.None);
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "abc"), CancellationToken.None);
 
-        var result = await this.writer.RestoreFileVersion(fileId, 1, CancellationToken.None);
+        var result = UnionAssert.Holds<UploadedFile>(await this.writer.RestoreFileVersion(fileId, 1, CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result.Outcome, Is.EqualTo(FileVersionUploadOutcome.Unchanged));
-            Assert.That(result.File?.Version, Is.EqualTo(3));
+            Assert.That(result.Kind, Is.EqualTo(UploadKind.Unchanged));
+            Assert.That(result.File.Version, Is.EqualTo(3));
             Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1, 2, 3]), "content equal to the current version stores no version");
         }
     }
@@ -692,8 +685,8 @@ public class FileWriterTests : TenantFixture
     public async Task RestoringAnUnknownVersionOrAnotherTenantsFileIsNotFound()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         var withoutBlob = await this.Tenant.AddCaseFile(@case);
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
@@ -708,10 +701,10 @@ public class FileWriterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(unknownNumber.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound));
-            Assert.That(unknownFile.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound));
-            Assert.That(missingBlob.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound), "a version without its blob is not found");
-            Assert.That(anotherTenants.Outcome, Is.EqualTo(FileVersionUploadOutcome.VersionNotFound), "the file id alone never reaches another tenant's file");
+            Assert.That(unknownNumber.Value, Is.EqualTo(FileVersionUploadFailure.VersionNotFound));
+            Assert.That(unknownFile.Value, Is.EqualTo(FileVersionUploadFailure.VersionNotFound));
+            Assert.That(missingBlob.Value, Is.EqualTo(FileVersionUploadFailure.VersionNotFound), "a version without its blob is not found");
+            Assert.That(anotherTenants.Value, Is.EqualTo(FileVersionUploadFailure.VersionNotFound), "the file id alone never reaches another tenant's file");
             Assert.That(this.blobs.Written, Has.Count.EqualTo(written), "a refused restore writes no blob");
             Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1]));
         }
@@ -721,8 +714,8 @@ public class FileWriterTests : TenantFixture
     public async Task DeletingAFileDeletesAllItsVersions()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "b"), CancellationToken.None);
 
         await this.writer.DeleteCaseFile(@case.Id, fileId, CancellationToken.None);
@@ -735,9 +728,9 @@ public class FileWriterTests : TenantFixture
     {
         var @case = await this.Tenant.AddCase(Day);
         await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
-        var second = await this.writer.UploadCaseFile(@case.Id, Upload("b.txt"), CancellationToken.None);
+        var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("b.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameCaseFile(@case.Id, second.File!.FileId, "A.TXT", CancellationToken.None);
+        var outcome = await this.writer.RenameCaseFile(@case.Id, second.File.FileId, "A.TXT", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -750,9 +743,9 @@ public class FileWriterTests : TenantFixture
     public async Task RenamingOnlyTheCaseOfItsOwnNameIsAllowed()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None);
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameCaseFile(@case.Id, uploaded.File!.FileId, "A.TXT", CancellationToken.None);
+        var outcome = await this.writer.RenameCaseFile(@case.Id, uploaded.File.FileId, "A.TXT", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -767,9 +760,9 @@ public class FileWriterTests : TenantFixture
         var caseA = await this.Tenant.AddCase(Day);
         var caseB = await this.Tenant.AddCase(Day);
         await this.writer.UploadCaseFile(caseA.Id, Upload("a.txt"), CancellationToken.None);
-        var other = await this.writer.UploadCaseFile(caseB.Id, Upload("b.txt"), CancellationToken.None);
+        var other = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(caseB.Id, Upload("b.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameCaseFile(caseB.Id, other.File!.FileId, "a.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameCaseFile(caseB.Id, other.File.FileId, "a.txt", CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(FileRenameOutcome.Renamed), "a name is unique within one case or act only");
     }
@@ -793,7 +786,7 @@ public class FileWriterTests : TenantFixture
         {
             Assert.That(files, Has.Count.EqualTo(1), "the losing upload of a name joins the winner's file");
             Assert.That(await this.VersionNumbers(files[0].Id), Is.EqualTo([1, 2]));
-            Assert.That(results.Select(static result => result.Outcome), Is.EquivalentTo([UploadFileOutcome.Uploaded, UploadFileOutcome.VersionAdded]));
+            Assert.That(results.Select(static result => UnionAssert.Holds<UploadedFile>(result).Kind), Is.EquivalentTo([UploadKind.Uploaded, UploadKind.VersionAdded]));
         }
     }
 
@@ -801,8 +794,8 @@ public class FileWriterTests : TenantFixture
     public async Task TwoConcurrentVersionsOfOneFileTakeTheNextTwoNumbers()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var uploaded = await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None);
-        var fileId = uploaded.File!.FileId;
+        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("a.txt", content: "a"), CancellationToken.None));
+        var fileId = uploaded.File.FileId;
         var store = new MeetingBlobStore(parties: 2);
         await using var second = TestDatabase.CreateMigratedAsHost(this.Tenant.UserContext);
         var first = this.WriterOver(this.Tenant.Context, store);
@@ -815,7 +808,7 @@ public class FileWriterTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(await this.VersionNumbers(fileId), Is.EqualTo([1, 2, 3]), "the losing version takes the next number");
-            Assert.That(results.Select(static result => result.Outcome), Is.All.EqualTo(FileVersionUploadOutcome.VersionAdded));
+            Assert.That(results.Select(static result => UnionAssert.Holds<UploadedFile>(result).Kind), Is.All.EqualTo(UploadKind.VersionAdded));
         }
     }
 
