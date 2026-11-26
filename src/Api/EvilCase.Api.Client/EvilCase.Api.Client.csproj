@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" VersionOverride="11.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" />
   </ItemGroup>
 
