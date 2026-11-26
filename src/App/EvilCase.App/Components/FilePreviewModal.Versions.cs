@@ -21,8 +21,6 @@ public partial class FilePreviewModal
 
     private InputFile? versionInput;
 
-    private int versionRound;
-
     private bool focusVersionsToggle;
 
     // The older version Vrátit se k této verzi asks to restore.
@@ -114,9 +112,6 @@ public partial class FilePreviewModal
     {
         if (args.FileCount == 0)
             return;
-
-        // A fresh input, so the same file can be picked again.
-        this.versionRound++;
 
         await this.UploadNewVersion(file, args.File);
     }

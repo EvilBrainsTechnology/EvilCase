@@ -35,8 +35,7 @@
         </Header>
         <ChildContent>
             <div class="ec-card-stack">
-                @* Keyed on the batch, so the same file can be picked again; a batch in flight keeps
-                   its own input and the next drop goes to the first, fresh one. *@
+                @* Keyed on the batch: a batch in flight keeps its own input, and the next pick goes to a fresh one. *@
                 <div class="ec-visually-hidden">
                     <InputFile @key="this.uploadRound" id="files-upload-input" multiple OnChange="this.OnFilesSelected" />
                     @if (this.busyRound is { } busy)
@@ -138,7 +137,7 @@
 </div>
 
 @* Outside the drop zone, so a drop never goes to it. *@
-<div class="ec-visually-hidden"><InputFile @ref="this.versionInput" @key="this.versionRound" id="files-version-input" tabindex="-1" aria-label="Nová verze souboru" OnChange="this.OnVersionSelected" /></div>
+<div class="ec-visually-hidden"><InputFile @ref="this.versionInput" id="files-version-input" tabindex="-1" aria-label="Nová verze souboru" OnChange="this.OnVersionSelected" /></div>
 
 @if (this.previewFileId is { } previewId)
 {
@@ -292,10 +291,12 @@
         if (FileTypeDisplay.Editable(file.FileName, file.SizeBytes))
             actions.Add(new EcMenuItem { Text = "Upravit", Icon = AppIcons.Edit, OnSelect = EventCallback.Factory.Create(this, () => this.Edit(file)) });
 
+        if (!this.Uploading)
+            actions.Add(new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, () => this.PickVersion(file)) });
+
         return
         [
             .. actions,
-            new EcMenuItem { Text = "Nahrát novou verzi", Icon = AppIcons.Upload, OnSelect = EventCallback.Factory.Create(this, () => this.PickVersion(file)) },
             new EcMenuItem { Text = $"Verze ({file.VersionCount})", Icon = AppIcons.Clock, OnSelect = EventCallback.Factory.Create(this, () => this.OpenVersions(file)) },
             new EcMenuItem { Text = "Přejmenovat", Icon = AppIcons.Pencil, OnSelect = EventCallback.Factory.Create(this, () => this.StartRename(file)) },
             new EcMenuItem { Text = "Smazat", Icon = AppIcons.Trash, OnSelect = EventCallback.Factory.Create(this, () => this.ConfirmDelete(file)), Danger = true, DividerBefore = true },
