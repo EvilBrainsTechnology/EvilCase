@@ -3,7 +3,7 @@
 A case-file system for administrative and legal proceedings; `docs/product/vision.md` is the
 product it is built towards.
 
-.NET 10, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
+.NET 11, PostgreSQL, secrets from environment variables. `src/global.json` pins the SDK version
 and `.claude/hooks/session-start.sh` hardcodes its image tag — a major-version bump changes both.
 Node.js 22+ is a build prerequisite: the App build runs `npm ci` and generates the gitignored `wwwroot/lib`, `wwwroot/fonts` and `wwwroot/js` (compiled from `ts/`).
 

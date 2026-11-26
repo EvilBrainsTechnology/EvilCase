@@ -1,0 +1,4 @@
+is_global = true
+
+# Razor-generated sources match no .editorconfig section.
+dotnet_diagnostic.BL0016.severity = none # JS interop call is not guarded with try/catch

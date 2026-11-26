@@ -10,7 +10,7 @@ public static class ContactMonogram
     {
         var words = name
             .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
-            .SkipWhile(static word => word.EndsWith('.'))
+            .SkipWhile(static word => word.EndsWith('.', StringComparison.Ordinal))
             .Take(2);
 
         return string.Concat(words.Select(static word => char.ToUpperInvariant(word[0])));

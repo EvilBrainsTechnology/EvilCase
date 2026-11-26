@@ -6,7 +6,7 @@ A case-file system for administrative and legal proceedings: a case accumulates 
 
 ## Stack
 
-.NET 10, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on the application's own `Ec` components and stylesheet; the browser libraries and fonts are installed by npm at build time and served by the app — no CDN.
+.NET 11, PostgreSQL, Serilog. The frontend is Blazor WebAssembly on the application's own `Ec` components and stylesheet; the browser libraries and fonts are installed by npm at build time and served by the app — no CDN.
 
 One process serves everything: `/api/*` goes to the API, every other path returns the WebAssembly app.
 

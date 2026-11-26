@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG DOTNET_VERSION=10.0
+ARG DOTNET_VERSION=11.0
 
 # Everything the restore reads and nothing else. This stage reruns on every source change, but as
 # long as no project file changed its output is byte for byte the same, and the cache key of the

@@ -203,7 +203,7 @@
 
     private async Task AddNewComment()
     {
-        if (!this.newCommentContext.Validate())
+        if (!await this.newCommentContext.ValidateAsync())
             return;
 
         this.busy = true;
@@ -253,7 +253,7 @@
         if (this.editingCommentId is not { } commentId)
             return;
 
-        if (!this.editCommentContext.Validate())
+        if (!await this.editCommentContext.ValidateAsync())
             return;
 
         this.busy = true;

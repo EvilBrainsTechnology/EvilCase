@@ -12,7 +12,7 @@ fi
 
 readonly REPO="${CLAUDE_PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 readonly DOTNET_ROOT_DIR=/usr/share/dotnet
-readonly SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:10.0
+readonly SDK_IMAGE=mcr.microsoft.com/dotnet/sdk:11.0
 
 log() { echo "[session-start] $*"; }
 
@@ -70,15 +70,16 @@ install_dotnet() {
     ln -sf "$DOTNET_ROOT_DIR/dotnet" /usr/local/bin/dotnet
 }
 
-if dotnet --version >/dev/null 2>&1; then
-    log ".NET SDK $(dotnet --version) already installed"
+# A container kept from an earlier session can hold the SDK of the previous major.
+if dotnet --list-sdks 2>/dev/null | grep -q "^${SDK_IMAGE##*:}\."; then
+    log ".NET SDK ${SDK_IMAGE##*:} already installed"
 else
     install_dotnet
     log ".NET SDK $(dotnet --version) installed"
 fi
 
 # The App build runs npm and node, so /opt/node22/bin joins the PATH.
-# run-script (the `r` tool) targets net8.0 and the SDK image carries only the 10.0 runtime.
+# run-script (the `r` tool) targets net8.0 and the SDK image carries only the 11.0 runtime.
 export DOTNET_ROLL_FORWARD=LatestMajor
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1

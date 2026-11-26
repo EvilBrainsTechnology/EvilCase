@@ -228,7 +228,7 @@
 
     private async Task SubmitAct()
     {
-        if (!this.editContext.Validate())
+        if (!await this.editContext.ValidateAsync())
             return;
 
         this.busy = true;

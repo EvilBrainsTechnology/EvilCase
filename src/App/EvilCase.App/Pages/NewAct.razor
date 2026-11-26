@@ -273,7 +273,7 @@
 
     private async Task SubmitAct()
     {
-        var valid = this.editContext.Validate();
+        var valid = await this.editContext.ValidateAsync();
 
         if (this.caseDetail is null)
         {

@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using Microsoft.Extensions.DependencyInjection;
 
