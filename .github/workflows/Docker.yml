@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE: ghcr.io/evilbrainstechnology/evilcase
+  IMAGE: ghcr.io/vdolek/evilcase
 
 jobs:
   # Lint, build and test. Called rather than duplicated, so master and release runs go through the same
