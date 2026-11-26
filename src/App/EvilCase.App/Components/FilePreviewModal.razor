@@ -136,8 +136,9 @@
                 </div>
                 @* Below lg the preview's toolbar carries these; a preview without one, an image's included, keeps them here. *@
                 <div class="ec-preview-compact">@this.CompactActions(file)</div>
-                <div class="ec-visually-hidden"><InputFile @ref="this.versionInput" @key="this.versionRound" tabindex="-1" aria-label="Nová verze souboru" OnChange="args => this.VersionPicked(file, args)" /></div>
             }
+            @* Outside the header branches, so no switch of them removes the input while the browser still reads the file from it. *@
+            <div class="ec-visually-hidden"><InputFile @ref="this.versionInput" tabindex="-1" aria-label="Nová verze souboru" OnChange="args => this.VersionPicked(file, args)" /></div>
         </Heading>
         <ChildContent>
             <CascadingValue Name="PreviewActions" Value="@(attachment is null && this.compareStart is null && this.editing is null && preview is not (FilePreviewKind.Image or FilePreviewKind.ConvertedImage) ? this.CompactActions(file) : null)">

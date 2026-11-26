@@ -23,11 +23,11 @@ public partial class FilesCard
 
     private InputFile? versionInput;
 
-    private int versionRound;
-
     private FileListItem? versionTarget;
 
     private bool versionUploading;
+
+    private bool Uploading => this.versionUploading || this.busyRound is not null;
 
     private async Task OnFilesSelected(InputFileChangeEventArgs args)
     {
@@ -88,8 +88,6 @@ public partial class FilesCard
     {
         if (args.FileCount == 0 || this.versionTarget is not { } file)
             return;
-
-        this.versionRound++;
 
         var (failure, _) = await this.UploadVersion(file, args.File);
 

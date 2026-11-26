@@ -134,7 +134,47 @@ public class FilesCardRenderTests
         component.WaitForAssertion(() => Assert.That(
             component.FindComponent<InputFile>().Instance,
             Is.Not.SameAs(before),
-            "a browser raises no change event for a file already in the input, so picking the same file again needs a fresh one"));
+            "the finished batch leaves a fresh input for the next pick"));
+    }
+
+    [Test]
+    public async Task TheVersionInputOutlivesTheUploadAndTheMenuOffersNoSecondOne()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var gate = new TaskCompletionSource();
+        var started = false;
+        var component = new Card
+        {
+            Files = [File("a.pdf")],
+            UploadFileVersion = async (target, _, _) =>
+            {
+                started = true;
+                await gate.Task;
+
+                return Stored(target, FileUploadOutcome.NewVersion);
+            },
+        }
+            .Render(ctx);
+
+        await OpenMenu(component);
+        await MenuItem(component, "Nahrát novou verzi").ClickAsync(new MouseEventArgs());
+
+        var before = VersionInput(component).Instance;
+        var upload = component.InvokeAsync(async () => await before.OnChange.InvokeAsync(Change("a.pdf")));
+
+        await component.WaitForAssertionAsync(() => Assert.That(started, Is.True));
+
+        await OpenMenu(component);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(VersionInput(component).Instance, Is.SameAs(before), "the input must outlive the upload, since the browser reads the file from it");
+            Assert.That(component.FindAll("[role=menuitem]").Select(static item => item.TextContent), Has.None.Contain("Nahrát novou verzi"), "a second pick during the upload would replace the file the first one still reads");
+        }
+
+        gate.SetResult();
+        await upload;
     }
 
     [Test]
