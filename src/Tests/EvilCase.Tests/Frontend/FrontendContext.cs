@@ -1,6 +1,7 @@
 using Bunit;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Clipboard;
+using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Navigation;
 using Microsoft.AspNetCore.Components.WebAssembly.Services;
@@ -29,6 +30,7 @@ internal static class FrontendContext
         AddStub<IClipboardWriter, StubClipboardWriter>(ctx);
         AddStub<IAuthSession, StubAuthSession>(ctx);
         ctx.Services.AddSingleton<LazyAssemblyLoader>();
+        ctx.Services.AddTransient<IFilesStates, FilesStates>();
 
         return ctx;
     }

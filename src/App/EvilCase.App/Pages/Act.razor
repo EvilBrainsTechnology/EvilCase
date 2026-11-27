@@ -4,7 +4,6 @@
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Comments
-@using EvilBrains.EvilCase.Api.Contract.Files
 @using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Domain.Acts
 @inherits DetailPage<ActDetail>
@@ -12,7 +11,7 @@
 @inject ILogger<Act> Logger
 @inject IActLabelsClient ActLabelsClient
 @inject IActCommentsClient ActCommentsClient
-@inject IActFilesClient ActFilesClient
+@inject IFilesStates FilesStates
 
 <PageTitle>@(this.Detail is null ? "Úkon" : this.Detail.Title) – EvilCase</PageTitle>
 
@@ -251,15 +250,6 @@
                     State="this.Files"
                     Title="Soubory úkonu"
                     OwnerGoneError="úkon už neexistuje."
-                    UploadFile="this.UploadFile"
-                    LoadContent="this.LoadFileContent"
-                    UploadFileVersion="this.UploadFileVersion"
-                    LoadFileVersions="this.LoadFileVersions"
-                    DeleteFileVersion="this.DeleteFileVersion"
-                    RestoreFileVersion="this.RestoreFileVersion"
-                    RenameFile="this.RenameFile"
-                    DeleteFile="this.DeleteFile"
-                    ChangeMainFile="this.ChangeMainFile"
                     UploadTarget="k úkonu"
                     ArchiveUrl="@FileUrl.ActArchive(this.ActId)"
                     Compact="compact" />;
@@ -335,6 +325,11 @@
         return detail with { Labels = labels };
     }
 
+    protected override FilesCardState CreateFiles()
+    {
+        return this.FilesStates.ForAct(this.ActId);
+    }
+
     private void EditAct()
     {
         this.Navigation.NavigateTo($"/acts/{this.ActId}/edit");
@@ -405,26 +400,6 @@
         this.deleting = false;
 
         this.Navigation.NavigateTo(this.Detail is { } deleted ? $"/cases/{deleted.CaseId}" : "/cases");
-    }
-
-    protected override async Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token)
-    {
-        return (await this.ActFilesClient.ListActFiles(this.ActId, token)).Items;
-    }
-
-    private Task<FileUploadResult> UploadFile(IBrowserFile file, CancellationToken token)
-    {
-        return this.FileTransfer.UploadActFile(this.ActId, file, token);
-    }
-
-    private Task RenameFile(FileListItem file, string fileName, CancellationToken token)
-    {
-        return this.ActFilesClient.RenameActFile(this.ActId, file.FileId, new FileRenameRequest { FileName = fileName }, token);
-    }
-
-    private Task DeleteFile(FileListItem file, CancellationToken token)
-    {
-        return this.ActFilesClient.DeleteActFile(this.ActId, file.FileId, token);
     }
 
     private async Task<IReadOnlyList<CommentItem>> LoadComments(CancellationToken token)

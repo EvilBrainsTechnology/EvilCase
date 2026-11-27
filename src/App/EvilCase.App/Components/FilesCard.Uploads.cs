@@ -55,7 +55,7 @@ public partial class FilesCard
         {
             await FileBatchUploader.Run(
                 args,
-                this.UploadFile,
+                this.State.Owner.UploadFile,
                 this.OwnerGoneError,
                 this.State.Failures,
                 (index, name) =>
@@ -64,7 +64,7 @@ public partial class FilesCard
                     this.uploadName = name;
                     this.StateHasChanged();
                 },
-                result => this.Record(result),
+                result => this.State.Record(result),
                 this.Logger);
         }
         finally
@@ -118,10 +118,10 @@ public partial class FilesCard
 
         try
         {
-            (var result, failure) = await FileVersionUploader.Upload(this.UploadFileVersion, file, picked, this.Logger);
+            (var result, failure) = await FileVersionUploader.Upload(this.State.UploadFileVersion, file, picked, this.Logger);
 
             if (result is not null)
-                notice = this.Record(result);
+                notice = this.State.Record(result);
         }
         finally
         {

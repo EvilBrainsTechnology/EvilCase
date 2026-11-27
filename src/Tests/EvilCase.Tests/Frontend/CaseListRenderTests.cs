@@ -1,4 +1,6 @@
+using System.Net;
 using Bunit;
+using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
@@ -196,6 +198,30 @@ public class CaseListRenderTests
             "the list reloads after the change"));
 
         await mainFiles.Received(1).UnsetMainFile(mainFile.FileId, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task AStarInThePreviewOnAFileFoundGoneSaysSo()
+    {
+        await using var ctx = FrontendContext.Create();
+        var (_, mainFile, _) = ServeMainFile(ctx);
+        var mainFiles = ctx.Services.GetRequiredService<IMainFileClient>();
+
+        mainFiles.UnsetMainFile(mainFile.FileId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new ApiException(HttpStatusCode.NotFound, responseBody: null)));
+
+        var component = Render(ctx, [CaseColumn.Case, CaseColumn.MainFile]);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("button.ec-main-file"), Has.Count.EqualTo(1)));
+        await component.Find("button.ec-main-file").ClickAsync(new MouseEventArgs());
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-name-row .ec-main-star"), Has.Count.EqualTo(1)));
+
+        await component.Find(".ec-preview-name-row .ec-main-star").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(
+            component.Find(".ec-preview-alert").TextContent,
+            Is.EqualTo("Soubor rozhodnuti.pdf už neexistuje."),
+            "the main-file preview names a file found gone as the files card does"));
     }
 
     private static (ICasesClient CasesClient, FileListItem MainFile, Guid WithMain) ServeMainFile(BunitContext ctx)

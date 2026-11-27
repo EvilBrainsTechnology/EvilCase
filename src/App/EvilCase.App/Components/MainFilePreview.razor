@@ -1,11 +1,6 @@
-@using EvilBrains.ApiClient
-@using EvilBrains.EvilCase.Api.Client
+@using System.Diagnostics
 @using EvilBrains.EvilCase.Api.Contract.Files
-@inject ICaseFilesClient CaseFilesClient
-@inject IActFilesClient ActFilesClient
-@inject IFileTransferClient FileTransfer
-@inject IFileVersionsClient FileVersions
-@inject IMainFileClient MainFiles
+@inject IFilesStates FilesStates
 @inject IBrowserFiles BrowserFiles
 @inject ILogger<MainFilePreview> Logger
 
@@ -25,15 +20,15 @@ else if (this.File is { } file)
     if (this.previewing)
     {
         <FilePreviewModal Files="[file]" FileId="file.FileId" Version="this.previewVersion" VersionChanged="this.PreviewVersion"
-                          LoadContent="this.LoadContent" Rename="this.Rename"
-                          LoadVersions="this.LoadVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion" OnManageVersions="this.ManageVersions"
+                          LoadContent="this.state.LoadFileContent" Rename="this.state.Owner.RenameFile"
+                          LoadVersions="this.state.ListFileVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion" OnManageVersions="this.ManageVersions"
                           OnDownload="this.Download" OnRenamed="this.Changed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
                           CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
     }
 
     if (this.versionsOpen)
     {
-        <FileVersionsModal File="file" LoadVersions="this.LoadVersions" DeleteVersion="this.DeleteVersion" UploadVersion="this.UploadVersion"
+        <FileVersionsModal File="file" LoadVersions="this.state.ListFileVersions" DeleteVersion="this.state.DeleteFileVersion" UploadVersion="this.UploadVersion"
                            OnPreview="number => this.ShowVersion(file, number)" OnDownload="number => this.DownloadVersion(file, number)"
                            OnCompare="number => this.CompareVersion(file, number)"
                            OnDeleteFile="this.DeleteFromVersions" OnChanged="this.Changed" Open OpenChanged="this.CloseVersions" />
@@ -41,7 +36,7 @@ else if (this.File is { } file)
 
     if (this.deleting)
     {
-        <FileDeleteConfirm File="file" Delete="this.Delete" OpenChanged="this.CloseDelete" OnDone="this.Deleted" />
+        <FileDeleteConfirm File="file" Delete="this.state.Owner.DeleteFile" OpenChanged="this.CloseDelete" OnDone="this.Deleted" />
     }
 }
 
@@ -81,7 +76,12 @@ else if (this.File is { } file)
 
     protected override async Task OnInitializedAsync()
     {
-        this.state = new FilesCardState(this.ListFiles);
+        this.state = this.Owner switch
+        {
+            FileOwnerKind.Case => this.FilesStates.ForCase(this.OwnerId),
+            FileOwnerKind.Act => this.FilesStates.ForAct(this.OwnerId),
+            _ => throw new UnreachableException(),
+        };
 
         await this.Reload();
     }
@@ -109,54 +109,13 @@ else if (this.File is { } file)
         await this.OnClosed.InvokeAsync();
     }
 
-    private async Task<IReadOnlyList<FileListItem>> ListFiles(CancellationToken token)
-    {
-        return this.Owner == FileOwnerKind.Case
-            ? (await this.CaseFilesClient.ListCaseFiles(this.OwnerId, token)).Items
-            : (await this.ActFilesClient.ListActFiles(this.OwnerId, token)).Items;
-    }
-
-    private async Task<Stream> LoadContent(FileListItem file, int? version, CancellationToken token)
-    {
-        return await this.FileTransfer.DownloadFileContent(file.FileId, version, token);
-    }
-
-    private async Task Rename(FileListItem file, string fileName, CancellationToken token)
-    {
-        var request = new FileRenameRequest { FileName = fileName };
-
-        if (this.Owner == FileOwnerKind.Case)
-            await this.CaseFilesClient.RenameCaseFile(this.OwnerId, file.FileId, request, token);
-        else
-            await this.ActFilesClient.RenameActFile(this.OwnerId, file.FileId, request, token);
-    }
-
-    private async Task<IReadOnlyList<FileVersionItem>> LoadVersions(FileListItem file, CancellationToken token)
-    {
-        return (await this.FileVersions.ListFileVersions(file.FileId, token)).Items;
-    }
-
-    private async Task DeleteVersion(FileListItem file, int number, CancellationToken token)
-    {
-        await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
-    }
-
     // Called from the preview through a plain delegate, so it redraws itself.
     private async Task RestoreVersion(FileListItem file, int number, CancellationToken token)
     {
-        await this.FileVersions.RestoreFileVersion(file.FileId, number, token);
-
+        await this.state.RestoreFileVersion(file, number, token);
         await this.Changed();
 
         this.StateHasChanged();
-    }
-
-    private async Task Delete(FileListItem file, CancellationToken token)
-    {
-        if (this.Owner == FileOwnerKind.Case)
-            await this.CaseFilesClient.DeleteCaseFile(this.OwnerId, file.FileId, token);
-        else
-            await this.ActFilesClient.DeleteActFile(this.OwnerId, file.FileId, token);
     }
 
     // Called from the modals through a plain delegate, so it redraws itself.
@@ -165,34 +124,20 @@ else if (this.File is { } file)
         if (FileVersionUploader.Refusal(file, picked) is { } refusal)
             return (refusal, null);
 
-        var (_, failure) = await FileVersionUploader.Upload(
-            async (target, content, token) => await this.FileTransfer.UploadFileVersion(target.FileId, content, token), file, picked, this.Logger);
+        var (result, failure) = await FileVersionUploader.Upload(this.state.UploadFileVersion, file, picked, this.Logger);
+        var notice = result is null ? null : this.state.Record(result);
 
         await this.Changed();
 
         this.StateHasChanged();
 
-        return (failure, null);
+        return (failure, notice);
     }
 
     // Called from the preview through a plain delegate, so it redraws itself.
     private async Task<string?> ChangeMain(FileListItem file, bool main)
     {
-        string? failure = null;
-
-        try
-        {
-            if (main)
-                await this.MainFiles.SetMainFile(file.FileId, CancellationToken.None);
-            else
-                await this.MainFiles.UnsetMainFile(file.FileId, CancellationToken.None);
-        }
-        catch (Exception exception) when (exception is ApiException or HttpRequestException)
-        {
-            this.Logger.LogWarning(exception, "Changing the main file failed");
-
-            failure = "Hlavní soubor se nepodařilo změnit. Zkuste to za chvíli znovu.";
-        }
+        var failure = await this.state.ChangeMainFile(file, main, this.Logger);
 
         await this.Changed();
 
