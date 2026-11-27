@@ -1,33 +1,20 @@
 using System.Net;
 using EvilBrains.ApiClient;
-using EvilBrains.EvilCase.Api.Client;
-using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.App.Clipboard;
-using EvilBrains.EvilCase.App.Files;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 
 namespace EvilBrains.EvilCase.App.Components;
 
 /// <summary>
-/// The load, label save, link copy, files card list, file content load, file version and main file operations that the case and the act detail share.
+/// The load, label save, link copy and files that the case and the act detail share.
 /// </summary>
 public abstract class DetailPage<TDetail> : ComponentBase
     where TDetail : class
 {
     [Inject]
     protected NavigationManager Navigation { get; set; } = null!;
-
-    [Inject]
-    private protected IFileTransferClient FileTransfer { get; set; } = null!;
-
-    [Inject]
-    private IFileVersionsClient FileVersions { get; set; } = null!;
-
-    [Inject]
-    private IMainFileClient MainFiles { get; set; } = null!;
 
     [Inject]
     private ILogger<DetailPage<TDetail>> Logger { get; set; } = null!;
@@ -50,7 +37,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
     protected string? Announcement { get; private set; }
 
     /// <summary>
-    /// The files card's list, shared by the card's slot in each column.
+    /// The files card's list and operations, shared by the card's slot in each column.
     /// </summary>
     protected FilesCardState Files { get; private set; } = null!;
 
@@ -68,7 +55,10 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected abstract TDetail WithLabels(TDetail detail, IReadOnlyList<LabelItem> labels);
 
-    protected abstract Task<IReadOnlyList<FileListItem>> LoadFiles(CancellationToken token);
+    /// <summary>
+    /// The files state of the case or act the page shows.
+    /// </summary>
+    protected abstract FilesCardState CreateFiles();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -76,7 +66,7 @@ public abstract class DetailPage<TDetail> : ComponentBase
         if (!string.Equals(this.filesPath, this.LinkPath, StringComparison.Ordinal))
         {
             this.filesPath = this.LinkPath;
-            this.Files = new FilesCardState(this.LoadFiles);
+            this.Files = this.CreateFiles();
         }
 
         await this.Load();
@@ -154,38 +144,5 @@ public abstract class DetailPage<TDetail> : ComponentBase
         {
             this.Logger.LogWarning(exception, "Copying the link failed");
         }
-    }
-
-    protected async Task<Stream> LoadFileContent(FileListItem file, int? version, CancellationToken token)
-    {
-        return await this.FileTransfer.DownloadFileContent(file.FileId, version, token);
-    }
-
-    protected async Task<FileUploadResult> UploadFileVersion(FileListItem file, IBrowserFile picked, CancellationToken token)
-    {
-        return await this.FileTransfer.UploadFileVersion(file.FileId, picked, token);
-    }
-
-    protected async Task<IReadOnlyList<FileVersionItem>> LoadFileVersions(FileListItem file, CancellationToken token)
-    {
-        return (await this.FileVersions.ListFileVersions(file.FileId, token)).Items;
-    }
-
-    protected async Task DeleteFileVersion(FileListItem file, int number, CancellationToken token)
-    {
-        await this.FileVersions.DeleteFileVersion(file.FileId, number, token);
-    }
-
-    protected async Task<FileListItem> RestoreFileVersion(FileListItem file, int number, CancellationToken token)
-    {
-        return await this.FileVersions.RestoreFileVersion(file.FileId, number, token);
-    }
-
-    protected async Task ChangeMainFile(FileListItem file, bool main, CancellationToken token)
-    {
-        if (main)
-            await this.MainFiles.SetMainFile(file.FileId, token);
-        else
-            await this.MainFiles.UnsetMainFile(file.FileId, token);
     }
 }

@@ -2,6 +2,7 @@ using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.App.Auth;
 using EvilBrains.EvilCase.App.Clipboard;
+using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Files;
 using EvilBrains.EvilCase.App.Logging;
 using EvilBrains.EvilCase.App.Navigation;
@@ -49,6 +50,7 @@ internal static class Program
         builder.Services.AddSingleton<IMarkdownEditors, MarkdownEditors>();
         builder.Services.AddSingleton<IBrowserHistory, BrowserHistory>();
         builder.Services.AddSingleton<IClipboardWriter, ClipboardWriter>();
+        builder.Services.AddTransient<IFilesStates, FilesStates>();
 
         // The same handler chain as the generated clients, so the upload and the download carry the same authorization.
         // No timeout: the largest file takes longer than the default 100 s on a slow line.

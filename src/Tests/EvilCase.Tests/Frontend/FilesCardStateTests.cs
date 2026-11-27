@@ -1,5 +1,6 @@
 using System.Net;
 using EvilBrains.ApiClient;
+using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.App.Components;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,7 +14,7 @@ public class FilesCardStateTests
     {
         IReadOnlyList<FileListItem> files = [File()];
         var placed = 0;
-        var state = new FilesCardState(_ => Task.FromResult(files));
+        var state = State(_ => Task.FromResult(files));
 
         state.Placed += (_, _) => placed++;
 
@@ -36,7 +37,7 @@ public class FilesCardStateTests
     {
         IReadOnlyList<FileListItem> files = [];
         var placed = 0;
-        var state = new FilesCardState(_ => Task.FromResult(files));
+        var state = State(_ => Task.FromResult(files));
 
         state.Placed += (_, _) => placed++;
 
@@ -66,7 +67,7 @@ public class FilesCardStateTests
     public async Task TheCardMovesOnlyWhenEveryUploadEnds()
     {
         IReadOnlyList<FileListItem> files = [];
-        var state = new FilesCardState(_ => Task.FromResult(files));
+        var state = State(_ => Task.FromResult(files));
 
         await state.EnsureLoaded(NullLogger.Instance);
 
@@ -88,7 +89,7 @@ public class FilesCardStateTests
     public async Task TheFirstLoadRunsOnceForEveryCaller()
     {
         var loads = 0;
-        var state = new FilesCardState(_ =>
+        var state = State(_ =>
         {
             loads++;
 
@@ -104,7 +105,7 @@ public class FilesCardStateTests
     [Test]
     public async Task AFailedLoadStaysCompactAndSaysSo()
     {
-        var state = new FilesCardState(static _ => throw new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
+        var state = State(static _ => throw new ApiException(HttpStatusCode.InternalServerError, responseBody: null));
 
         await state.EnsureLoaded(NullLogger.Instance);
 
@@ -114,6 +115,19 @@ public class FilesCardStateTests
             Assert.That(state.Wide, Is.False);
             Assert.That(state.ListFailure, Is.EqualTo("Soubory se nepodařilo načíst. Zkuste to za chvíli znovu."));
         }
+    }
+
+    private static FilesCardState State(Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> loadFiles)
+    {
+        var caseId = Guid.CreateVersion7();
+        var caseFiles = Substitute.For<ICaseFilesClient>();
+
+        caseFiles.ListCaseFiles(caseId, Arg.Any<CancellationToken>())
+            .Returns(async call => new FileListResponse { Items = await loadFiles(call.Arg<CancellationToken>()) });
+
+        var fileTransfer = new StubFileTransferClient();
+
+        return new FilesCardState(new CaseFileOwner(caseId, caseFiles, fileTransfer), fileTransfer, Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
     }
 
     private static FileListItem File()

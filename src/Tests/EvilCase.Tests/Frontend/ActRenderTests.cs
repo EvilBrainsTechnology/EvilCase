@@ -94,6 +94,7 @@ public class ActRenderTests
         ctx.Services.AddSingleton(Substitute.For<IActLabelsClient>());
         ctx.Services.AddSingleton(actCommentsClient);
         ctx.Services.AddSingleton(actFilesClient);
+        ctx.Services.AddSingleton(Substitute.For<ICaseFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
         ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
         ctx.Services.AddSingleton(labelsClient);
