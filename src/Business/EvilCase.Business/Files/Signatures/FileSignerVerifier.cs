@@ -41,7 +41,7 @@ internal sealed class FileSignerVerifier(
             .AsListItems()
             .ToListAsync(token);
 
-        var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, file.FileName, ownerFiles);
+        var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, ownerFiles);
 
         // A detached signature is verified against the current version of the file it signs.
         var signedVersion = signedFile is null
@@ -95,11 +95,7 @@ internal sealed class FileSignerVerifier(
         var listed = CmsSigners.Read(cms);
 
         if (pairingProblem is { } problem)
-        {
-            var signerProblem = problem == DetachedSignatureProblem.Missing ? FileSignerProblem.SignedFileMissing : FileSignerProblem.SignedFileAmbiguous;
-
-            return SignedFileSignature.Unverifiable(listed, signerProblem) with { SignedFileProblem = problem };
-        }
+            return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileMissing) with { SignedFileProblem = problem };
 
         if (signedVersion!.SizeBytes > FileLimits.MaxReadBytes)
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileTooLarge) with { SignedFile = signedFile };

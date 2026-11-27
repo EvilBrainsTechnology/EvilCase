@@ -57,7 +57,6 @@ public static class FileSignerDisplay
             FileSignerProblem.CertificateMissing => "Soubor nenese certifikát podepisujícího.",
             FileSignerProblem.RevocationUnknown => $"Kontrola odvolání certifikátu u {signer.CertificateIssuer ?? "vydavatele"} není dostupná. Podpis i řetězec certifikátů jsou v pořádku.",
             FileSignerProblem.SignedFileMissing => "Podepsaný soubor nenalezen.",
-            FileSignerProblem.SignedFileAmbiguous => "Podepsaný soubor nelze určit.",
             FileSignerProblem.SignedFileTooLarge => "Podepsaný soubor je větší než 30 MB, podpis se neověřuje.",
             FileSignerProblem.SigningCertificateMismatch => "Podpis neodkazuje na certifikát podepisujícího.",
             _ => throw new UnreachableException(),
@@ -73,7 +72,6 @@ public static class FileSignerDisplay
             FileSignerProblem.UntrustedIssuer => "Obsah odpovídá podpisu. Kdo certifikát vydal, aplikace neověří.",
             FileSignerProblem.NotValidNow => "Bez časového razítka nelze určit, zda certifikát platil v okamžiku podpisu.",
             FileSignerProblem.SignedFileMissing => $"Samostatný podpis {signatureFileName} patří k souboru {signedName}, který mezi soubory není. Nahrajte ho pod tímto jménem.",
-            FileSignerProblem.SignedFileAmbiguous => $"K souboru {signedName} patří víc samostatných podpisů, nebo je souborů tohoto jména víc. Ponechte jen jeden.",
             FileSignerProblem.ContentMismatch
                 or FileSignerProblem.NotValidAtTimestamp
                 or FileSignerProblem.TimestampInvalid
@@ -93,7 +91,6 @@ public static class FileSignerDisplay
         return problem switch
         {
             DetachedSignatureProblem.Missing => $"Soubor {signedName} mezi soubory není. Nahrajte ho pod tímto jménem.",
-            DetachedSignatureProblem.Ambiguous => $"Soubor {signedName} nelze určit: souborů tohoto jména nebo samostatných podpisů k němu je víc.",
             _ => throw new UnreachableException(),
         };
     }

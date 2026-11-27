@@ -5,19 +5,19 @@ using Org.BouncyCastle.Cms;
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// Pairs a detached signature (p7s, p7m) with the file of its name among the files of one case or act.
+/// Pairs a detached signature (p7s) with the file of its name among the files of one case or act; a p7m carries its
+/// document inside and pairs with none.
 /// </summary>
 internal static class DetachedSignatures
 {
     /// <summary>
-    /// The name a signature file signs: its name without the .p7s or .p7m extension; null for any other name.
+    /// The name a signature file signs: its name without the .p7s extension; null for any other name.
     /// </summary>
     public static string? SignedFileName(string fileName)
     {
         var extension = Path.GetExtension(fileName);
 
-        var isSignature = fileName.Length > extension.Length
-            && (string.Equals(extension, ".p7s", StringComparison.OrdinalIgnoreCase) || string.Equals(extension, ".p7m", StringComparison.OrdinalIgnoreCase));
+        var isSignature = fileName.Length > extension.Length && string.Equals(extension, ".p7s", StringComparison.OrdinalIgnoreCase);
 
         return isSignature ? fileName[..^extension.Length] : null;
     }
@@ -38,17 +38,11 @@ internal static class DetachedSignatures
     /// <summary>
     /// The file the signature signs among the files of its case or act, or why there is none.
     /// </summary>
-    public static (FileListItem? SignedFile, DetachedSignatureProblem? Problem) Pair(Guid signatureFileId, string signatureFileName, IReadOnlyList<FileListItem> ownerFiles)
+    public static (FileListItem? SignedFile, DetachedSignatureProblem? Problem) Pair(Guid signatureFileId, IReadOnlyList<FileListItem> ownerFiles)
     {
         var signedFile = WithSignatureFiles(ownerFiles).SingleOrDefault(file => file.SignatureFileId == signatureFileId);
-        if (signedFile is not null)
-            return (signedFile, null);
 
-        var signedName = SignedFileName(signatureFileName);
-
-        return ownerFiles.Any(file => string.Equals(file.FileName, signedName, StringComparison.Ordinal))
-            ? (null, DetachedSignatureProblem.Ambiguous)
-            : (null, DetachedSignatureProblem.Missing);
+        return signedFile is not null ? (signedFile, null) : (null, DetachedSignatureProblem.Missing);
     }
 
     /// <summary>
@@ -74,18 +68,19 @@ internal static class DetachedSignatures
     }
 
     /// <summary>
-    /// The signed file id to its signature file id, for each signed name exactly one file carries and exactly one signature
-    /// names.
+    /// The signed file id to its signature file id; file names are unique within one case or act.
     /// </summary>
     private static Dictionary<Guid, Guid> SignatureFiles(IReadOnlyList<FileListItem> files)
     {
-        var byName = files.ToLookup(static file => file.FileName, StringComparer.Ordinal);
+        var byName = files.ToDictionary(static file => file.FileName, static file => file.FileId, StringComparer.Ordinal);
 
-        return files
-            .Where(static file => SignedFileName(file.FileName) is not null)
-            .GroupBy(static file => SignedFileName(file.FileName)!, StringComparer.Ordinal)
-            .Where(static group => group.Take(2).Count() == 1)
-            .Where(group => byName[group.Key].Take(2).Count() == 1)
-            .ToDictionary(group => byName[group.Key].Single().FileId, static group => group.Single().FileId);
+        var signatures = new Dictionary<Guid, Guid>();
+        foreach (var file in files)
+        {
+            if (SignedFileName(file.FileName) is { } signedName && byName.TryGetValue(signedName, out var signedFileId))
+                signatures.Add(signedFileId, file.FileId);
+        }
+
+        return signatures;
     }
 }

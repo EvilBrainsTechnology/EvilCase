@@ -29,7 +29,7 @@ internal sealed class FileSignerReader(IDbSession dbSession, IFileBlobStore blob
             .AsListItems()
             .ToListAsync(token);
 
-        var (signedFile, problem) = DetachedSignatures.Pair(fileVersion.FileAssetId, fileVersion.FileAsset!.FileName, ownerFiles);
+        var (signedFile, problem) = DetachedSignatures.Pair(fileVersion.FileAssetId, ownerFiles);
 
         return response with { SignedFile = signedFile, SignedFileProblem = problem };
     }
