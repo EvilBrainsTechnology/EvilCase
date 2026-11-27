@@ -1,5 +1,5 @@
 import { stepZoom, touchZoom, wheelZoom } from './preview-shared.js';
-import { debouncedFind, fold } from './text-search.js';
+import { debouncedFind, fold, foldText } from './text-search.js';
 import type { FindEntry } from './text-search.js';
 
 // The size of a view's page.
@@ -298,21 +298,15 @@ function indexText(root: Node) {
         block = owner;
 
         const number = index.textNodes.push(node) - 1;
-        const value = node.data;
+        const folded = foldText(node.data);
 
-        for (let offset = 0; offset < value.length;) {
-            const size = value.codePointAt(offset)! > 0xffff ? 2 : 1;
-            const folded = fold(value.slice(offset, offset + size));
-
-            for (let char = 0; char < folded.length; char++) {
-                index.nodes.push(number);
-                index.starts.push(offset);
-                index.ends.push(offset + size);
-            }
-
-            parts.push(folded);
-            offset += size;
+        for (let char = 0; char < folded.text.length; char++) {
+            index.nodes.push(number);
+            index.starts.push(folded.starts[char]);
+            index.ends.push(folded.ends[char]);
         }
+
+        parts.push(folded.text);
     }
 
     index.text = parts.join('');
