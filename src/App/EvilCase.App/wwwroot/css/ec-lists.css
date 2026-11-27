@@ -315,7 +315,6 @@
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        column-gap: var(--ec-space-4);
         row-gap: var(--ec-space-1);
         padding: var(--ec-space-4) var(--ec-space-5);
         min-height: var(--ec-touch-min);
@@ -533,8 +532,6 @@
     /* Na mobilu jsou dlaždice jeden řádek tří stejných buněk: počet a popisek. */
     .ec-tiles {
         gap: 0;
-        border: 1px solid var(--ec-border);
-        border-radius: var(--ec-radius-card);
         background: var(--ec-surface);
         overflow: hidden;
     }
@@ -544,7 +541,6 @@
         align-items: flex-start;
         justify-content: center;
         min-height: var(--ec-touch-min);
-        padding: var(--ec-space-4);
         border: 0;
         border-radius: 0;
 
