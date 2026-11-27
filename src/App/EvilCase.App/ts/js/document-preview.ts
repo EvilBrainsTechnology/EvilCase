@@ -195,7 +195,7 @@ export async function renderDocument(host: HTMLElement, contentStream: DotNetStr
     let wordBreaks = false;
 
     try {
-        const options = { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: false, renderAltChunks: false };
+        const options = { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: false, renderAltChunks: false, ignoreFonts: true };
         const parsed: DocxDocument = await window.docx.parseAsync(buffer, options);
 
         breakSections(parsed);
