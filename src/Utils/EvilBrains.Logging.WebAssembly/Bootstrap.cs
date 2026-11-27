@@ -7,7 +7,6 @@ using Microsoft.JSInterop;
 using Serilog;
 using Serilog.Core;
 using Serilog.Debugging;
-using Serilog.Events;
 
 namespace EvilBrains.Logging.WebAssembly;
 
@@ -82,21 +81,11 @@ public static class Bootstrap
         // itself. Sharing a single threshold would silently cap the more verbose of the two.
 #pragma warning disable RCS0054 // Fix formatting of a call chain
         return new LoggerConfiguration()
-            .MinimumLevel.Is(MoreVerbose(options.MinimumLevel, options.ServerMinimumLevel))
+            .MinimumLevel.Is(options.MinimumLevel < options.ServerMinimumLevel ? options.MinimumLevel : options.ServerMinimumLevel)
             .Enrich.FromLogContext()
             .WriteTo.BrowserConsole(restrictedToMinimumLevel: options.MinimumLevel, formatProvider: CultureInfo.InvariantCulture, jsRuntime: jsRuntime)
-            .WriteTo.Logger(ShipToServer(options, shipped))
+            .WriteTo.Logger(configuration => configuration.WriteTo.Sink(shipped, options.ServerMinimumLevel))
             .CreateLogger();
 #pragma warning restore RCS0054
-    }
-
-    private static LogEventLevel MoreVerbose(LogEventLevel first, LogEventLevel second)
-    {
-        return first < second ? first : second;
-    }
-
-    private static Action<LoggerConfiguration> ShipToServer(ClientLoggingOptions options, ClientLogSink shipped)
-    {
-        return configuration => configuration.WriteTo.Sink(shipped, options.ServerMinimumLevel);
     }
 }

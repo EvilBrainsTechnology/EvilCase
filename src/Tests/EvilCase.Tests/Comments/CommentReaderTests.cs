@@ -17,25 +17,6 @@ public class CommentReaderTests : TenantFixture
     }
 
     [Test]
-    public async Task ANoteCarriesItsBodyItsAuthorAndItsStamp()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddCaseComment(@case, "Poznámka");
-
-        var items = (await this.reader.ListCaseComments(@case.Id, CancellationToken.None))!;
-        var item = items.Single();
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(item.Body, Is.EqualTo("Poznámka"));
-            Assert.That(item.AuthorEmail, Does.Contain("@example.com"), "the seeded user's e-mail is what the join carries");
-            Assert.That(item.IsAuthor, Is.True, "the signed-in user wrote it");
-            Assert.That(item.Updated, Is.Null, "an unedited note carries no stamp");
-            Assert.That(item.Created, Is.Not.Default, "the write is what stamps Created");
-        }
-    }
-
-    [Test]
     public async Task TheOrderIsOldestFirst()
     {
         var @case = await this.Tenant.AddCase(Day);

@@ -93,7 +93,7 @@
     gap: var(--ec-space-3);
 }
 
-/* Komentáře v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
+/* The comments in the side column of the case detail (docs/design/detail-spisu.html). */
 .ec-comments-compact {
     & .ec-comment {
         gap: var(--ec-space-3);

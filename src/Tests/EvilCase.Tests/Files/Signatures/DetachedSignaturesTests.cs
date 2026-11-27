@@ -7,7 +7,8 @@ namespace EvilBrains.EvilCase.Tests.Files.Signatures;
 public class DetachedSignaturesTests
 {
     [TestCase("Smlouva.pdf.p7s", ExpectedResult = "Smlouva.pdf")]
-    [TestCase("Smlouva.pdf.P7M", ExpectedResult = "Smlouva.pdf")]
+    [TestCase("Smlouva.pdf.P7S", ExpectedResult = "Smlouva.pdf")]
+    [TestCase("Smlouva.pdf.p7m", ExpectedResult = null)]
     [TestCase("Smlouva.p7s", ExpectedResult = "Smlouva")]
     [TestCase(".p7s", ExpectedResult = null)]
     [TestCase("Smlouva.pdf", ExpectedResult = null)]
@@ -48,19 +49,13 @@ public class DetachedSignaturesTests
     }
 
     [Test]
-    public void TwoFilesOfTheSignedNameLeaveTheSignatureWithoutOne()
+    public void AP7mSignsNoFileByName()
     {
-        var files = DetachedSignatures.WithSignatureFiles([Item("Smlouva.pdf"), Item("Smlouva.pdf"), Item("Smlouva.pdf.p7s")]);
+        var signature = Item("Smlouva.pdf.p7s");
 
-        Assert.That(files.Select(static file => file.SignatureFileId), Is.All.Null);
-    }
+        var files = DetachedSignatures.WithSignatureFiles([Item("Smlouva.pdf"), Item("Smlouva.pdf.p7m"), signature]);
 
-    [Test]
-    public void TwoSignaturesOfOneNameLeaveTheFileWithoutOne()
-    {
-        var files = DetachedSignatures.WithSignatureFiles([Item("Smlouva.pdf"), Item("Smlouva.pdf.p7s"), Item("Smlouva.pdf.p7m")]);
-
-        Assert.That(files.Select(static file => file.SignatureFileId), Is.All.Null);
+        Assert.That(files.Select(static file => file.SignatureFileId), Is.EqualTo(new Guid?[] { signature.FileId, null, null }), "a p7m carries its document inside, so only the p7s pairs");
     }
 
     [Test]
@@ -79,19 +74,9 @@ public class DetachedSignaturesTests
     {
         var signature = Item("Smlouva.pdf.p7s");
 
-        var pair = DetachedSignatures.Pair(signature.FileId, signature.FileName, [signature, Item("Jiny.pdf")]);
+        var pair = DetachedSignatures.Pair(signature.FileId, [signature, Item("Jiny.pdf")]);
 
         Assert.That(pair, Is.EqualTo(((FileListItem?)null, (DetachedSignatureProblem?)DetachedSignatureProblem.Missing)));
-    }
-
-    [Test]
-    public void PairNamesAnAmbiguousFile()
-    {
-        var signature = Item("Smlouva.pdf.p7s");
-
-        var pair = DetachedSignatures.Pair(signature.FileId, signature.FileName, [signature, Item("Smlouva.pdf"), Item("Smlouva.pdf")]);
-
-        Assert.That(pair, Is.EqualTo(((FileListItem?)null, (DetachedSignatureProblem?)DetachedSignatureProblem.Ambiguous)));
     }
 
     [Test]
@@ -100,7 +85,7 @@ public class DetachedSignaturesTests
         var pdf = Item("Smlouva.pdf");
         var signature = Item("Smlouva.pdf.p7s");
 
-        var (signedFile, problem) = DetachedSignatures.Pair(signature.FileId, signature.FileName, [pdf, signature]);
+        var (signedFile, problem) = DetachedSignatures.Pair(signature.FileId, [pdf, signature]);
 
         using (Assert.EnterMultipleScope())
         {

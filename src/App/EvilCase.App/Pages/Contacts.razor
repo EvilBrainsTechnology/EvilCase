@@ -13,11 +13,7 @@
         </Actions>
     </EcPageHeader>
 
-    <ContactList @key="this.ListKey"
-                 Columns="Columns" Filter="Filter"
-                 ShowSearch="true" ShowKindFilter="true" ShowPaging="true"
-                 TotalChanged="this.OnTotalChanged"
-                 EmptyText="Zkuste jiné hledání.">
+    <ContactList @key="this.ListKey" Filter="Filter" TotalChanged="this.OnTotalChanged">
         <EmptyAction>
             <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.UserPlus" OnClick="this.CreateContact">Založit kontakt</EcButton>
         </EmptyAction>
@@ -31,14 +27,6 @@
 
 @code {
     private const int PageItems = 20;
-
-    private static readonly ContactColumn[] Columns =
-    [
-        ContactColumn.Name,
-        ContactColumn.Kind,
-        ContactColumn.DataBoxId,
-        ContactColumn.Address,
-    ];
 
     [Parameter]
     [SupplyParameterFromQuery(Name = "q")]

@@ -10,9 +10,4 @@ public enum DetachedSignatureProblem
     /// No file of the case or act carries the signed name.
     /// </summary>
     Missing = 0,
-
-    /// <summary>
-    /// Two files carry the signed name, or two signatures name it.
-    /// </summary>
-    Ambiguous = 1,
 }

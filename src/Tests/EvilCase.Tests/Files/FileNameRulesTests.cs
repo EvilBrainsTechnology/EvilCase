@@ -14,4 +14,14 @@ public class FileNameRulesTests
     {
         Assert.That(FileNameRules.SameExtension(fileName, otherFileName), Is.EqualTo(expected));
     }
+
+    [TestCase("Smlouva.pdf", "Smlouva.pdf")]
+    [TestCase("slozka/Smlouva.pdf", "Smlouva.pdf")]
+    [TestCase(@"C:\Users\Dokumenty\Smlouva.pdf", "Smlouva.pdf")]
+    [TestCase(@"..\..\Smlouva.pdf", "Smlouva.pdf")]
+    [TestCase(@"a/b\Smlouva.pdf", "Smlouva.pdf")]
+    public void AnUploadedNameKeepsOnlyItsLastPathSegment(string fileName, string expected)
+    {
+        Assert.That(FileNameRules.LastSegment(fileName), Is.EqualTo(expected), "a Windows separator cuts the path as a slash does");
+    }
 }

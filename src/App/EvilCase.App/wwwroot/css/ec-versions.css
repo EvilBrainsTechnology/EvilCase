@@ -1,4 +1,4 @@
-/* Seznam verzí souboru (docs/design/verze-souboru.html). */
+/* The list of a file's versions (docs/design/verze-souboru.html). */
 .ec-modal-sheet {
     width: min(var(--ec-modal-sheet-width), calc(100vw - 2 * var(--ec-space-5)));
 }

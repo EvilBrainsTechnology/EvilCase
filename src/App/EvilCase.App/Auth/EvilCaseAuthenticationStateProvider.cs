@@ -51,12 +51,15 @@ internal sealed class EvilCaseAuthenticationStateProvider(
         }
         catch (ApiException exception)
         {
+            if (exception.StatusCode == HttpStatusCode.Unauthorized)
+                return SignInOutcome.InvalidCredentials;
+
             if (exception.StatusCode == HttpStatusCode.Locked)
                 return SignInOutcome.LockedOut;
 
             return exception.StatusCode == HttpStatusCode.TooManyRequests
                 ? SignInOutcome.TooManyAttempts
-                : SignInOutcome.InvalidCredentials;
+                : SignInOutcome.Unreachable;
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException)
         {

@@ -18,11 +18,6 @@ public static class NumberTail
         return Prefix(date) + sequence.ToString($"D{SequenceDigits}", CultureInfo.InvariantCulture);
     }
 
-    public static NumberTailParts Parse(string tail)
-    {
-        return ParseOrDefault(tail) ?? throw new FormatException($"'{tail}' is not a number tail.");
-    }
-
     public static NumberTailParts? ParseOrDefault(string? tail)
     {
         if (string.IsNullOrWhiteSpace(tail) || tail.Length < DateLength + 1 + SequenceDigits || tail[DateLength] != '-')

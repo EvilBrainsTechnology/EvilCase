@@ -162,7 +162,7 @@ internal static class FileTools
         {
             FileVersionDeleteOutcome.Deleted => "The version was deleted.",
             FileVersionDeleteOutcome.NotFound => throw McpProblem.Of(FileProblems.VersionNotFound),
-            FileVersionDeleteOutcome.LastVersion => throw McpProblem.Of(FileProblems.LastVersion, "The only version of a file is deleted only with the file."),
+            FileVersionDeleteOutcome.LastVersion => throw McpProblem.Of(FileProblems.LastVersion, FileProblems.LastVersionDetail),
             _ => throw new UnreachableException(),
         };
     }

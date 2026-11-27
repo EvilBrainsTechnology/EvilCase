@@ -1,7 +1,7 @@
 /*
- * Tokeny vzhledu EvilCase — jediný zdroj barev, písem a rozměrů (SDD-020).
- * Komponenta nikdy nepíše hodnotu přímo, vždy sahá na proměnnou odsud.
- * Předlohy obrazovek: docs/design/.
+ * The EvilCase design tokens, the one source of colours, fonts and sizes (SDD-020).
+ * A component never writes a value itself; it always uses a variable from here.
+ * The screen references: docs/design/.
  */
 
 :root,
@@ -42,7 +42,7 @@
     --ec-closed-text: #454B57;
     --ec-closed-dot: #A0A6B1;
 
-    /* Směr úkonu */
+    /* Act direction */
     --ec-incoming-bg: #E6EEFD;
     --ec-incoming-text: #2A48B8;
     --ec-outgoing-bg: #E3F4E8;
@@ -58,7 +58,7 @@
     --ec-person-bg: #E3F4E8;
     --ec-person-text: #1D6B36;
 
-    /* Upozornění a chyba */
+    /* Warning and error */
     --ec-warning-bg: #FFF9EC;
     --ec-warning-border: #F3DDAE;
     --ec-warning-text: #6E4405;
@@ -68,7 +68,7 @@
     --ec-danger-solid: #B42318;
     --ec-danger-solid-hover: #912018;
 
-    /* Barvy štítků — číselník LabelColor (SDD-019) */
+    /* Label colours, the LabelColor enum (SDD-019) */
     --ec-label-blue: #3B5BDB;
     --ec-label-azure: #2C8FD4;
     --ec-label-indigo: #4F46C8;
@@ -83,7 +83,7 @@
     --ec-label-cyan: #1B9BB8;
     --ec-label-gray: #6B7280;
 
-    /* Štítek jako chip: světlé pozadí, tmavý text a tečka */
+    /* A label as a chip: a light background, a dark text and a dot */
     --ec-label-blue-soft: #E1E9FD;
     --ec-label-blue-strong: #2A48B8;
     --ec-label-azure-soft: #DDEEFA;
@@ -151,7 +151,7 @@
     --ec-file-icon-large-glyph: 34px;
     --ec-file-icon-large-radius: 18px;
 
-    /* Písmo */
+    /* Type */
     --ec-font: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
     --ec-font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
     --ec-text-2xs: 11px;
@@ -183,7 +183,7 @@
     --ec-hairline: 1px;
     --ec-select-chevron: url("../img/select-chevron.svg");
 
-    /* Rádiusy */
+    /* Radii */
     --ec-radius-sm: 6px;
     --ec-radius-md: 9px;
     --ec-radius-lg: 10px;
@@ -191,7 +191,7 @@
     --ec-radius-card: 16px;
     --ec-radius-pill: 999px;
 
-    /* Rozměry ovládacích prvků */
+    /* Control sizes */
     --ec-control-sm: 32px;
     --ec-control-md: 36px;
     --ec-control-lg: 40px;
@@ -201,7 +201,7 @@
     --ec-icon-md: 16px;
     --ec-icon-lg: 18px;
 
-    /* Rozvržení */
+    /* Layout */
     --ec-topbar-height: 60px;
     --ec-content-max: 1680px;
     --ec-content-padding: 32px;
@@ -257,7 +257,7 @@
     --ec-monogram-mobile: 40px;
     --ec-monogram-text-mobile: 13px;
 
-    /* Detail úkonu (docs/design/detail-ukonu.html) */
+    /* Act detail (docs/design/detail-ukonu.html) */
     --ec-act-pager-text: 92px;
     --ec-copy-size: 26px;
     --ec-fact-line: 20px;
@@ -273,7 +273,7 @@
     --ec-timeline-radius: 8px;
     --ec-timeline-leading: 1.4;
 
-    /* Nastavení (docs/design/nastaveni.html) */
+    /* Settings (docs/design/nastaveni.html) */
     --ec-settings-col-color: 150px;
     --ec-settings-col-count: 90px;
     --ec-settings-col-actions: 96px;
@@ -311,7 +311,7 @@
     --ec-drop-badge: 48px;
     --ec-drop-overlay: rgba(233, 237, 249, 0.92);
 
-    /* Náhled souboru (docs/design/detail-ukonu.html) */
+    /* File preview (docs/design/detail-ukonu.html) */
     --ec-preview-width: 1320px;
     --ec-modal-sheet-width: 680px;
     --ec-preview-height: 920px;
@@ -401,7 +401,7 @@
     --ec-comment-avatar-compact: 30px;
     --ec-comment-action-height: 24px;
 
-    /* Přehled (docs/design/prehled.html) */
+    /* Dashboard (docs/design/prehled.html) */
     --ec-stat-icon: 46px;
     --ec-stat-glyph: 22px;
     --ec-stat-pad-x: 22px;
@@ -410,7 +410,7 @@
     --ec-stat-gap: 4px;
     --ec-recent-col-contact: 240px;
 
-    /* Značka a brána: přihlášení a zavádění (docs/design/prihlaseni.html, nacitani.html) */
+    /* Brand and gate: the sign-in and the loading (docs/design/prihlaseni.html, nacitani.html) */
     --ec-brand-size: 19px;
     --ec-brand-mark: 36px;
     --ec-brand-icon: 21px;
@@ -431,7 +431,7 @@
     --ec-login-panel-text: var(--ec-surface);
     --ec-boot-fill: var(--blazor-load-percentage, 0%);
 
-    /* Stíny a fokus */
+    /* Shadows and focus */
     --ec-shadow-raised: 0 1px 2px rgba(20, 22, 27, 0.08);
     --ec-shadow-page: 0 2px 10px rgba(20, 22, 27, 0.12);
     --ec-shadow-overlay: 0 12px 32px rgba(20, 22, 27, 0.16);
@@ -440,7 +440,7 @@
     --ec-focus-ring-danger: 0 0 0 3px rgba(155, 44, 31, 0.25);
     --ec-overlay: rgba(20, 22, 27, 0.4);
 
-    /* Tmavá horní lišta */
+    /* Dark top bar */
     --ec-accent-on-dark: #9DB0F2;
     --ec-topbar-bg: var(--ec-text);
     --ec-topbar-text: #FFFFFF;
@@ -458,7 +458,7 @@
     --ec-topbar-kbd-border: #3A3F49;
     --ec-topbar-clear-bg: rgba(255, 255, 255, 0.08);
 
-    /* Hledání v horní liště (docs/design/hledani.html) */
+    /* Top bar search (docs/design/hledani.html) */
     --ec-search-width-open: 440px;
     --ec-topsearch-clear: 24px;
     --ec-accent-ring: #C9D3F3;

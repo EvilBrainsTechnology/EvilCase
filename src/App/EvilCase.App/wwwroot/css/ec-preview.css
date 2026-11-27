@@ -1,4 +1,4 @@
-/* Náhled souboru (docs/design/detail-ukonu.html). */
+/* The file preview (docs/design/detail-ukonu.html). */
 .ec-modal-large {
     width: min(var(--ec-preview-width), calc(100vw - 2 * var(--ec-space-8)));
     height: min(var(--ec-preview-height), calc(100vh - 2 * var(--ec-space-8)));
@@ -73,7 +73,7 @@
     text-overflow: ellipsis;
 }
 
-/* Na širokém okně jsou akce náhledu přímo v hlavičce; na mobilu tvoří vlastní řádek. */
+/* In a wide window the preview's actions sit in the header; on mobile they form a row of their own. */
 .ec-preview-actions {
     display: contents;
 }
@@ -117,7 +117,7 @@
     flex: 0 0 auto;
 }
 
-/* Lišta náhledu nad jedinou posuvnou plochou; plochu PDF vlastní prohlížeč PDF.js, jehož styl se načte až s ním. */
+/* The preview bar above the one scrolling stage; the PDF stage belongs to the PDF.js viewer, whose style loads with it. */
 .ec-preview-view {
     display: flex;
     flex: 1 1 auto;
@@ -251,7 +251,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Výskyty hledání v textu a dokumentu; dokument nese stejná pravidla ve svém stínovém kořeni. */
+/* The search matches in a text and a document; a document carries the same rules in its shadow root. */
 ::highlight(ec-preview-hit) {
     background-color: var(--ec-preview-hit);
 }
@@ -266,7 +266,7 @@
     min-height: 0;
 }
 
-/* PDF.js chce svůj kontejner absolutně umístěný; je to jediná posuvná plocha náhledu. */
+/* PDF.js wants its container absolutely positioned; it is the preview's one scrolling stage. */
 .ec-preview-pdf {
     position: absolute;
     inset: 0;
@@ -294,7 +294,7 @@
         --highlight-selected-bg-color: var(--ec-preview-hit-current);
     }
 
-    /* Vložené video nebo zvuk z PDF se nepřehrává. */
+    /* A video or sound embedded in a PDF does not play. */
     & .mediaAnnotation {
         display: none;
     }

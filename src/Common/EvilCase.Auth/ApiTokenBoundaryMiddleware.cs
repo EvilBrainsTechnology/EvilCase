@@ -47,7 +47,7 @@ internal sealed class ApiTokenBoundaryMiddleware(RequestDelegate next, ILogger<A
         if (request.Path.StartsWithSegments(AuthRoute.Path, StringComparison.OrdinalIgnoreCase)
             || request.Path.StartsWithSegments(ApiTokenRoute.Path, StringComparison.OrdinalIgnoreCase))
         {
-            return "An API token cannot reach sign-in, sessions or API token management.";
+            return "An API token cannot reach sign-in or API token management.";
         }
 
         // Every MCP message is a POST; the MCP server holds a read-only token to its read tools itself.

@@ -39,8 +39,6 @@ public enum FileSignerProblem
 
     SignedFileMissing = 8,
 
-    SignedFileAmbiguous = 9,
-
     SignedFileTooLarge = 10,
 
     /// <summary>

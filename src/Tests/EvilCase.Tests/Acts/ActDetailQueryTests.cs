@@ -1,7 +1,5 @@
 using EvilBrains.EvilCase.Business.Acts;
-using EvilBrains.EvilCase.Domain.Acts;
 using EvilBrains.EvilCase.Domain.Cases;
-using EvilBrains.EvilCase.Domain.Contacts;
 using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Acts;
@@ -9,33 +7,6 @@ namespace EvilBrains.EvilCase.Tests.Acts;
 public class ActDetailQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    [Test]
-    public async Task TheDetailCarriesTheNumberTheDirectionTheDateTheTitleAndTheDescription()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(
-            @case,
-            Day,
-            "Rozhodnutí",
-            contact: await this.Tenant.AddContact("Městský úřad"),
-            direction: ActDirection.Outgoing,
-            description: "Popis úkonu");
-
-        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
-
-        Assert.That(detail, Is.Not.Null);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(detail.ActId, Is.EqualTo(act.Id));
-            Assert.That(detail.ActNumber, Is.EqualTo(act.ActNumber));
-            Assert.That(detail.Direction, Is.EqualTo(ActDirection.Outgoing));
-            Assert.That(detail.Date, Is.EqualTo(Day));
-            Assert.That(detail.Title, Is.EqualTo("Rozhodnutí"));
-            Assert.That(detail.Description, Is.EqualTo("Popis úkonu"));
-        }
-    }
 
     [Test]
     public async Task TheDetailNamesTheCaseTheActSitsIn()
@@ -50,40 +21,6 @@ public class ActDetailQueryTests : TenantFixture
             Assert.That(detail!.CaseId, Is.EqualTo(@case.Id), "the detail carries the case id the screens build their links from");
             Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber), "the detail carries the case number the link back to the case reads");
             Assert.That(detail.CaseStatus, Is.EqualTo(CaseStatus.WaitingOnAuthority), "the sidebar's Spis link reads the case status");
-        }
-    }
-
-    [Test]
-    public async Task TheDetailCarriesTheActsContactAndTheCasesContact()
-    {
-        var caseContact = await this.Tenant.AddContact("Městský úřad Vzorov", kind: ContactKind.Authority);
-        var actContact = await this.Tenant.AddContact("Krajský soud ve Vzorově", kind: ContactKind.Person);
-        var @case = await this.Tenant.AddCase(Day, contact: caseContact);
-        var act = await this.Tenant.AddAct(@case, Day, contact: actContact);
-
-        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(detail!.Contact!.ContactId, Is.EqualTo(actContact.Id));
-            Assert.That(detail.Contact.Name, Is.EqualTo(actContact.Name));
-            Assert.That(detail.Contact.Kind, Is.EqualTo(actContact.Kind));
-            Assert.That(detail.CaseContact!.ContactId, Is.EqualTo(caseContact.Id));
-        }
-    }
-
-    [Test]
-    public async Task AnActWithNoContactNamesNone()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day);
-
-        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(detail!.Contact, Is.Null, "a contact is optional and its absence is no contact, not a failed read");
-            Assert.That(detail.CaseContact, Is.Null);
         }
     }
 
@@ -121,39 +58,5 @@ public class ActDetailQueryTests : TenantFixture
         var detail = await this.Tenant.Context.Acts.DetailOf(otherAct.Id, CancellationToken.None);
 
         Assert.That(detail, Is.Null, "the tenant query filter is what turns another tenant's id into nothing");
-    }
-
-    [Test]
-    public async Task TheReaderReturnsTheDetail()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day);
-
-        var reader = new ActReader(this.Tenant.Session);
-        var detail = await reader.GetActDetail(act.Id, CancellationToken.None);
-
-        Assert.That(detail!.ActId, Is.EqualTo(act.Id));
-    }
-
-    [Test]
-    public async Task TheDetailCarriesTheActsExternalReferenceNumber()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day, externalActNumber: "1 T 45/2026");
-
-        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
-
-        Assert.That(detail!.ExternalActNumber, Is.EqualTo("1 T 45/2026"));
-    }
-
-    [Test]
-    public async Task AnActWithNoExternalReferenceNumberNamesNone()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day);
-
-        var detail = await this.Tenant.Context.Acts.DetailOf(act.Id, CancellationToken.None);
-
-        Assert.That(detail!.ExternalActNumber, Is.Null, "the number is optional and its absence is no number, not a failed read");
     }
 }

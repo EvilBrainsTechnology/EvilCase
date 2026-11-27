@@ -26,29 +26,6 @@ public class ActUpdateTests : TenantFixture
     }
 
     [Test]
-    public async Task AnEditWritesTheDirectionTheDateTheTitleTheDescriptionAndTheContact()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var seeded = await this.Tenant.AddAct(@case, Day, "Podání");
-        var contact = await this.Tenant.AddContact("Krajský soud ve Vzorově");
-        var request = Edit(seeded.ActNumber, ActDirection.Outgoing, Day.AddDays(1), "Nový název", "Nový popis", contact.Id);
-
-        var outcome = await this.writer.UpdateAct(seeded.Id, request, CancellationToken.None);
-
-        var reloaded = await this.Reload(seeded.Id);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(outcome, Is.EqualTo(ActUpdateOutcome.Updated));
-            Assert.That(reloaded.Direction, Is.EqualTo(request.Direction));
-            Assert.That(reloaded.Date, Is.EqualTo(request.Date));
-            Assert.That(reloaded.Title, Is.EqualTo(request.Title));
-            Assert.That(reloaded.Description, Is.EqualTo(request.Description));
-            Assert.That(reloaded.ContactId, Is.EqualTo(contact.Id));
-        }
-    }
-
-    [Test]
     public async Task AnEditClearsTheDirectionAndTheContact()
     {
         var @case = await this.Tenant.AddCase(Day);

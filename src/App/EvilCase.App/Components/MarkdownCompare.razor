@@ -38,7 +38,7 @@ else
             <div class="ec-text-compare-changes" role="group" aria-label="Změny">
                 <CompareChanges View="@(this.ready ? this.view : null)" Blocks OnStep="this.Step" />
             </div>
-            <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" Collapsible OnSearch="this.Search" />
+            <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" OnSearch="this.Search" />
         </div>
         <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
             <div class="ec-text-compare-card">

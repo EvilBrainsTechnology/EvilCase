@@ -94,27 +94,12 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
-    /* Údaje jdou do dvou sloupců; čáry mezi nimi kreslí mezera nad podkladem linky. */
     .ec-detail-facts {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-flow: row dense;
-        gap: var(--ec-hairline);
         overflow: hidden;
-        background: var(--ec-border-subtle);
     }
 
     .ec-detail-fact {
-        border-right: 0;
         background: var(--ec-surface);
-    }
-
-    /* Řádek sdílí jen krátké údaje; značka, odkaz a adresa mají celou šířku. */
-    .ec-detail-fact-wide,
-    .ec-detail-fact-labels,
-    .ec-detail-fact-copyable,
-    .ec-detail-fact:has(.ec-detail-fact-link) {
-        grid-column: 1 / -1;
     }
 
     .ec-detail-fact-mono {
@@ -137,7 +122,7 @@
         }
     }
 
-    /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
+    /* The copy button keeps its touch area but does not make the fact's row taller. */
     .ec-detail-fact-copy .ec-copy {
         margin-block: calc((var(--ec-fact-line) - var(--ec-touch-min)) / 2);
     }
@@ -155,7 +140,7 @@
         margin-left: 0;
     }
 
-    /* Akce formuláře zůstávají na mobilu u spodního okraje okna. */
+    /* On mobile the form actions stay at the bottom edge of the window. */
     .ec-form-layout .ec-card-footer {
         position: sticky;
         bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
@@ -166,10 +151,6 @@
 
     .ec-form-layout .ec-form-actions .ec-button {
         flex: 1 1 0;
-    }
-
-    .ec-page {
-        padding: var(--ec-space-5) var(--ec-space-5) var(--ec-space-7);
     }
 
     .ec-modal {
@@ -325,7 +306,7 @@
         display: none;
     }
 
-    /* Nahrát soubory široké karty nese jen ikonu; text zůstává jménem pro čtečku. */
+    /* Nahrát soubory of the wide card shows only its icon; the text stays the name for a screen reader. */
     .ec-file-card:not(.ec-file-card-compact) .ec-file-upload-text {
         position: absolute;
         width: calc(var(--ec-space-1) / 4);
@@ -341,18 +322,7 @@
         padding: 0;
     }
 
-    /* Metadata souboru se lámou mezi velikostí a časem; oddělovač nahradí mezera. */
-    .ec-file-meta {
-        display: flex;
-        flex-wrap: wrap;
-        column-gap: var(--ec-space-3);
-    }
-
-    .ec-file-meta .ec-sep {
-        display: none;
-    }
-
-    /* Název souboru dostane až dva řádky a láme se kdekoli; dotykovou plochu dává celý řádek. */
+    /* The file name gets up to two lines and wraps anywhere; the whole row is the touch area. */
     .ec-file-name,
     .ec-file-name-static {
         display: -webkit-box;
@@ -494,10 +464,6 @@
 
     .ec-preview-edit-version {
         display: none;
-    }
-
-    .ec-file-meta .ec-badge {
-        margin-right: 0;
     }
 
     .ec-modal-sheet {
@@ -708,14 +674,14 @@
         background: transparent;
     }
 
-    .ec-preview-toolbar-search-collapsible {
+    .ec-preview-toolbar-search {
         display: none;
         order: 1;
         min-width: 0;
     }
 
     /* The Markdown toolbar sizes its search itself (ec-markdown.css). */
-    .ec-preview-toolbar-search-collapsible:where(:not(.ec-markdown-toolbar > *)) {
+    .ec-preview-toolbar-search:where(:not(.ec-markdown-toolbar > *)) {
         flex: 1 1 100%;
     }
 
@@ -956,7 +922,7 @@
         }
     }
 
-    .ec-text-compare-toolbar > .ec-preview-toolbar-search-collapsible {
+    .ec-text-compare-toolbar > .ec-preview-toolbar-search {
         flex: 1 1 100%;
     }
 

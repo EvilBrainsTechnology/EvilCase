@@ -506,14 +506,13 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 ### Samostatný podpis a jeho soubor
 
 - Samostatný podpis patří k souboru téhož spisu nebo úkonu, jehož jméno je jméno podpisu bez
-  koncovky p7s nebo p7m (Smlouva.pdf.p7s ke Smlouva.pdf). Koncovka smí mít velká písmena, zbytek
-  jména se musí shodovat přesně. Když k témuž jménu patří dva soubory s koncovkou p7s či p7m,
-  podpis nepatří k žádnému. Přejmenování, nahrání i smazání souboru párování změní. Soubor p7m
-  s dokumentem uvnitř samostatným podpisem není. Podpis se ověřuje proti aktuální verzi souboru,
+  koncovky p7s (Smlouva.pdf.p7s ke Smlouva.pdf). Koncovka smí mít velká písmena, zbytek jména se
+  musí shodovat přesně. Přejmenování, nahrání i smazání souboru párování změní. Soubor p7m nese
+  dokument uvnitř a k žádnému souboru nepatří. Podpis se ověřuje proti aktuální verzi souboru,
   i u starší verze podpisu; nová verze souboru bez nového podpisu tak ukáže Podpis neplatný.
 - Oddíl Podepsaný soubor na kartě ukáže ikonu, jméno a velikost souboru a Otevřít, které soubor
   ukáže v témže náhledu. Bez souboru řekne, že soubor tohoto jména mezi soubory není, a vyzve
-  k nahrání pod tímto jménem; nejednoznačný soubor ohlásí.
+  k nahrání pod tímto jménem.
 - Soubor, ke kterému patří samostatný podpis, ukáže pod hlavičkou pruh Podpisy s textem
   „Podepsáno samostatným podpisem“ a tlačítkem se jménem podpisu, které podpis ukáže v témže
   náhledu, a s podepisujícími jako u podepsaného dokumentu.

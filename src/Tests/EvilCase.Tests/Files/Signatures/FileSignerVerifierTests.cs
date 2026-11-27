@@ -98,21 +98,6 @@ public class FileSignerVerifierTests : TenantFixture
     }
 
     [Test]
-    public async Task TwoSignaturesOfTheSignedNameAreAmbiguous()
-    {
-        var (_, signature) = await this.AddDetachedPair();
-        await this.Tenant.AddCaseFile(await this.Tenant.Context.Cases.SingleAsync(), "Smlouva.pdf.p7m");
-
-        var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(response?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.SignedFileAmbiguous));
-            Assert.That(response?.SignedFileProblem, Is.EqualTo(DetachedSignatureProblem.Ambiguous));
-        }
-    }
-
-    [Test]
     public async Task AFileOfTheSignedNameOnAnotherCaseIsNotPaired()
     {
         var caseA = await this.Tenant.AddCase(Day);

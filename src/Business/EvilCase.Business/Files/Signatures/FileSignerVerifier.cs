@@ -41,7 +41,7 @@ internal sealed class FileSignerVerifier(
             .AsListItems()
             .ToListAsync(token);
 
-        var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, file.FileName, ownerFiles);
+        var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, ownerFiles);
 
         // A detached signature is verified against the current version of the file it signs.
         var signedVersion = signedFile is null
@@ -56,7 +56,7 @@ internal sealed class FileSignerVerifier(
         if (cache.TryGetValue(CacheKey(key), out FileSignersResponse? cached))
             return cached;
 
-        var response = await this.ReadAndVerify(fileVersion.StoragePath, signedVersion, signedFile, pairingProblem, token);
+        var response = await this.ReadAndVerify(fileVersion, signedVersion, signedFile, pairingProblem, token);
         if (response is null)
             return null;
 
@@ -81,40 +81,29 @@ internal sealed class FileSignerVerifier(
     }
 
     private async Task<FileSignersResponse?> ReadAndVerify(
-        string storagePath, FileVersion? signedVersion, FileListItem? signedFile, DetachedSignatureProblem? pairingProblem, CancellationToken token)
+        FileVersion signatureVersion, FileVersion? signedVersion, FileListItem? signedFile, DetachedSignatureProblem? pairingProblem, CancellationToken token)
     {
-        await using var content = blobStore.ReadFileBlob(storagePath);
-        if (content is null)
+        var cms = await blobStore.ReadFileBlobBytes(signatureVersion.StoragePath, signatureVersion.SizeBytes, token);
+        if (cms is null)
             return null;
 
-        await using var buffer = new MemoryStream();
-        await content.CopyToAsync(buffer, token);
-
-        var cms = buffer.GetBuffer().AsMemory(0, (int)buffer.Length);
         var now = timeProvider.GetUtcNow().UtcDateTime;
 
         if (!DetachedSignatures.IsDetached(cms))
-            return SignedFileSignature.Verify(cms.Span, signedContent: null, trust, revocation, now);
+            return SignedFileSignature.Verify(cms, signedContent: null, trust, revocation, now);
 
-        var listed = CmsSigners.Read(cms.Span);
+        var listed = CmsSigners.Read(cms);
 
         if (pairingProblem is { } problem)
-        {
-            var signerProblem = problem == DetachedSignatureProblem.Missing ? FileSignerProblem.SignedFileMissing : FileSignerProblem.SignedFileAmbiguous;
-
-            return SignedFileSignature.Unverifiable(listed, signerProblem) with { SignedFileProblem = problem };
-        }
+            return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileMissing) with { SignedFileProblem = problem };
 
         if (signedVersion!.SizeBytes > FileLimits.MaxReadBytes)
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileTooLarge) with { SignedFile = signedFile };
 
-        await using var signedContent = blobStore.ReadFileBlob(signedVersion.StoragePath);
+        var signedContent = await blobStore.ReadFileBlobBytes(signedVersion.StoragePath, signedVersion.SizeBytes, token);
         if (signedContent is null)
             return SignedFileSignature.Unverifiable(listed, FileSignerProblem.SignedFileMissing) with { SignedFileProblem = DetachedSignatureProblem.Missing };
 
-        await using var signedBuffer = new MemoryStream();
-        await signedContent.CopyToAsync(signedBuffer, token);
-
-        return SignedFileSignature.Verify(cms.Span, signedBuffer.ToArray(), trust, revocation, now) with { SignedFile = signedFile };
+        return SignedFileSignature.Verify(cms, signedContent, trust, revocation, now) with { SignedFile = signedFile };
     }
 }

@@ -1,15 +1,15 @@
 /*
- * Primitiva Ec (SDD-020). Každou hodnotu berou z ec-tokens.css, rozsah otevírá třída ec na
- * kořeni aplikace. Vizuální předlohy jsou v docs/design/.
+ * The Ec primitives (SDD-020). Every value comes from ec-tokens.css; the ec class on the app root
+ * opens their scope. The visual references are in docs/design/.
  */
 
-/* Cizí stylopis dokument už neresetuje (SDD-020). */
+/* No foreign stylesheet resets the document (SDD-020). */
 body {
     margin: 0;
 }
 
-/* Vyhradí místo pro svislý posuvník, i když ho stránka nepotřebuje: jinak se šířka obsahu mění
-   podle toho, jestli je stránka delší než okno (docs/design/prehled.html). */
+/* Reserves room for the vertical scrollbar even where the page needs none; otherwise the content width
+   changes with whether the page is longer than the window (docs/design/prehled.html). */
 html {
     scrollbar-gutter: stable;
     background: var(--ec-bg);
@@ -30,13 +30,13 @@ html {
     text-decoration: none;
 }
 
-/* Tlačítko EcButton, i v podobě odkazu, bere barvu ze své varianty; odkaz s vlastní třídou ze své
-   třídy. */
+/* An EcButton, a link one too, takes its colour from its variant; a link with a class of its own from that
+   class. */
 :where(.ec) a:where(:not(.ec-button)) {
     color: var(--ec-accent-text);
 }
 
-/* Bez specificity, aby pravidlo s třídou pole vždy vyhrálo. */
+/* No specificity, so a rule with the field's class always wins. */
 :where(.ec) :where(button, input, select, textarea) {
     font-family: inherit;
     font-size: inherit;
@@ -459,7 +459,7 @@ html {
     color: var(--ec-text-muted);
 }
 
-/* Chyba nahradí nápovědu, aby stála hned pod polem. */
+/* The error replaces the hint, so it stands right below the field. */
 .ec-field:has(.ec-field-error > *) .ec-field-hint {
     display: none;
 }
@@ -540,7 +540,7 @@ html {
     box-shadow: var(--ec-focus-ring);
 }
 
-/* Blazor značí pole, které neprošlo validací, třídou invalid a aria-invalid. */
+/* Blazor marks a field that failed validation with the invalid class and aria-invalid. */
 .ec-input:is(.invalid, [aria-invalid="true"]),
 .ec-select:is(.invalid, [aria-invalid="true"]),
 .ec-textarea:is(.invalid, [aria-invalid="true"]) {
@@ -811,7 +811,7 @@ html.ec-scroll-locked {
     font-weight: var(--ec-weight-semibold);
 }
 
-/* Zavírací křížek je tichý, nečte se jako akce (docs/design/nastaveni.html). */
+/* The close cross is quiet; it does not read as an action (docs/design/nastaveni.html). */
 .ec-modal-header .ec-button-ghost {
     color: var(--ec-text-soft);
 }

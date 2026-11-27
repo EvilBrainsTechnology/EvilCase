@@ -2,7 +2,7 @@
     scrollbar-gutter: stable;
 }
 
-/* Dokument širší než plocha začíná u jejího levého okraje, užší stojí uprostřed. */
+/* A document wider than the stage starts at its left edge, a narrower one stands in the middle. */
 .ec-preview-document {
     flex: 0 0 auto;
     align-self: flex-start;

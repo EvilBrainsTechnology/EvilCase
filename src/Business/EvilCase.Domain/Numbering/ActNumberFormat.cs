@@ -17,11 +17,6 @@ public static class ActNumberFormat
         return Compose(caseNumber, date, (ParseOrDefault(highest)?.Sequence ?? 0) + 1);
     }
 
-    public static ActNumberParts Parse(string value)
-    {
-        return ParseOrDefault(value) ?? throw new FormatException($"'{value}' is not an act number.");
-    }
-
     public static ActNumberParts? ParseOrDefault(string? value)
     {
         // A case number carries slashes of its own, so the act's day and sequence are what stands after the last one.

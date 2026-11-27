@@ -117,7 +117,7 @@
     white-space: nowrap;
 }
 
-/* Tečku obklopují mezery, aby čtečka nespojila části; okraj doplní mezeru na rozestup předlohy. */
+/* Spaces surround the dot so a screen reader keeps the parts apart; the margin tops the space up to the reference spacing. */
 .ec-sep {
     margin-inline: var(--ec-space-1);
     color: var(--ec-text-faint);
@@ -149,7 +149,7 @@
     height: var(--ec-control-md);
 }
 
-/* Hvězda hlavního souboru: plná u hlavního, prázdná u ostatních. */
+/* The main file star: filled on the main file, empty on the others. */
 .ec-main-star {
     position: relative;
     border-color: transparent;
@@ -175,7 +175,7 @@
     fill: currentColor;
 }
 
-/* V hlavičce náhledu zabere hvězda jen výšku ikony, takže hlavičku nezvýší. */
+/* In the preview header the star takes only the icon's height, so the header does not grow. */
 .ec-modal-large .ec-modal-header .ec-preview-name-row .ec-button.ec-main-star {
     flex: 0 0 auto;
     min-width: 0;
@@ -214,7 +214,7 @@
     color: var(--ec-text-muted);
 }
 
-/* Stáhnout vše a šipka jeho nabídky jsou jedno tlačítko o dvou částech. */
+/* Stáhnout vše and the arrow of its menu are one button of two parts. */
 .ec-split-button {
     display: flex;
 
@@ -297,7 +297,7 @@
     color: var(--ec-text-soft);
 }
 
-/* Soubory v bočním sloupci detailu spisu (docs/design/detail-spisu.html). */
+/* The files in the side column of the case detail (docs/design/detail-spisu.html). */
 .ec-file-card-compact {
     & .ec-file-row {
         gap: var(--ec-space-3);
@@ -340,7 +340,7 @@
     font-size: var(--ec-text-sm);
 }
 
-/* Přejmenování souboru v řádku i v hlavičce náhledu. */
+/* Renaming a file in its row and in the preview header. */
 .ec-file-rename {
     display: flex;
     flex-direction: column;

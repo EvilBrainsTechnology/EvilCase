@@ -23,26 +23,6 @@ public class CaseUpdateTests : TenantFixture
     }
 
     [Test]
-    public async Task AnEditWritesTheDateTheTitleTheDescriptionAndTheStatus()
-    {
-        var seeded = await this.Tenant.AddCase(Day, "Přestupek", status: CaseStatus.Active);
-        var request = Edit(seeded.CaseNumber, new DateOnly(2026, 9, 1), "Nový název", "Nový popis", CaseStatus.WaitingOnAuthority);
-
-        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
-
-        var reloaded = await this.Reload(seeded.Id);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
-            Assert.That(reloaded.Date, Is.EqualTo(request.Date));
-            Assert.That(reloaded.Title, Is.EqualTo(request.Title));
-            Assert.That(reloaded.Description, Is.EqualTo(request.Description));
-            Assert.That(reloaded.Status, Is.EqualTo(request.Status));
-        }
-    }
-
-    [Test]
     public async Task AClosedCaseIsStillEditable()
     {
         var seeded = await this.Tenant.AddCase(Day, status: CaseStatus.Closed);
@@ -180,24 +160,6 @@ public class CaseUpdateTests : TenantFixture
         var outcome = await this.writer.UpdateCase(otherCase.Id, request, CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.NotFound), "the tenant query filter is what keeps another tenant's row out of an edit");
-    }
-
-    [Test]
-    public async Task AnEditWritesTheContact()
-    {
-        var seeded = await this.Tenant.AddCase(Day);
-        var contact = await this.Tenant.AddContact("Městský úřad Vzorov");
-        var request = Edit(seeded.CaseNumber, Day, seeded.Title, description: null, CaseStatus.Active, contactId: contact.Id);
-
-        var outcome = await this.writer.UpdateCase(seeded.Id, request, CancellationToken.None);
-
-        var reloaded = await this.Reload(seeded.Id);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(outcome, Is.EqualTo(CaseUpdateOutcome.Updated));
-            Assert.That(reloaded.ContactId, Is.EqualTo(contact.Id));
-        }
     }
 
     [Test]

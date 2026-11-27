@@ -22,7 +22,7 @@ public class CaseNumberFormatTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(CaseNumberFormat.Compose(Day, 1000), Is.EqualTo("EC/20260807-1000"), "the sequence grows past three digits rather than wrapping");
-            Assert.That(CaseNumberFormat.Parse("EC/20260807-1000"), Is.EqualTo(new CaseNumberParts(Day, 1000)), "a grown sequence still parses back");
+            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-1000"), Is.EqualTo(new CaseNumberParts(Day, 1000)), "a grown sequence still parses back");
         }
     }
 
@@ -50,20 +50,7 @@ public class CaseNumberFormatTests
     [Test]
     public void ParseReadsBackWhatComposeWrote()
     {
-        Assert.That(CaseNumberFormat.Parse("EC/20260807-042"), Is.EqualTo(new CaseNumberParts(Day, 42)), "parse is the inverse of compose");
-    }
-
-    [Test]
-    public void ParseThrowsOnAnythingElse()
-    {
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(static () => CaseNumberFormat.Parse("EC/20260807-1"), Throws.TypeOf<FormatException>(), "a sequence under three digits is outside the format");
-            Assert.That(static () => CaseNumberFormat.Parse("EC/20260807-0001"), Throws.TypeOf<FormatException>(), "a padded sequence does not read back to itself");
-            Assert.That(static () => CaseNumberFormat.Parse("XX/20260807-001"), Throws.TypeOf<FormatException>(), "the prefix is fixed");
-            Assert.That(static () => CaseNumberFormat.Parse("EC/20261307-001"), Throws.TypeOf<FormatException>(), "month 13 is not a day");
-            Assert.That(static () => CaseNumberFormat.Parse(""), Throws.TypeOf<FormatException>(), "an empty value is not a case number");
-        }
+        Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-042"), Is.EqualTo(new CaseNumberParts(Day, 42)), "parse is the inverse of compose");
     }
 
     [Test]
@@ -71,11 +58,11 @@ public class CaseNumberFormatTests
     {
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-1"), Is.Null);
-            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-0001"), Is.Null);
-            Assert.That(CaseNumberFormat.ParseOrDefault("XX/20260807-001"), Is.Null);
-            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20261307-001"), Is.Null);
-            Assert.That(CaseNumberFormat.ParseOrDefault(""), Is.Null);
+            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-1"), Is.Null, "a sequence under three digits is outside the format");
+            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-0001"), Is.Null, "a padded sequence does not read back to itself");
+            Assert.That(CaseNumberFormat.ParseOrDefault("XX/20260807-001"), Is.Null, "the prefix is fixed");
+            Assert.That(CaseNumberFormat.ParseOrDefault("EC/20261307-001"), Is.Null, "month 13 is not a day");
+            Assert.That(CaseNumberFormat.ParseOrDefault(""), Is.Null, "an empty value is not a case number");
             Assert.That(CaseNumberFormat.ParseOrDefault("EC/20260807-001"), Is.Not.Null, "a well-formed number does not return null");
         }
     }

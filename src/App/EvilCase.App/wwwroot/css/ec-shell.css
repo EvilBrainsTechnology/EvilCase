@@ -1,4 +1,4 @@
-/* Značka — přihlášení, zaváděcí obrazovka v index.html a LoadingPage. */
+/* The brand: the sign-in, the loading screen in index.html and LoadingPage. */
 .ec-brand {
     display: flex;
     align-items: center;
@@ -24,7 +24,7 @@
     height: var(--ec-brand-icon);
 }
 
-/* Brána: přihlášení a zavádění aplikace sdílí jeden rám (docs/design/prihlaseni.html, nacitani.html). */
+/* The gate: the sign-in and the app loading share one frame (docs/design/prihlaseni.html, nacitani.html). */
 .ec-gate {
     display: flex;
     flex-direction: column;
@@ -38,7 +38,7 @@
     color: var(--ec-text);
 }
 
-/* Rezervovaný posuvník by pod tmavou stránkou ukázal světlý pruh. */
+/* A reserved scrollbar would show a light strip beside a dark page. */
 html:has(.ec-gate) {
     scrollbar-gutter: auto;
     background: var(--ec-login-panel-bg);
@@ -103,7 +103,7 @@ html:has(.ec-gate) {
     letter-spacing: -0.02em;
 }
 
-/* Zavádění aplikace: kroky 1/3 a 2/3 v index.html, 3/3 v LoadingPage. */
+/* The app loading: steps 1/3 and 2/3 in index.html, 3/3 in LoadingPage. */
 .ec-boot-step {
     display: flex;
     align-items: center;
@@ -130,7 +130,7 @@ html:has(.ec-gate) {
     background: var(--ec-border);
 }
 
-/* Blazor počítá soubory, ne bajty, takže procenta přicházejí skokem a pruh nesmí animovat. */
+/* Blazor counts files, not bytes, so the percentage jumps and the bar must not animate. */
 .ec-boot-bar {
     position: absolute;
     inset: 0 auto 0 0;
@@ -158,7 +158,7 @@ html:has(.ec-gate) {
     }
 }
 
-/* Rám aplikace: lišta nad obsahem a šedý podklad pod ním (docs/design/prehled.html). */
+/* The app frame: the bar above the content and the grey ground below it (docs/design/prehled.html). */
 
 .ec-shell {
     display: flex;

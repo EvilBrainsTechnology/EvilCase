@@ -19,11 +19,6 @@ public static class CaseNumberFormat
         return Compose(date, (ParseOrDefault(highest)?.Sequence ?? 0) + 1);
     }
 
-    public static CaseNumberParts Parse(string value)
-    {
-        return ParseOrDefault(value) ?? throw new FormatException($"'{value}' is not a case number.");
-    }
-
     public static CaseNumberParts? ParseOrDefault(string? value)
     {
         if (value?.StartsWith(CasePrefix, StringComparison.Ordinal) != true)

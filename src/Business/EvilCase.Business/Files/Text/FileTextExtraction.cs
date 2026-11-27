@@ -1,6 +1,7 @@
 using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using EvilBrains.EvilCase.Api.Contract.Files;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
@@ -14,6 +15,11 @@ internal static class FileTextExtraction
     private const string Pdf = ".pdf";
 
     private const string Docx = ".docx";
+
+    /// <summary>
+    /// The most characters a DOCX part may unpack to; a larger part is unreadable.
+    /// </summary>
+    public const long MaxDocxPartCharacters = FileLimits.MaxReadBytes;
 
     private static readonly HashSet<string> PlainTextExtensions = new(
         [".txt", ".text", ".csv", ".tsv", ".md", ".json", ".xml", ".html", ".htm", ".log", ".yaml", ".yml"],
@@ -54,7 +60,7 @@ internal static class FileTextExtraction
 
     private static string DocxText(Stream content)
     {
-        using var document = WordprocessingDocument.Open(content, isEditable: false);
+        using var document = WordprocessingDocument.Open(content, isEditable: false, new OpenSettings { MaxCharactersInPart = MaxDocxPartCharacters });
 
         var body = document.MainDocumentPart?.Document?.Body;
 

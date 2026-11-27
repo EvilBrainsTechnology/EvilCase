@@ -44,7 +44,18 @@ internal sealed class CaseWriter(
         for (var attempt = 1; ; attempt++)
         {
             var caseNumber = await numbers.NextCaseNumber(request.Date, token);
-            var @case = BuildCase(request, caseNumber);
+
+            // TenantId and UserId are stamped by UserWriteInterceptor.
+            var @case = new Case
+            {
+                ParentCaseId = request.ParentCaseId,
+                ContactId = request.ContactId,
+                CaseNumber = caseNumber,
+                Title = request.Title.Trim(),
+                Description = request.Description?.TrimEmptyToNull(),
+                Date = request.Date,
+                Status = CaseStatus.Active,
+            };
 
             context.Cases.Add(@case);
             LabelAssignmentWrites.AddCaseLabels(context, @case.Id, labels);
@@ -71,21 +82,6 @@ internal sealed class CaseWriter(
 
             return item;
         }
-    }
-
-    // TenantId and UserId are stamped by UserWriteInterceptor.
-    internal static Case BuildCase(CreateCaseRequest request, string caseNumber)
-    {
-        return new()
-        {
-            ParentCaseId = request.ParentCaseId,
-            ContactId = request.ContactId,
-            CaseNumber = caseNumber,
-            Title = request.Title.Trim(),
-            Description = request.Description?.TrimEmptyToNull(),
-            Date = request.Date,
-            Status = CaseStatus.Active,
-        };
     }
 
     public async Task<CaseUpdateOutcome> UpdateCase(Guid caseId, CaseEditRequest request, CancellationToken token)

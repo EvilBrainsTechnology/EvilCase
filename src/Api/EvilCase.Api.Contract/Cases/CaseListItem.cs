@@ -25,7 +25,7 @@ public sealed record CaseListItem
 
     /// <summary>
     /// When the case itself last changed: its Updated, or its Created while it has never been
-    /// edited. An act, a comment or a file of the case never moves it (SDD-015).
+    /// edited. An act, a subordinate case or a contact never moves it (SDD-015).
     /// </summary>
     public required DateTime Changed { get; init; }
 

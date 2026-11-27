@@ -1,12 +1,10 @@
 @* The search at the right end of a preview or editor toolbar: the matches, the field and the steps to the previous and
-   next match. Escape clears the search and does not close the dialog. *@
-@if (this.Collapsible)
-{
-    <span class="ec-preview-toolbar-search-toggle">
-        <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="@this.Label"
-                  Disabled="@this.Disabled" aria-expanded="@(this.open ? "true" : "false")" OnClick="this.Toggle" />
-    </span>
-}
+   next match. A narrow screen shows only a toggle that opens the search on a row of its own. Escape clears the search
+   and does not close the dialog. *@
+<span class="ec-preview-toolbar-search-toggle">
+    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Search" AriaLabel="@this.Label"
+              Disabled="@this.Disabled" aria-expanded="@(this.open ? "true" : "false")" OnClick="this.Toggle" />
+</span>
 <div class="@this.SearchClass" role="search" data-ec-keeps-escape>
     <span class="ec-preview-toolbar-matches" role="status">@this.MatchesText</span>
     <label class="ec-preview-toolbar-search-box">
@@ -40,12 +38,6 @@
     [Parameter]
     public bool Disabled { get; set; }
 
-    /// <summary>
-    /// Whether a narrow screen shows only a toggle that opens the search on a row of its own.
-    /// </summary>
-    [Parameter]
-    public bool Collapsible { get; set; }
-
     [Parameter]
     public EventCallback<PreviewSearch> OnSearch { get; set; }
 
@@ -59,9 +51,7 @@
     {
         get
         {
-            return this.Collapsible
-                ? this.open ? "ec-preview-toolbar-search ec-preview-toolbar-search-collapsible ec-preview-toolbar-search-open" : "ec-preview-toolbar-search ec-preview-toolbar-search-collapsible"
-                : "ec-preview-toolbar-search";
+            return this.open ? "ec-preview-toolbar-search ec-preview-toolbar-search-open" : "ec-preview-toolbar-search";
         }
     }
 

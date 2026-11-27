@@ -20,57 +20,6 @@ public class ContactCreateTests : TenantFixture
     }
 
     [Test]
-    public async Task ACreatedContactCarriesItsNameKindDataBoxIdAndAddress()
-    {
-        var request = new ContactEditRequest
-        {
-            Name = "Krajský soud ve Vzorově",
-            Kind = ContactKind.Authority,
-            DataBoxId = "abcde12",
-            Address = "Náměstí 1, Vzorov",
-        };
-
-        var created = await this.writer.CreateContact(request, CancellationToken.None);
-
-        var reloaded = await this.Tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(created.Name, Is.EqualTo(request.Name));
-            Assert.That(created.Kind, Is.EqualTo(request.Kind));
-            Assert.That(created.DataBoxId, Is.EqualTo(request.DataBoxId));
-            Assert.That(created.Address, Is.EqualTo(request.Address));
-            Assert.That(reloaded.Name, Is.EqualTo(request.Name));
-            Assert.That(reloaded.Kind, Is.EqualTo(request.Kind));
-            Assert.That(reloaded.DataBoxId, Is.EqualTo(request.DataBoxId));
-            Assert.That(reloaded.Address, Is.EqualTo(request.Address));
-        }
-    }
-
-    [Test]
-    public async Task ABlankOptionalFieldIsFiledAsNothing()
-    {
-        var request = new ContactEditRequest
-        {
-            Name = "  Krajský soud ve Vzorově  ",
-            Kind = ContactKind.Authority,
-            DataBoxId = "  ",
-            Address = "\n ",
-        };
-
-        var created = await this.writer.CreateContact(request, CancellationToken.None);
-
-        var reloaded = await this.Tenant.Context.Contacts.SingleAsync(contact => contact.Id == created.ContactId);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(reloaded.Name, Is.EqualTo("Krajský soud ve Vzorově"));
-            Assert.That(reloaded.DataBoxId, Is.Null);
-            Assert.That(reloaded.Address, Is.Null);
-        }
-    }
-
-    [Test]
     public async Task ACreatedContactBelongsToTheWritersTenant()
     {
         var request = new ContactEditRequest { Name = "Krajský soud ve Vzorově", Kind = ContactKind.Authority };

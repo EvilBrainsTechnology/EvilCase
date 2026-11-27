@@ -216,12 +216,10 @@ else
         try
         {
             await using var content = await this.LoadContent(this.File, version.Number == this.File.Version ? null : version.Number, token);
-            using var bytes = new MemoryStream();
-
-            await content.CopyToAsync(bytes, token);
+            var bytes = await FileContentPreview.ReadBytes(content, token);
 
             if (!token.IsCancellationRequested)
-                this.texts[(version.Number, version.Created)] = EditableText.ParseOrDefault(bytes.GetBuffer().AsSpan(0, (int)bytes.Length))?.Text;
+                this.texts[(version.Number, version.Created)] = EditableText.ParseOrDefault(bytes)?.Text;
         }
         catch (OperationCanceledException)
         {
@@ -260,10 +258,8 @@ else
 
         foreach (var version in new[] { newer, older })
         {
-            if (version.SizeBytes > FileTypeDisplay.MaxTextBytes)
-                problems.Add($"Verzi {version.Number} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(FileTypeDisplay.MaxTextBytes)}");
-            else if (this.NotUtf8(version))
-                problems.Add($"Verzi {version.Number} nelze porovnat: soubor není v kódování UTF-8");
+            if (FileTypeDisplay.CompareProblem(version.Number, version.SizeBytes, this.NotUtf8(version)) is { } problem)
+                problems.Add(problem);
         }
 
         return problems;

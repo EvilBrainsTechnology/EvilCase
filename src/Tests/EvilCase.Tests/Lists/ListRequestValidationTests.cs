@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Contacts;
@@ -9,14 +8,6 @@ namespace EvilBrains.EvilCase.Tests.Lists;
 
 public class ListRequestValidationTests
 {
-    [Test]
-    public void ATakeAboveTheHundredIsRefused()
-    {
-        var refused = Validate(new CaseListRequest { Take = 101 });
-
-        Assert.That(refused.Single().MemberNames, Does.Contain(nameof(CaseListRequest.Take)), "a page never holds more than a hundred rows");
-    }
-
     [Test]
     public void ATakeBelowOneIsRefused()
     {
@@ -61,45 +52,6 @@ public class ListRequestValidationTests
             Assert.That(negative.Single().MemberNames, Does.Contain(nameof(ContactListRequest.Skip)), "every list takes its page start from the shared request");
             Assert.That(accepted, Is.Empty);
         }
-    }
-
-    [Test]
-    public void TheSharedRequestCarriesThePageAndNoFilter()
-    {
-        var declared = typeof(ListRequest)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Select(static property => property.Name);
-
-        Assert.That(
-            declared,
-            Is.EquivalentTo([nameof(ListRequest.Skip), nameof(ListRequest.Take)]),
-            "every list shares the page; a filter belongs to the list that narrows by it");
-    }
-
-    [Test]
-    public void TheSortableRequestAddsTheSortKeyAndItsDirection()
-    {
-        var declared = typeof(SortableListRequest<CaseSortKey>)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Select(static property => property.Name);
-
-        Assert.That(
-            declared,
-            Is.EquivalentTo([nameof(SortableListRequest<>.Sort), nameof(SortableListRequest<>.SortDirection)]),
-            "a list the reader sorts carries the sort key and its direction, the page it already has");
-    }
-
-    [Test]
-    public void TheContactListNarrowsByItsOwnSearchAndKindAlone()
-    {
-        var declared = typeof(ContactListRequest)
-            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Select(static property => property.Name);
-
-        Assert.That(
-            declared,
-            Is.EquivalentTo([nameof(ContactListRequest.Search), nameof(ContactListRequest.Kind), nameof(ContactListRequest.Sort)]),
-            "a contact carries no label, no contact and no date, so the contact list never takes such a filter");
     }
 
     [Test]

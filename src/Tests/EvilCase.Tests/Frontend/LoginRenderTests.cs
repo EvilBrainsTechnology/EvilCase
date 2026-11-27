@@ -31,10 +31,18 @@ public class LoginRenderTests
         var backslashed = await SignInReturningTo("/\\evil.example/");
         var tabbed = await SignInReturningTo("/\t/evil.example/");
         var absolute = await SignInReturningTo("https://evil.example/");
+        var sameOrigin = await SignInReturningTo("http://localhost/cases?q=a#acts");
+        var malformed = await SignInReturningTo("http://[");
+        var dotted = await SignInReturningTo("/.//evil.example/");
+        var doubled = await SignInReturningTo("http://localhost//evil.example/");
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(inside.Uri, Does.EndWith("/cases"));
+            Assert.That(sameOrigin.Uri, Is.EqualTo(sameOrigin.BaseUri + "cases?q=a#acts"), "an absolute target on the application's own origin is followed with its query and fragment");
+            Assert.That(malformed.Uri, Is.EqualTo(malformed.BaseUri), "a target that is no URL leads home");
+            Assert.That(dotted.Uri, Does.StartWith(dotted.BaseUri), "a dot segment before two slashes does not make the target protocol-relative");
+            Assert.That(doubled.Uri, Does.StartWith(doubled.BaseUri), "two slashes after the application's own origin stay on it");
             Assert.That(
                 outside.Uri,
                 Is.EqualTo(outside.BaseUri),
@@ -82,6 +90,9 @@ public class LoginRenderTests
 
         var navigation = ctx.Services.GetRequiredService<NavigationManager>();
 
+        // Taken first: a navigation off the origin moves the test's base URI with it.
+        var baseUri = navigation.BaseUri;
+
         // The page reads the target from the query string, the only way a value reaches
         // a SupplyParameterFromQuery parameter.
         navigation.NavigateTo(navigation.GetUriWithQueryParameter(RedirectToLogin.ReturnUrlParameter, returnUrl));
@@ -92,6 +103,6 @@ public class LoginRenderTests
         await component.Find("#login-password").ChangeAsync(new ChangeEventArgs { Value = "SpravneHeslo1" });
         await component.Find("button[type=\"submit\"]").ClickAsync(new MouseEventArgs());
 
-        return (navigation.Uri, navigation.BaseUri);
+        return (navigation.Uri, baseUri);
     }
 }

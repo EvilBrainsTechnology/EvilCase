@@ -49,7 +49,7 @@ public class FileVersionsController : ControllerBase
             FileVersionDeleteOutcome.Deleted => this.NoContent(),
             FileVersionDeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.VersionNotFound),
             FileVersionDeleteOutcome.LastVersion => this.Problem(
-                detail: "The only version of a file is deleted only with the file.", statusCode: StatusCodes.Status409Conflict, title: FileProblems.LastVersion),
+                detail: FileProblems.LastVersionDetail, statusCode: StatusCodes.Status409Conflict, title: FileProblems.LastVersion),
             _ => throw new UnreachableException(),
         };
     }

@@ -94,15 +94,23 @@
         };
     }
 
-    // Read as the browser reads it, which drops tabs and line breaks and takes a backslash for a slash:
-    // a single leading slash and no second one, as "//evil.example" is a protocol-relative absolute URL.
+    // Read as the browser reads it, which drops tabs and line breaks and takes a backslash for a slash, then resolved
+    // against the application: only a target on its own scheme, host and port is followed.
     private string SafeReturnUrl()
     {
         if (this.ReturnUrl is null)
             return "/";
 
         var target = string.Concat(this.ReturnUrl.Where(static c => c is not ('\t' or '\n' or '\r'))).Replace('\\', '/');
+        var home = new Uri(this.Navigation.BaseUri);
 
-        return target.StartsWith('/', StringComparison.Ordinal) && !target.StartsWith("//", StringComparison.Ordinal) ? target : "/";
+        if (!Uri.TryCreate(home, target, out var absolute)
+            || Uri.Compare(absolute, home, UriComponents.SchemeAndServer, UriFormat.Unescaped, StringComparison.OrdinalIgnoreCase) != 0)
+        {
+            return "/";
+        }
+
+        // The absolute target itself: a path cut out of it may start with "//" once its dot segments are resolved.
+        return absolute.AbsoluteUri;
     }
 }

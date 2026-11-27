@@ -41,7 +41,19 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
         for (var attempt = 1; ; attempt++)
         {
             var actNumber = await numbers.NextActNumber(caseNumber, request.Date, token);
-            var act = BuildAct(request, actNumber);
+
+            // TenantId and UserId are stamped by UserWriteInterceptor.
+            var act = new Act
+            {
+                CaseId = request.CaseId,
+                ActNumber = actNumber,
+                Direction = request.Direction,
+                Status = request.Status,
+                Title = request.Title.Trim(),
+                Date = request.Date,
+                Description = request.Description?.TrimEmptyToNull(),
+                ContactId = request.ContactId,
+            };
 
             context.Acts.Add(act);
             LabelAssignmentWrites.AddActLabels(context, act.Id, labels);
@@ -68,22 +80,6 @@ internal sealed class ActWriter(IDbSession dbSession, IActNumberIssuer numbers, 
 
             return item;
         }
-    }
-
-    // TenantId and UserId are stamped by UserWriteInterceptor.
-    internal static Act BuildAct(CreateActRequest request, string actNumber)
-    {
-        return new()
-        {
-            CaseId = request.CaseId,
-            ActNumber = actNumber,
-            Direction = request.Direction,
-            Status = request.Status,
-            Title = request.Title.Trim(),
-            Date = request.Date,
-            Description = request.Description?.TrimEmptyToNull(),
-            ContactId = request.ContactId,
-        };
     }
 
     public async Task<ActUpdateOutcome> UpdateAct(Guid actId, ActEditRequest request, CancellationToken token)
