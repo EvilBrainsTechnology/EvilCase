@@ -592,10 +592,12 @@
 
         if (picked is not null)
         {
-            if (picked.SizeBytes > MaxTextBytes)
-                status = ChangesProblem($"Verzi {number} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(MaxTextBytes)}");
-            else if (this.changesTexts.TryGetValue((file.FileId, number, picked.Created), out var text))
-                (original, status) = (text, text is null ? ChangesProblem($"Verzi {number} nelze porovnat: soubor není v kódování UTF-8") : null);
+            var read = this.changesTexts.TryGetValue((file.FileId, number, picked.Created), out var text);
+
+            if (FileTypeDisplay.CompareProblem(number, picked.SizeBytes, read && text is null) is { } problem)
+                status = ChangesProblem(problem);
+            else if (read)
+                original = text;
             else if (this.changesFailed)
                 status = @<div class="ec-alert ec-preview-alert" role="alert">
                     <EcIcon Paths="@AppIcons.AlertTriangle" /><p class="ec-alert-text">Verzi @number se nepodařilo načíst. Zkuste to za chvíli znovu.</p>

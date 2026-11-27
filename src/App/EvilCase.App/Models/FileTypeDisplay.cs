@@ -169,6 +169,17 @@ public static class FileTypeDisplay
         return ComparesByContent(fileName) && olderBytes <= MaxTextBytes && newerBytes <= MaxTextBytes && utf8;
     }
 
+    /// <summary>
+    /// Why a version of a file that compares by its content does not: it is too large, or it was read and is not UTF-8.
+    /// </summary>
+    public static string? CompareProblem(int number, long sizeBytes, bool notUtf8)
+    {
+        if (sizeBytes > MaxTextBytes)
+            return $"Verzi {number.ToString(CultureInfo.InvariantCulture)} nelze porovnat: soubor je větší než {FileSizeDisplay.Text(MaxTextBytes)}";
+
+        return notUtf8 ? $"Verzi {number.ToString(CultureInfo.InvariantCulture)} nelze porovnat: soubor není v kódování UTF-8" : null;
+    }
+
     public static bool HasKnownExtension(string fileName)
     {
         return IsKnownExtension(Extension(fileName));
