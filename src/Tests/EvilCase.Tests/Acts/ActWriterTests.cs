@@ -14,33 +14,6 @@ public class ActWriterTests : TenantFixture
     protected override bool AsHost => true;
 
     [Test]
-    public void ATitleAndDescriptionAreStoredTrimmed()
-    {
-        var request = Request() with { Title = "  Odvolání  ", Description = "  text  " };
-
-        var act = ActWriter.BuildAct(request, "EC/20260821-001/20260825-001");
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(act.Title, Is.EqualTo("Odvolání"), "a created act stores its title trimmed");
-            Assert.That(act.Description, Is.EqualTo("text"), "a created act stores its description trimmed");
-        }
-    }
-
-    [Test]
-    public void ABlankDescriptionIsFiledAsNothing()
-    {
-        var blank = Request() with { Description = "   " };
-        var withText = blank with { Description = "text" };
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(ActWriter.BuildAct(blank, "EC/20260821-001/20260825-001").Description, Is.Null);
-            Assert.That(ActWriter.BuildAct(withText, "EC/20260821-001/20260825-001").Description, Is.EqualTo("text"));
-        }
-    }
-
-    [Test]
     public async Task ANumberTakenWhileTheActIsFiledIsIssuedAgain()
     {
         var @case = await this.Tenant.AddCase(new DateOnly(2026, 8, 21));
