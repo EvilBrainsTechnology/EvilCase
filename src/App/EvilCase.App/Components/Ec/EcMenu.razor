@@ -1,9 +1,16 @@
 @* Not an EcButton: the focus returns to the trigger, which needs its element reference. *@
 <div class="ec-menu-anchor">
-    <button type="button" class="ec-button ec-button-secondary ec-button-standard ec-button-icon"
+    <button type="button" class="@(this.Trigger is null ? "ec-button ec-button-secondary ec-button-standard ec-button-icon" : "ec-menu-trigger")"
             aria-label="@this.AriaLabel" aria-haspopup="menu" aria-expanded="@(this.open ? "true" : "false")"
             @ref="this.trigger" @onclick="this.Open">
-        <EcIcon Paths="@this.Icon" />
+        @if (this.Trigger is null)
+        {
+            <EcIcon Paths="@this.Icon" />
+        }
+        else
+        {
+            @this.Trigger
+        }
     </button>
     @if (this.open)
     {
@@ -48,6 +55,10 @@
     /// <summary>The sheet's first line below lg, e.g. the case title.</summary>
     [Parameter]
     public string? Title { get; set; }
+
+    /// <summary>The trigger's own look in place of the icon button.</summary>
+    [Parameter]
+    public RenderFragment? Trigger { get; set; }
 
     private ElementReference trigger;
 
