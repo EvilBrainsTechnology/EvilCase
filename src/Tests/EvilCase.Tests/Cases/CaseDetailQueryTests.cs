@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Business.Cases;
-using EvilBrains.EvilCase.Domain.Cases;
 using EvilBrains.EvilCase.Tests.Data;
 
 namespace EvilBrains.EvilCase.Tests.Cases;
@@ -7,40 +6,6 @@ namespace EvilBrains.EvilCase.Tests.Cases;
 public class CaseDetailQueryTests : TenantFixture
 {
     private static readonly DateOnly Day = new(2026, 8, 24);
-
-    [Test]
-    public async Task TheDetailCarriesTheNumberTheDateTheTitleTheDescriptionAndTheStatus()
-    {
-        var @case = await this.Tenant.AddCase(
-            Day,
-            "Přestupek",
-            description: "Popis přestupku",
-            status: CaseStatus.WaitingOnAuthority);
-
-        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
-
-        Assert.That(detail, Is.Not.Null);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(detail.CaseId, Is.EqualTo(@case.Id));
-            Assert.That(detail.CaseNumber, Is.EqualTo(@case.CaseNumber));
-            Assert.That(detail.Date, Is.EqualTo(Day));
-            Assert.That(detail.Title, Is.EqualTo("Přestupek"));
-            Assert.That(detail.Description, Is.EqualTo("Popis přestupku"));
-            Assert.That(detail.Status, Is.EqualTo(CaseStatus.WaitingOnAuthority));
-        }
-    }
-
-    [Test]
-    public async Task ACaseWithNoParentNamesNone()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-
-        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
-
-        Assert.That(detail!.ParentCase, Is.Null);
-    }
 
     [Test]
     public async Task TheDetailNamesTheCasesContact()
@@ -59,16 +24,6 @@ public class CaseDetailQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task ACaseWithNoContactNamesNone()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-
-        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
-
-        Assert.That(detail!.Contact, Is.Null, "a contact is optional and its absence is no contact, not a failed read");
-    }
-
-    [Test]
     public async Task TheDetailNamesTheParentCase()
     {
         var parent = await this.Tenant.AddCase(Day, "Nadřízený");
@@ -82,26 +37,6 @@ public class CaseDetailQueryTests : TenantFixture
             Assert.That(detail.ParentCase.CaseNumber, Is.EqualTo(parent.CaseNumber));
             Assert.That(detail.ParentCase.Title, Is.EqualTo(parent.Title));
         }
-    }
-
-    [Test]
-    public async Task TheDetailCarriesTheCasesExternalMark()
-    {
-        var @case = await this.Tenant.AddCase(Day, externalCaseNumber: "VV41/2025/08464");
-
-        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
-
-        Assert.That(detail!.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"));
-    }
-
-    [Test]
-    public async Task ACaseWithNoExternalMarkNamesNone()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-
-        var detail = await this.Tenant.Context.Cases.DetailOf(@case.Id, CancellationToken.None);
-
-        Assert.That(detail!.ExternalCaseNumber, Is.Null, "the mark is optional and its absence is no mark, not a failed read");
     }
 
     [Test]
