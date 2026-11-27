@@ -148,12 +148,6 @@ public class FileTransferController : ControllerBase
         return new EmptyResult();
     }
 
-    // IFormFile.ContentType is never null, only empty, when a multipart part carries no Content-Type header.
-    private static string? NormalizeMediaType(string mediaType)
-    {
-        return string.IsNullOrEmpty(mediaType) ? null : mediaType;
-    }
-
     private FileUpload? BuildFileUpload(IFormFile file, out ActionResult? error)
     {
         if (file.Length > FileLimits.MaxUploadBytes)
@@ -163,7 +157,9 @@ public class FileTransferController : ControllerBase
         }
 
         var fileName = FileNameRules.LastSegment(file.FileName);
-        var mediaType = NormalizeMediaType(file.ContentType);
+
+        // IFormFile.ContentType is never null, only empty, when a multipart part carries no Content-Type header.
+        var mediaType = string.IsNullOrEmpty(file.ContentType) ? null : file.ContentType;
         error = this.InvalidUploadMetadataProblem(fileName, mediaType);
 
         if (error is not null)
