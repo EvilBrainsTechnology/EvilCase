@@ -4,6 +4,7 @@ using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Files;
 using EvilBrains.EvilCase.Tests.Data;
+using EvilBrains.EvilCase.Tests.Frontend;
 using EvilBrains.EvilCase.Tests.Seeding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -203,6 +204,17 @@ public class MainFileTests : TenantFixture
         var first = await this.Tenant.AddCaseFile(@case, "a.pdf");
         var second = await this.Tenant.AddCaseFile(@case, "b.pdf");
         await using var other = TestDatabase.CreateMigratedAsHost(this.Tenant.UserContext);
+        await using var observer = TestDatabase.CreateMigratedAsHost(this.Tenant.UserContext);
+
+        var logger = new CapturingLogger<FileWriter>();
+        var context = this.Tenant.Context;
+        var transactional = new FileWriter(new TransactionalDbSession(context), new FakeFileBlobStore(), this.Tenant.UserContext, logger);
+
+        // An open connection keeps the writer on one backend the observer can watch.
+        await context.Database.OpenConnectionAsync();
+        var writerPid = await context.Database
+            .SqlQuery<int>($"""SELECT pg_backend_pid() AS "Value" """)
+            .SingleAsync();
 
         MainFileOutcome outcome;
 
@@ -213,8 +225,11 @@ public class MainFileTests : TenantFixture
                 .ExecuteUpdateAsync(static setters => setters.SetProperty(static file => file.IsMain, valueExpression: true));
 
             // The set waits on the uncommitted mark, then loses the unique index to it.
-            var setting = this.writer.SetMainFile(second.Id, CancellationToken.None);
-            await Task.Delay(TimeSpan.FromMilliseconds(300));
+            var setting = transactional.SetMainFile(second.Id, CancellationToken.None);
+
+            while (!setting.IsCompleted && !await WaitsOnALock(observer, writerPid))
+                await Task.Delay(TimeSpan.FromMilliseconds(10));
+
             await transaction.CommitAsync();
 
             outcome = await setting;
@@ -223,8 +238,16 @@ public class MainFileTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(MainFileOutcome.Changed));
+            Assert.That(logger.LoggedWarningOrAbove, Is.True, "the set lost the unique index to the concurrent mark and retried");
             Assert.That(await this.MainFileIds(), Is.EqualTo([second.Id]), "the set retried after the concurrent mark committed takes it over");
         }
+    }
+
+    private static async Task<bool> WaitsOnALock(ApplicationDbContext observer, int pid)
+    {
+        return await observer.Database
+            .SqlQuery<bool>($"""SELECT EXISTS (SELECT 1 FROM pg_stat_activity WHERE pid = {pid} AND wait_event_type = 'Lock') AS "Value" """)
+            .SingleAsync();
     }
 
     private static FileUpload Upload(string fileName, string content = "a")
