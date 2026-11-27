@@ -1,5 +1,5 @@
-/* Seznam podle SDD-016 (docs/design/spisy.html): řádek je odkaz po celé šířce, patička seznamu na víc
-   stránek nese rozsah, počet a stránkování. Nese hlavičku a patičku karty (ec-card-*, ec-card-header-actions). */
+/* A list per SDD-016 (docs/design/spisy.html): a row is a full-width link, the footer of a list of more pages
+   carries the range, the count and the paging. Carries the card header and footer (ec-card-*, ec-card-header-actions). */
 .ec-table {
     overflow: hidden;
 }
@@ -263,7 +263,7 @@
     accent-color: var(--ec-accent);
 }
 
-/* Načítání, chyba a prázdno drží stejnou výšku jako plný seznam, aby obsah neposkakoval (SDD-020). */
+/* Loading, error and empty keep the height of a full list, so the content does not jump (SDD-020). */
 .ec-table .ec-card-state,
 .ec-table .ec-empty {
     min-height: var(--ec-list-min-height);
@@ -305,7 +305,7 @@
         display: none;
     }
 
-    /* Bez místa jde odkaz v záhlaví seznamu pod nadpis, místo aby ho zalomil. */
+    /* Without room, the link in the list header goes below the title instead of wrapping it. */
     .ec-table > .ec-card-header {
         flex-wrap: wrap;
         row-gap: 0;
@@ -330,7 +330,7 @@
         flex-wrap: nowrap;
     }
 
-    /* Název dostane až dva řádky a štítky jdou pod něj, místo aby ho ořízly. */
+    /* The title gets up to two lines and the labels go below it instead of cutting it. */
     .ec-table-cell-primary,
     .ec-table-cell-primary .ec-cell-line {
         flex-wrap: wrap;
@@ -354,7 +354,7 @@
         max-width: none;
     }
 
-    /* Prázdný údaj na mobilu řádek nenese. */
+    /* An empty fact takes no place in a mobile row. */
     .ec-table-row {
         & > .ec-table-cell:has(> .ec-cell-empty:only-child) {
             display: none;
@@ -387,14 +387,14 @@
         height: var(--ec-control-sm);
     }
 
-    /* Dotyková plocha má plnou velikost, tlačítko vizuálně ne. */
+    /* The touch area has the full size, the visible button does not. */
     .ec-main-file::before {
         content: "";
         position: absolute;
         inset: calc((var(--ec-control-sm) - var(--ec-touch-min)) / 2);
     }
 
-    /* Údaje kontaktu začínají pod jménem, ne pod monogramem. */
+    /* The contact's facts start below the name, not below the monogram. */
     .ec-table-row {
         &:has(> .ec-table-cell-primary .ec-contact-monogram) {
             padding-left: calc(var(--ec-space-5) + var(--ec-monogram-sm) + var(--ec-space-4));
@@ -404,7 +404,7 @@
             margin-left: calc(-1 * (var(--ec-monogram-sm) + var(--ec-space-4)));
         }
 
-        /* Kontakt sdílí řádek s dalšími údaji a bez místa se zkrátí. */
+        /* The contact shares the line with the other facts and is truncated without room. */
         & > .ec-cell-contact {
             flex: 1 1 var(--ec-list-col-contact);
             min-width: 0;
@@ -425,7 +425,7 @@
     }
 }
 
-/* Přehled (docs/design/prehled.html): dlaždice počtů spisů. */
+/* The dashboard (docs/design/prehled.html): the case count tiles. */
 .ec-tiles {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -529,7 +529,7 @@
 }
 
 @media (max-width: 991.98px) {
-    /* Na mobilu jsou dlaždice jeden řádek tří stejných buněk: počet a popisek. */
+    /* On mobile the tiles are one row of three equal cells: the count and the caption. */
     .ec-tiles {
         gap: 0;
         background: var(--ec-surface);
@@ -658,12 +658,12 @@
     }
 }
 
-/* Detail kontaktu (docs/design/detail-kontaktu.html): dva seznamy výskytů na půl šířky. */
+/* The contact detail (docs/design/detail-kontaktu.html): two lists of occurrences at half width. */
 .ec-contact-occurrences {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
 
-    /* Prázdný seznam vedle plného je jen tak vysoký, jak potřebuje jeho věta. */
+    /* An empty list beside a full one is only as tall as its sentence needs. */
     & .ec-table .ec-empty {
         min-height: 0;
     }
@@ -683,7 +683,7 @@
     }
 }
 
-/* Detail spisu (docs/design/detail-spisu.html): úkony spisu, jejich lišta a filtry. */
+/* The case detail (docs/design/detail-spisu.html): the case's acts, their bar and filters. */
 .ec-case-acts {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
@@ -850,7 +850,7 @@
         width: auto;
     }
 
-    /* Přepínač drží jeden řádek; co se nevejde, odjede vodorovně. */
+    /* The switch keeps one line; what does not fit scrolls sideways. */
     .ec-table-bar .ec-segmented {
         flex: 1 1 100%;
         flex-wrap: nowrap;
@@ -859,7 +859,7 @@
         scrollbar-width: none;
     }
 
-    /* Dokud jde přepínač posunout dál, jeho pravý okraj se ztrácí. */
+    /* While the switch scrolls further, its right edge fades out. */
     @supports (animation-timeline: scroll()) {
         .ec-table-bar .ec-segmented {
             animation: ec-scroll-fade linear both;
@@ -871,7 +871,7 @@
         flex: 1 0 auto;
     }
 
-    /* Lišta seznamu má na mobilu jednu velikost písma, jako její select. */
+    /* On mobile the list bar has one font size, that of its select. */
     .ec-table-bar :is(.ec-button, .ec-segment, .ec-check) {
         font-size: var(--ec-text-lg);
     }

@@ -748,7 +748,7 @@
         height: var(--ec-touch-min);
     }
 
-    /* Dotyková plocha hvězdy v hlavičce náhledu má plnou velikost, tlačítko vizuálně ne. */
+    /* The star's touch area in the preview header has the full size, the visible button does not. */
     .ec-preview-name-row .ec-main-star::before {
         content: "";
         position: absolute;

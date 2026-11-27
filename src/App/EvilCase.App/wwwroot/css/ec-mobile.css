@@ -122,7 +122,7 @@
         }
     }
 
-    /* Tlačítko kopírování drží dotykovou plochu, ale řádek údaje nezvětší. */
+    /* The copy button keeps its touch area but does not make the fact's row taller. */
     .ec-detail-fact-copy .ec-copy {
         margin-block: calc((var(--ec-fact-line) - var(--ec-touch-min)) / 2);
     }
@@ -140,7 +140,7 @@
         margin-left: 0;
     }
 
-    /* Akce formuláře zůstávají na mobilu u spodního okraje okna. */
+    /* On mobile the form actions stay at the bottom edge of the window. */
     .ec-form-layout .ec-card-footer {
         position: sticky;
         bottom: calc(var(--ec-tabbar-height) + env(safe-area-inset-bottom));
@@ -306,7 +306,7 @@
         display: none;
     }
 
-    /* Nahrát soubory široké karty nese jen ikonu; text zůstává jménem pro čtečku. */
+    /* Nahrát soubory of the wide card shows only its icon; the text stays the name for a screen reader. */
     .ec-file-card:not(.ec-file-card-compact) .ec-file-upload-text {
         position: absolute;
         width: calc(var(--ec-space-1) / 4);
@@ -322,7 +322,7 @@
         padding: 0;
     }
 
-    /* Název souboru dostane až dva řádky a láme se kdekoli; dotykovou plochu dává celý řádek. */
+    /* The file name gets up to two lines and wraps anywhere; the whole row is the touch area. */
     .ec-file-name,
     .ec-file-name-static {
         display: -webkit-box;

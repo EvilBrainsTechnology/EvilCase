@@ -1,4 +1,4 @@
-/* Hledání v horní liště (docs/design/hledani.html, SDD-021). */
+/* The top bar search (docs/design/hledani.html, SDD-021). */
 .ec-topsearch {
     position: relative;
     z-index: 11;
@@ -466,7 +466,7 @@
         font-size: var(--ec-text-lg);
     }
 
-    /* Číslo jednací úkonu má vlastní řádek; „ve spisu…“ se zkrátí na konci druhého. */
+    /* The act's reference number has a line of its own; „ve spisu…“ is truncated at the end of the second. */
     .ec-sr-option {
         &:has(.ec-sr-icon-act) {
             & .ec-sr-meta {
@@ -760,7 +760,7 @@
         }
     }
 
-    /* Značka zůstane malá; její dotyková plocha doroste na minimum. */
+    /* The brand stays small; its touch area grows to the minimum. */
     .ec-topbar > .ec-topbar-brand {
         position: relative;
         flex: none;

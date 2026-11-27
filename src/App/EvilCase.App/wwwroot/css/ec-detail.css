@@ -1,4 +1,4 @@
-/* Detail úkonu (docs/design/detail-ukonu.html). */
+/* The act detail (docs/design/detail-ukonu.html). */
 .ec-detail {
     display: flex;
     flex-direction: column;
@@ -101,7 +101,7 @@
     gap: var(--ec-space-1);
     min-width: 0;
 
-    /* Tlačítko kopírování přesahuje řádek hodnoty, aby hodnota zůstala na účaří ostatních údajů. */
+    /* The copy button overhangs the value line, so the value keeps the baseline of the other facts. */
     & .ec-copy {
         margin-block: calc((var(--ec-fact-line) - var(--ec-copy-size)) / 2);
         color: var(--ec-text-muted);
@@ -523,7 +523,7 @@
     min-width: 0;
 }
 
-/* Karta v bočním sloupci 380 px má menší nadpis (docs/design/detail-spisu.html). */
+/* A card in the 380 px side column has a smaller title (docs/design/detail-spisu.html). */
 .ec-detail-aside .ec-card-title,
 .ec-form-aside .ec-card-title {
     font-size: var(--ec-text-lg);
@@ -735,7 +735,7 @@
     color: var(--ec-accent-text);
 }
 
-/* Detail spisu (docs/design/detail-spisu.html): podřízené spisy v postranním sloupci. */
+/* The case detail (docs/design/detail-spisu.html): the child cases in the side column. */
 .ec-child-card {
     display: flex;
     flex-direction: column;
