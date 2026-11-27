@@ -61,7 +61,7 @@
     }
     @if (this.OnSearch.HasDelegate)
     {
-        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.Ready)" Collapsible OnSearch="this.OnSearch" />
+        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.Ready)" OnSearch="this.OnSearch" />
     }
     @if (this.Actions is not null)
     {

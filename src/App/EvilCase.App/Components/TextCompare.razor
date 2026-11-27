@@ -38,7 +38,7 @@
                 <ToolbarNote Text="Některou z verzí nejde naformátovat, porovnává se původní text." />
             </div>
         }
-        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" Collapsible OnSearch="this.Search" />
+        <ToolbarSearch @ref="this.search" Label="Hledat v dokumentu" Disabled="@(!this.ready)" OnSearch="this.Search" />
     </div>
     <div class="ec-preview-stage ec-text-editor-stage ec-text-compare-stage">
         <div class="ec-text-compare-card">

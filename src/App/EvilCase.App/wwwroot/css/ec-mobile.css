@@ -674,14 +674,14 @@
         background: transparent;
     }
 
-    .ec-preview-toolbar-search-collapsible {
+    .ec-preview-toolbar-search {
         display: none;
         order: 1;
         min-width: 0;
     }
 
     /* The Markdown toolbar sizes its search itself (ec-markdown.css). */
-    .ec-preview-toolbar-search-collapsible:where(:not(.ec-markdown-toolbar > *)) {
+    .ec-preview-toolbar-search:where(:not(.ec-markdown-toolbar > *)) {
         flex: 1 1 100%;
     }
 
@@ -922,7 +922,7 @@
         }
     }
 
-    .ec-text-compare-toolbar > .ec-preview-toolbar-search-collapsible {
+    .ec-text-compare-toolbar > .ec-preview-toolbar-search {
         flex: 1 1 100%;
     }
 
