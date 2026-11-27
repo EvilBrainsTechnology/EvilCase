@@ -1,4 +1,5 @@
 using System.Text;
+using System.Xml;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -57,6 +58,30 @@ public class FileTextExtractionTests
         using var content = Docx("První odstavec", "Druhý odstavec");
 
         Assert.That(FileTextExtraction.Extract("podani.docx", content), Is.EqualTo("První odstavec\nDruhý odstavec"));
+    }
+
+    [Test]
+    public void ADocxWhosePartUnpacksPastTheLimitThrows()
+    {
+        using var content = new MemoryStream();
+
+        using (var document = WordprocessingDocument.Create(content, WordprocessingDocumentType.Document))
+        {
+            var main = document.AddMainDocumentPart();
+
+            using var writer = new StreamWriter(main.GetStream(FileMode.Create), Encoding.UTF8);
+            writer.Write("<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body>");
+
+            var padding = new string(' ', 1024 * 1024);
+            for (var written = 0L; written <= FileTextExtraction.MaxDocxPartCharacters; written += padding.Length)
+                writer.Write(padding);
+
+            writer.Write("</w:body></w:document>");
+        }
+
+        content.Position = 0;
+
+        Assert.That(() => FileTextExtraction.Extract("podani.docx", content), Throws.InstanceOf<XmlException>(), "a part past the limit is not unpacked, the reader answers it as unreadable");
     }
 
     [Test]
