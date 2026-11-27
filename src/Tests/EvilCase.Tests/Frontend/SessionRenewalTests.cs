@@ -1,6 +1,10 @@
+using System.Net;
+using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
+using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.App.Auth;
 using Microsoft.Extensions.Logging.Abstractions;
+using NSubstitute.ExceptionExtensions;
 
 namespace EvilBrains.EvilCase.Tests.Frontend;
 
@@ -127,6 +131,22 @@ public class SessionRenewalTests
             Assert.That(refresh.Refreshes, Is.EqualTo(1));
             Assert.That(tokens.Current, Is.Null);
         }
+    }
+
+    [TestCase(HttpStatusCode.Unauthorized, SignInOutcome.InvalidCredentials)]
+    [TestCase(HttpStatusCode.Locked, SignInOutcome.LockedOut)]
+    [TestCase(HttpStatusCode.TooManyRequests, SignInOutcome.TooManyAttempts)]
+    [TestCase(HttpStatusCode.BadRequest, SignInOutcome.Unreachable)]
+    [TestCase(HttpStatusCode.InternalServerError, SignInOutcome.Unreachable)]
+    [TestCase(HttpStatusCode.BadGateway, SignInOutcome.Unreachable)]
+    public async Task OnlyARefusedSignInSaysTheCredentialsAreWrong(HttpStatusCode status, object outcome)
+    {
+        var authClient = Substitute.For<IAuthClient>();
+        authClient.Login(Arg.Any<LoginRequest>(), Arg.Any<CancellationToken>()).ThrowsAsync(new ApiException(status, responseBody: null));
+
+        using var provider = new EvilCaseAuthenticationStateProvider(ExpiringSession.Store(), authClient, new StubEarlyRefresh(refreshed: null), NullLogger<EvilCaseAuthenticationStateProvider>.Instance);
+
+        Assert.That(await provider.SignIn("user@example.com", "heslo", CancellationToken.None), Is.EqualTo(outcome));
     }
 
     private static EvilCaseAuthenticationStateProvider Provider(ISessionStore tokens, StubEarlyRefresh refresh)
