@@ -59,13 +59,8 @@ internal sealed class FileSignatureReader(
         if (sizeBytes > FileLimits.MaxReadBytes)
             return new FileSignatureResponse { State = FileSignatureState.Invalid, Problem = FileSignatureProblem.TooLarge };
 
-        await using var content = blobStore.ReadFileBlob(storagePath);
-        if (content is null)
-            return null;
+        var content = await blobStore.ReadFileBlobBytes(storagePath, sizeBytes, token);
 
-        await using var buffer = new MemoryStream(capacity: (int)sizeBytes);
-        await content.CopyToAsync(buffer, token);
-
-        return DataMessageSignature.Verify(buffer.GetBuffer().AsMemory(0, (int)buffer.Length), trust, revocation);
+        return content is null ? null : DataMessageSignature.Verify(content, trust, revocation);
     }
 }

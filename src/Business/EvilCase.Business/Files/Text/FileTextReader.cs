@@ -21,14 +21,12 @@ internal sealed class FileTextReader(IDbSession dbSession, IFileBlobStore blobSt
         if (fileVersion.SizeBytes > FileLimits.MaxReadBytes)
             return FileTextFailure.TooLarge;
 
-        await using var content = blobStore.ReadFileBlob(fileVersion.StoragePath);
+        // The parsers read synchronously and seek; the blob is read off the disk asynchronously first.
+        var content = await blobStore.ReadFileBlobBytes(fileVersion.StoragePath, fileVersion.SizeBytes, token);
         if (content is null)
             return FileTextFailure.FileNotFound;
 
-        // The parsers read synchronously and seek; the blob is read off the disk asynchronously first.
-        await using var buffer = new MemoryStream(capacity: (int)fileVersion.SizeBytes);
-        await content.CopyToAsync(buffer, token);
-        buffer.Position = 0;
+        await using var buffer = new MemoryStream(content, writable: false);
 
         string text;
 

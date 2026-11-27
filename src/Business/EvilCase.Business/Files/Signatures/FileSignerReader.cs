@@ -16,15 +16,12 @@ internal sealed class FileSignerReader(IDbSession dbSession, IFileBlobStore blob
         if (fileVersion.SizeBytes > FileLimits.MaxReadBytes)
             return new FileSignersResponse { Problem = FileSignersProblem.TooLarge, Signers = [] };
 
-        await using var content = blobStore.ReadFileBlob(fileVersion.StoragePath);
+        var content = await blobStore.ReadFileBlobBytes(fileVersion.StoragePath, fileVersion.SizeBytes, token);
         if (content is null)
             return null;
 
-        await using var buffer = new MemoryStream(capacity: (int)fileVersion.SizeBytes);
-        await content.CopyToAsync(buffer, token);
-
-        var response = CmsSigners.Read(buffer.GetBuffer().AsSpan(0, (int)buffer.Length));
-        if (response.Problem is not null || !DetachedSignatures.IsDetached(buffer.GetBuffer().AsMemory(0, (int)buffer.Length)))
+        var response = CmsSigners.Read(content);
+        if (response.Problem is not null || !DetachedSignatures.IsDetached(content))
             return response;
 
         var ownerFiles = await dbSession.Current.FileAssets
