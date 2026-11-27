@@ -3,6 +3,9 @@ using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Logging;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.Logging.Contract;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.StaticAssets;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EvilBrains.EvilCase.Tests.Hosting;
@@ -44,45 +47,35 @@ public class AuthorizationFallbackTests
     }
 
     [Test]
-    public async Task FilingACaseNeedsAToken()
+    public void OnlyTheListedEndpointsAreAnonymous()
     {
-        using var response = await this.client.PostAsJsonAsync(
-            new Uri("/api/cases", UriKind.Relative),
-            new CreateCaseRequest { Date = new DateOnly(2026, 8, 21), Title = "Spis" });
+        var endpointSource = this.host.Services.GetRequiredService<EndpointDataSource>();
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-    }
+        var anonymous = endpointSource.Endpoints
+            .OfType<RouteEndpoint>()
+            .Where(static endpoint => endpoint.Metadata.GetMetadata<IAllowAnonymous>() is not null)
+            .Where(static endpoint => endpoint.Metadata.GetMetadata<StaticAssetDescriptor>() is null)
+            .SelectMany(static endpoint => (endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods ?? ["*"])
+                .Select(method => $"{method} {endpoint.RoutePattern.RawText}"))
+            .Distinct();
 
-    [Test]
-    public async Task ReadingAFileSignatureNeedsAToken()
-    {
-        using var response = await this.client.GetAsync(new Uri($"/api/files/{Guid.CreateVersion7()}/signature", UriKind.Relative));
+        string[] allowed =
+        [
+            "POST api/auth/login",
+            "POST api/auth/refresh",
+            "POST api/auth/logout",
+            "POST api/logs",
+            "GET api/file-links",
+            "PUT api/file-links",
+            "* /health/live",
+            "* /health/ready",
+            "GET /openapi/{documentName}.json",
+            "* /api/{**path}",
+            "GET {*path:nonfile}",
+            "HEAD {*path:nonfile}",
+        ];
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-    }
-
-    [Test]
-    public async Task ListingFileSignersNeedsAToken()
-    {
-        using var response = await this.client.GetAsync(new Uri($"/api/files/{Guid.CreateVersion7()}/signers", UriKind.Relative));
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-    }
-
-    [Test]
-    public async Task ExportingTheTenantNeedsAToken()
-    {
-        using var response = await this.client.GetAsync(new Uri("/api/export", UriKind.Relative));
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
-    }
-
-    [Test]
-    public async Task VerifyingFileSignersNeedsAToken()
-    {
-        using var response = await this.client.GetAsync(new Uri($"/api/files/{Guid.CreateVersion7()}/signers/verification", UriKind.Relative));
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        Assert.That(anonymous, Is.EquivalentTo(allowed), "every other endpoint requires a token; extending the anonymous list is an owner decision");
     }
 
     [Test]
