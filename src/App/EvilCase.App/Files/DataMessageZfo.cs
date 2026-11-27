@@ -106,7 +106,7 @@ internal static partial class DataMessageZfo
     // The name the attachment is shown and saved under: its last path segment, safe to save.
     private static string SafeFileName(string description)
     {
-        return FileNameRules.SafeFileName(description[(description.LastIndexOfAny(['/', '\\']) + 1)..], "příloha");
+        return FileNameRules.SafeFileName(FileNameRules.LastSegment(description), "příloha");
     }
 
     private static IEnumerable<XElement> Children(XElement parent, string localName)

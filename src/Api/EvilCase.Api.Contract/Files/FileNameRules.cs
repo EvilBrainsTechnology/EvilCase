@@ -9,7 +9,7 @@ public static class FileNameRules
 
     public static string LastSegment(string fileName)
     {
-        return Path.GetFileName(fileName);
+        return fileName[(fileName.LastIndexOfAny(['/', '\\']) + 1)..];
     }
 
     public static string? Violation(string fileName)
