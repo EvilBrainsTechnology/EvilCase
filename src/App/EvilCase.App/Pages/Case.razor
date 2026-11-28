@@ -1,4 +1,5 @@
 @page "/cases/{CaseId:guid}"
+@using EvilBrains.ApiClient
 @using EvilBrains.EvilCase.Api.Client
 @using EvilBrains.EvilCase.Api.Contract.Acts
 @using EvilBrains.EvilCase.Api.Contract.Cases
@@ -8,6 +9,7 @@
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
 @inject ICaseCommentsClient CaseCommentsClient
+@inject ILogger<Case> FilesLogger
 
 <PageTitle>@(this.Detail is null ? "Spis" : this.Detail.Title) – EvilCase</PageTitle>
 
@@ -27,6 +29,12 @@
                         <EcBadge Text="@CaseStatusDisplay.Text(this.Detail.Status)" Tone="CaseStatusDisplay.Tone(this.Detail.Status)" ShowDot="true" />
                     </Status>
                     <Actions>
+                        @if (this.Detail.FileCount > 0)
+                        {
+                            <span class="ec-case-files-button">
+                                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Files" OnClick="this.OpenFiles">Soubory<span class="ec-case-files-count">@this.Detail.FileCount</span></EcButton>
+                            </span>
+                        }
                         <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Pencil" OnClick="this.EditCase">Upravit<span class="ec-text-wide"> spis</span></EcButton>
                         <EcMenu AriaLabel="Další akce se spisem" Title="@this.Detail.Title" Items="this.CaseActions" />
                     </Actions>
@@ -42,6 +50,18 @@
                         <span class="ec-detail-fact-name">Datum spisu</span>
                         <span class="ec-detail-fact-value">@DateDisplay.Text(this.Detail.Date)</span>
                     </div>
+                    @if (this.Detail.FileCount > 0)
+                    {
+                        @* Below lg the header's Soubory button gives way to this row. *@
+                        <div class="ec-detail-fact ec-case-files-fact">
+                            <span class="ec-detail-fact-name">Soubory</span>
+                            <button type="button" class="ec-case-files-fact-button" @onclick="this.OpenFiles">
+                                <EcIcon Paths="@AppIcons.Files" />
+                                <span class="ec-case-files-fact-text">@CaseFileTreeDisplay.TreeText(this.Detail.FileCount, this.Detail.FileActCount)</span>
+                                <EcIcon Paths="@AppIcons.ChevronRight" />
+                            </button>
+                        </div>
+                    }
                     <div class="ec-detail-fact ec-detail-fact-copyable ec-detail-fact-fixed">
                         <span class="ec-detail-fact-name">Spisová značka</span>
                         <span class="ec-detail-fact-copy">
@@ -158,6 +178,11 @@
     }
 </div>
 
+@if (this.filesOpen && this.Detail is { } filesCase)
+{
+    <CaseFilesModal @key="filesCase.CaseId" CaseId="filesCase.CaseId" CaseTitle="@filesCase.Title" OnClosed="this.CloseFiles" />
+}
+
 @if (this.deleting && this.Detail is { } deletedCase)
 {
     <ConfirmModal Title="Smazat spis" ConfirmText="Smazat spis" Action="token => this.CasesClient.DeleteCase(deletedCase.CaseId, token)"
@@ -187,6 +212,7 @@
     [
         CaseColumn.Date,
         CaseColumn.Case,
+        CaseColumn.Files,
         CaseColumn.Status,
         CaseColumn.Changed,
     ];
@@ -195,6 +221,8 @@
     public Guid CaseId { get; set; }
 
     private bool deleting;
+
+    private bool filesOpen;
 
     private Guid countedCaseId;
 
@@ -284,6 +312,29 @@
     private void OpenNewChildCase()
     {
         this.Navigation.NavigateTo($"/cases/new?parent={this.CaseId}");
+    }
+
+    private void OpenFiles()
+    {
+        this.filesOpen = true;
+    }
+
+    // The tree's preview may have changed the files; the page takes their new counts.
+    private async Task CloseFiles()
+    {
+        this.filesOpen = false;
+
+        try
+        {
+            var fresh = await this.Fetch();
+
+            if (this.Detail?.CaseId == fresh.CaseId)
+                this.Detail = this.Detail with { FileCount = fresh.FileCount, FileActCount = fresh.FileActCount };
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.FilesLogger.LogWarning(exception, "Counting the files of case {CaseId} failed", this.CaseId);
+        }
     }
 
     private void StartDeleting()

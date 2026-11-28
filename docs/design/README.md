@@ -31,6 +31,13 @@ Otevři je v prohlížeči přímo ze souboru.
 | [`nahled-starsi-verze.html`](nahled-starsi-verze.html) | Náhled starší verze | detail úkonu |
 | [`nahled-aktualni-verze.html`](nahled-aktualni-verze.html) | Náhled aktuální verze | detail úkonu |
 | [`verze-souboru-mobil.html`](verze-souboru-mobil.html) | Verze souboru na mobilu | detail úkonu |
+| [`soubory-spisu.html`](soubory-spisu.html) | Soubory spisu, strom podřízených spisů, úkonů a souborů | detail spisu, seznamy spisů |
+| [`soubory-spisu-max.html`](soubory-spisu-max.html) | Soubory spisu maximalizované, rozbalený strom | detail spisu, seznamy spisů |
+| [`soubory-spisu-mobil.html`](soubory-spisu-mobil.html) | Soubory spisu na mobilu | detail spisu, seznamy spisů |
+| [`soubory-spisu-hluboko-mobil.html`](soubory-spisu-hluboko-mobil.html) | Soubory spisu na mobilu, hlubší úrovně | detail spisu, seznamy spisů |
+| [`soubory-spisu-tlacitka.html`](soubory-spisu-tlacitka.html) | Tlačítko Soubory v detailu spisu a sloupec Soubory v seznamech spisů | `/cases/{id}`, seznamy spisů |
+| [`soubory-spisu-tlacitka-mobil.html`](soubory-spisu-tlacitka-mobil.html) | Řádek Soubory v detailu spisu a dlaždice v seznamu spisů na mobilu | `/cases/{id}`, seznamy spisů |
+| [`ikony-souboru.html`](ikony-souboru.html) | Ikony spisu, úkonu a typů souborů | všechny obrazovky |
 | [`hledani.html`](hledani.html) | Hledání v horní liště, otevřená nabídka | všechny obrazovky |
 | [`kontakty.html`](kontakty.html) | Kontakty | `/contacts` |
 | [`detail-kontaktu.html`](detail-kontaktu.html) | Detail kontaktu | `/contacts/{id}` |

@@ -49,6 +49,22 @@
                     }
                 </text>,
             },
+            CaseColumn.Files => new EcColumn<CaseListItem>
+            {
+                Header = "Soubory",
+                Width = "var(--ec-list-col-case-files)",
+                CellClass = "ec-cell-case-files",
+                Cell = item =>@<text>
+                    @if (item.HasFiles)
+                    {
+                        @* Inside the row's link: the click opens the tree and never follows the row. *@
+                        <button type="button" class="ec-case-files" aria-label="@($"Soubory spisu {item.Title}")" data-tooltip="Soubory spisu"
+                                @onclick="() => this.filesOf = item" @onclick:preventDefault @onclick:stopPropagation>
+                            <span class="ec-case-files-tile"><EcIcon Paths="@AppIcons.Files" /></span>
+                        </button>
+                    }
+                </text>,
+            },
             CaseColumn.Status => new EcColumn<CaseListItem>
             {
                 Header = "Stav",
@@ -155,6 +171,11 @@
     </Empty>
 </EcTable>
 
+@if (this.filesOf is { } shown)
+{
+    <CaseFilesModal @key="shown.CaseId" CaseId="shown.CaseId" CaseTitle="@shown.Title" OnClosed="this.CloseFiles" />
+}
+
 @code {
     private const string FilteredEmptyText = "Filtru neodpovídá žádný spis.";
 
@@ -257,6 +278,9 @@
 
     private bool hiddenByStatus;
 
+    // The case whose file tree is open.
+    private CaseListItem? filesOf;
+
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
@@ -316,6 +340,14 @@
         await this.TotalChanged.InvokeAsync(response.TotalCount);
 
         return response.TotalCount;
+    }
+
+    // The tree may have changed the files of a listed case.
+    private Task CloseFiles()
+    {
+        this.filesOf = null;
+
+        return this.ReloadPage();
     }
 
     private Task OnStatusSelected(ChangeEventArgs args)

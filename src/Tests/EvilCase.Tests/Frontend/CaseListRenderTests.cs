@@ -2,6 +2,7 @@ using Bunit;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Lists;
+using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Components.Lists;
 using EvilBrains.EvilCase.Domain.Cases;
 using Microsoft.AspNetCore.Components;
@@ -172,6 +173,30 @@ public class CaseListRenderTests
         {
             Assert.That(component.FindAll("#children-status"), Is.Empty, "an empty list offers no filter");
             Assert.That(component.Find(".ec-empty").TextContent, Does.Contain("Zatím tu není žádný podřízený spis."));
+        }
+    }
+
+    [Test]
+    public async Task OnlyARowWhoseTreeHoldsAFileOpensTheTree()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var withFiles = Row with { CaseId = Guid.CreateVersion7(), HasFiles = true };
+
+        Serve(ctx, out _, total: 2, items: [Row, withFiles]);
+
+        var component = Render(ctx, [CaseColumn.Case, CaseColumn.Files]);
+
+        await component.WaitForElementAsync("a.ec-table-row");
+
+        var buttons = component.FindAll(".ec-case-files");
+
+        await buttons[0].ClickAsync(new MouseEventArgs());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(buttons, Has.Count.EqualTo(1), "a case without a file in its tree offers no tree");
+            Assert.That(component.FindComponent<CaseFilesModal>().Instance.CaseId, Is.EqualTo(withFiles.CaseId), "the button opens the tree of its own row");
         }
     }
 
