@@ -14,8 +14,5 @@ public static class FileProblems
 
     public const string LastVersionDetail = "The only version of a file is deleted only with the file.";
 
-    public static string NameTakenDetail(string ownerWord)
-    {
-        return $"Another file of the {ownerWord} already carries the name.";
-    }
+    public const string NameTakenDetail = "Another file of the act already carries the name.";
 }

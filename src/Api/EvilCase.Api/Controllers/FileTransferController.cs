@@ -1,5 +1,4 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Export;
 using EvilBrains.EvilCase.Business.Files;
@@ -18,24 +17,6 @@ namespace EvilBrains.EvilCase.Api.Controllers;
 [Route("api")]
 public class FileTransferController : ControllerBase
 {
-    [HttpPost("cases/{caseId:guid}/files")]
-    [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status413PayloadTooLarge)]
-    public async Task<ActionResult<FileListItem>> UploadCaseFile([FromServices] IFileWriter writer, [FromRoute] Guid caseId, [FromForm] IFormFile file, CancellationToken token)
-    {
-        var upload = this.BuildFileUpload(file, out var error);
-        if (error is not null)
-            return error;
-
-        await using var content = upload!.Content;
-
-        return this.Answer(await writer.UploadCaseFile(caseId, upload, token), CaseProblems.NotFound);
-    }
-
     [HttpPost("acts/{actId:guid}/files")]
     [RequestSizeLimit(FileLimits.MaxUploadRequestBytes)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -52,7 +33,7 @@ public class FileTransferController : ControllerBase
 
         await using var content = upload!.Content;
 
-        return this.Answer(await writer.UploadActFile(actId, upload, token), ActProblems.NotFound);
+        return this.Answer(await writer.UploadActFile(actId, upload, token));
     }
 
     [HttpPost("files/{fileId:guid}/versions")]
@@ -87,27 +68,6 @@ public class FileTransferController : ControllerBase
             : this.FileContent(download);
     }
 
-    [HttpGet("cases/{caseId:guid}/files/archive")]
-    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DownloadCaseFileArchive(
-        [FromServices] IFileArchiveReader archives,
-        [FromServices] ILogger<FileTransferController> logger,
-        [FromRoute] Guid caseId,
-        [FromQuery] bool includeVersions,
-        CancellationToken token)
-    {
-        var archive = await archives.ReadCaseFileArchive(caseId, includeVersions, token);
-
-        if (archive is null)
-            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound);
-
-        await this.SendFileArchive(archives, logger, archive, token);
-
-        return new EmptyResult();
-    }
-
     [HttpGet("acts/{actId:guid}/files/archive")]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -124,7 +84,11 @@ public class FileTransferController : ControllerBase
         if (archive is null)
             return this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound);
 
-        await this.SendFileArchive(archives, logger, archive, token);
+        await this.SendZip(
+            archive.FileName,
+            async target => await archives.WriteFileArchive(archive, target, token),
+            exception => logger.LogError(exception, "File archive of {ActId} was cut short", archive.OwnerId),
+            token);
 
         return new EmptyResult();
     }
@@ -171,15 +135,6 @@ public class FileTransferController : ControllerBase
             MediaType = mediaType,
             Content = file.OpenReadStream(),
         };
-    }
-
-    private async Task SendFileArchive(IFileArchiveReader archives, ILogger logger, FileArchive archive, CancellationToken token)
-    {
-        await this.SendZip(
-            archive.FileName,
-            async target => await archives.WriteFileArchive(archive, target, token),
-            exception => logger.LogError(exception, "File archive of {OwnerId} was cut short", archive.OwnerId),
-            token);
     }
 
     /// <summary>

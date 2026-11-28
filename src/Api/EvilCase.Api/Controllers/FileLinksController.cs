@@ -1,6 +1,4 @@
 using System.Diagnostics;
-using EvilBrains.EvilCase.Api.Contract.Acts;
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Business.Files.Links;
@@ -77,8 +75,7 @@ public class FileLinksController : ControllerBase
 
         return link.Kind switch
         {
-            FileLinkKind.CaseUpload => this.Answer(await writer.UploadCaseFile(link.TargetId, upload, token), CaseProblems.NotFound),
-            FileLinkKind.ActUpload => this.Answer(await writer.UploadActFile(link.TargetId, upload, token), ActProblems.NotFound),
+            FileLinkKind.ActUpload => this.Answer(await writer.UploadActFile(link.TargetId, upload, token)),
             FileLinkKind.VersionUpload => this.Answer(await writer.UploadFileVersion(link.TargetId, upload, token)),
             FileLinkKind.Download => throw new UnreachableException(),
             _ => throw new UnreachableException(),

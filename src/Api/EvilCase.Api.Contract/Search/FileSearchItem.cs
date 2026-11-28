@@ -8,12 +8,7 @@ public sealed record FileSearchItem
 
     public required long SizeBytes { get; init; }
 
-    /// <summary>
-    /// Exactly one of CaseId and ActId is set: the owner the file hangs on.
-    /// </summary>
-    public Guid? CaseId { get; init; }
+    public required Guid ActId { get; init; }
 
-    public Guid? ActId { get; init; }
-
-    public required string OwnerTitle { get; init; }
+    public required string ActTitle { get; init; }
 }

@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using EvilBrains.EvilCase.Api.Contract.Acts;
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
@@ -13,15 +12,6 @@ namespace EvilBrains.EvilCase.Api.Mcp;
 [McpServerToolType]
 internal static class FileTools
 {
-    [McpServerTool(Name = "list_case_files", ReadOnly = true, OpenWorld = false)]
-    [Description("Lists the files of a case in upload order, each with its current version, whether it is the main file and the signature file that signs it.")]
-    public static async Task<FileListResponse> ListCaseFiles(IFileReader files, [Description("The case.")] Guid caseId, CancellationToken token)
-    {
-        var items = await files.ListCaseFiles(caseId, token) ?? throw McpProblem.Of(CaseProblems.NotFound);
-
-        return new FileListResponse { Items = items };
-    }
-
     [McpServerTool(Name = "list_act_files", ReadOnly = true, OpenWorld = false)]
     [Description("Lists the files of an act in upload order, each with its current version, whether it is the main file and the signature file that signs it.")]
     public static async Task<FileListResponse> ListActFiles(IFileReader files, [Description("The act.")] Guid actId, CancellationToken token)
@@ -68,24 +58,6 @@ internal static class FileTools
         };
     }
 
-    [McpServerTool(Name = "rename_case_file", Destructive = false, OpenWorld = false)]
-    [Description(
-        "Renames a file of a case. Only the last path segment of fileName is kept; it must not be empty, must not exceed 256 "
-            + "characters and must be unique among the files of the case.")]
-    public static async Task<string> RenameCaseFile(
-        IFileWriter writer,
-        [Description("The case.")] Guid caseId,
-        [Description("The file.")] Guid fileId,
-        [Description("The new name.")] FileRenameRequest request,
-        CancellationToken token)
-    {
-        McpProblem.Validate(request);
-
-        var outcome = await writer.RenameCaseFile(caseId, fileId, ValidFileName(request.FileName), token);
-
-        return Answer(outcome, "case");
-    }
-
     [McpServerTool(Name = "rename_act_file", Destructive = false, OpenWorld = false)]
     [Description(
         "Renames a file of an act. Only the last path segment of fileName is kept; it must not be empty, must not exceed 256 "
@@ -101,28 +73,21 @@ internal static class FileTools
 
         var outcome = await writer.RenameActFile(actId, fileId, ValidFileName(request.FileName), token);
 
-        return Answer(outcome, "act");
+        return Answer(outcome);
     }
 
     [McpServerTool(Name = "set_main_file", Destructive = false, OpenWorld = false)]
-    [Description("Makes a file the main file of its case or act; the previous main file there stops being main.")]
+    [Description("Makes a file the main file of its act; the act's previous main file stops being main.")]
     public static async Task<string> SetMainFile(IFileWriter writer, [Description("The file.")] Guid fileId, CancellationToken token)
     {
         return Answer(await writer.SetMainFile(fileId, token), "The file is the main file.");
     }
 
     [McpServerTool(Name = "unset_main_file", Destructive = false, OpenWorld = false)]
-    [Description("Leaves the case or act of a main file without a main file; a file that is not main stays as it is.")]
+    [Description("Leaves the act of a main file without a main file; a file that is not main stays as it is.")]
     public static async Task<string> UnsetMainFile(IFileWriter writer, [Description("The file.")] Guid fileId, CancellationToken token)
     {
         return Answer(await writer.UnsetMainFile(fileId, token), "The file is not the main file.");
-    }
-
-    [McpServerTool(Name = "delete_case_file", Destructive = true, OpenWorld = false)]
-    [Description("Deletes a file of a case with every version. Cannot be undone.")]
-    public static async Task<string> DeleteCaseFile(IFileWriter writer, [Description("The case.")] Guid caseId, [Description("The file.")] Guid fileId, CancellationToken token)
-    {
-        return Answer(await writer.DeleteCaseFile(caseId, fileId, token));
     }
 
     [McpServerTool(Name = "delete_act_file", Destructive = true, OpenWorld = false)]
@@ -152,7 +117,7 @@ internal static class FileTools
     }
 
     [McpServerTool(Name = "delete_file_version", Destructive = true, OpenWorld = false)]
-    [Description("Deletes one version of a file. The only version is deleted only with the file (delete_case_file, delete_act_file). Cannot be undone.")]
+    [Description("Deletes one version of a file. The only version is deleted only with the file (delete_act_file). Cannot be undone.")]
     public static async Task<string> DeleteFileVersion(
         IFileWriter writer, [Description("The file.")] Guid fileId, [Description("The version number.")] int number, CancellationToken token)
     {
@@ -177,13 +142,13 @@ internal static class FileTools
         return lastSegment;
     }
 
-    private static string Answer(FileRenameOutcome outcome, string ownerWord)
+    private static string Answer(FileRenameOutcome outcome)
     {
         return outcome switch
         {
             FileRenameOutcome.Renamed => "The file was renamed.",
             FileRenameOutcome.NotFound => throw McpProblem.Of(FileProblems.NotFound),
-            FileRenameOutcome.NameTaken => throw McpProblem.Of(FileProblems.NameTaken, FileProblems.NameTakenDetail(ownerWord)),
+            FileRenameOutcome.NameTaken => throw McpProblem.Of(FileProblems.NameTaken, FileProblems.NameTakenDetail),
             _ => throw new UnreachableException(),
         };
     }

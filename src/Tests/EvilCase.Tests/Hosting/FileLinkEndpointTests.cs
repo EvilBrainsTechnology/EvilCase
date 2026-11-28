@@ -54,7 +54,7 @@ public class FileLinkEndpointTests
                 var writer = Substitute.For<IFileWriter>();
 
                 writer
-                    .UploadCaseFile(this.targetId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
+                    .UploadActFile(this.targetId, Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
                     .Returns(async call =>
                     {
                         var upload = call.Arg<FileUpload>();
@@ -104,7 +104,7 @@ public class FileLinkEndpointTests
     [Test]
     public async Task AnUploadRunsAsTheUserAndTenantOfTheLink()
     {
-        this.link = this.Link(FileLinkKind.CaseUpload);
+        this.link = this.Link(FileLinkKind.ActUpload);
 
         using var response = await this.Upload("zapis.txt", "obsah");
         var file = await response.Content.ReadFromJsonAsync<FileListItem>();
@@ -146,7 +146,7 @@ public class FileLinkEndpointTests
     [Test]
     public async Task AnInvalidNameIsRefusedBeforeTheLinkIsSpent()
     {
-        this.link = this.Link(FileLinkKind.CaseUpload);
+        this.link = this.Link(FileLinkKind.ActUpload);
 
         using var response = await this.Upload(" ", "obsah");
 
@@ -179,7 +179,7 @@ public class FileLinkEndpointTests
     [Test]
     public async Task AnUploadLinkDoesNotDownload()
     {
-        this.link = this.Link(FileLinkKind.CaseUpload);
+        this.link = this.Link(FileLinkKind.ActUpload);
 
         using var response = await this.client.GetAsync(new Uri($"{FileLinkRoute.Path}?{FileLinkRoute.SecretParameter}={Secret}", UriKind.Relative));
 

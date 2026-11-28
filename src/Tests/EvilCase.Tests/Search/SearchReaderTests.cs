@@ -152,11 +152,10 @@ public class SearchReaderTests : TenantFixture
     }
 
     [Test]
-    public async Task AFileAndACommentNameTheCaseOrTheActTheyHangOn()
+    public async Task AFileNamesItsActAndACommentTheCaseOrTheActItHangsOn()
     {
         var @case = await this.Tenant.AddCase(Day, "Spis o pokutě");
         var act = await this.Tenant.AddAct(@case, Day, "Úkon k pokutě");
-        await this.Tenant.AddCaseFile(@case, "pokuta-spis.pdf");
         await this.Tenant.AddActFile(act, "pokuta-ukon.pdf");
         await this.Tenant.AddCaseComment(@case, "Pokuta zaplacena");
         await this.Tenant.AddActComment(act, "Pokuta napadena");
@@ -166,9 +165,9 @@ public class SearchReaderTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(
-                response.Files.Items.Select(static item => (item.CaseId is not null, item.ActId is not null, item.OwnerTitle)),
-                Is.EquivalentTo([(true, false, "Spis o pokutě"), (false, true, "Úkon k pokutě")]),
-                "a file names the owner it hangs on");
+                response.Files.Items.Select(static item => (item.ActId, item.ActTitle)),
+                Is.EqualTo([(act.Id, "Úkon k pokutě")]),
+                "a file names its act");
             Assert.That(
                 response.Comments.Items.Select(static item => (item.CaseId is not null, item.ActId is not null, item.OwnerTitle)),
                 Is.EquivalentTo([(true, false, "Spis o pokutě"), (false, true, "Úkon k pokutě")]),

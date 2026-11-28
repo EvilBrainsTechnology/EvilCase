@@ -63,9 +63,8 @@ internal static class SearchQuery
                 .OrderByDescending(static version => version.Number)
                 .Select(static version => version.SizeBytes)
                 .First(),
-            CaseId = file.CaseId,
-            ActId = file.ActId,
-            OwnerTitle = file.CaseId != null ? file.Case!.Title : file.Act!.Title,
+            ActId = file.ActId!.Value,
+            ActTitle = file.Act!.Title,
         });
     }
 

@@ -17,7 +17,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes + 1);
 
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 413);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "an upload over the limit must never reach the writer");
@@ -30,11 +30,11 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(FileLimits.MaxUploadBytes);
 
-        await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         await writer
             .Received(1)
-            .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
+            .UploadActFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -45,7 +45,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: "../../evil.txt");
 
-        await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -61,7 +61,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: new string('a', FileLimits.MaxFileNameLength + 1) + ".pdf");
 
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 400);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "a file name over the FileAsset.FileName column limit must never reach the writer");
@@ -74,7 +74,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, fileName: "   ");
 
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 400);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "an empty file name must never reach the writer");
@@ -87,7 +87,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, contentType: new string('a', FileLimits.MaxMediaTypeLength + 1));
 
-        var response = await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        var response = await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         AssertProblem(response.Result, 400);
         Assert.That(writer.ReceivedCalls(), Is.Empty, "a media type over the FileAsset.MediaType column limit must never reach the writer");
@@ -101,7 +101,7 @@ public class FileTransferControllerTests
         var controller = new FileTransferController();
         var file = FormFile(1, contentType: null);
 
-        await controller.UploadCaseFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
+        await controller.UploadActFile(writer, Guid.CreateVersion7(), file, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -110,7 +110,6 @@ public class FileTransferControllerTests
         }
     }
 
-    [TestCase(nameof(FileTransferController.UploadCaseFile))]
     [TestCase(nameof(FileTransferController.UploadActFile))]
     [TestCase(nameof(FileTransferController.UploadFileVersion))]
     public void AnUploadDeclaresItsOwnRequestSizeLimit(string action)
@@ -129,7 +128,7 @@ public class FileTransferControllerTests
         var file = new FileListItem { FileId = Guid.CreateVersion7(), FileName = "a.pdf", SizeBytes = 1, Created = DateTime.UtcNow, Version = 1, VersionCount = 1 };
         var writer = Substitute.For<IFileWriter>();
         writer
-            .UploadCaseFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
+            .UploadActFile(Arg.Any<Guid>(), Arg.Any<FileUpload>(), Arg.Any<CancellationToken>())
             .Returns(new UploadFileResult(new UploadedFile { Kind = UploadKind.Uploaded, File = file }))
             .AndDoes(call => capture?.Invoke(call.Arg<FileUpload>()));
 

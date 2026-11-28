@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Security.Claims;
 using EvilBrains.EvilCase.Api.Contract.Acts;
-using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.User;
 using EvilBrains.EvilCase.Business.Files.Links;
@@ -22,8 +21,8 @@ internal static class FileLinkTools
 
     [McpServerTool(Name = "create_file_upload_link", Destructive = false, OpenWorld = false)]
     [Description(
-        "Creates a one-time link that uploads a file: a new file onto a case (caseId) or an act (actId), or a new version of a "
-            + "file (fileId); name exactly one. fileName is the name the upload arrives under (at most 256 characters); a new "
+        "Creates a one-time link that uploads a file: a new file onto an act (actId) or a new version of a file (fileId); "
+            + "name exactly one of actId and fileId. fileName is the name the upload arrives under (at most 256 characters); a new "
             + "version keeps the extension of its file. Send the raw bytes as an HTTP PUT to the URL, as the curl example does; "
             + "at most 100 MB. The link is valid 10 minutes and spent by its first use. The upload answers with the file; 200 "
             + "where the content equals the current version and nothing was stored.")]
@@ -31,17 +30,15 @@ internal static class FileLinkTools
         IFileLinkWriter writer,
         IHttpContextAccessor httpContextAccessor,
         [Description("The name the file arrives under.")] string fileName,
-        [Description("The case a new file goes onto.")] Guid? caseId = null,
         [Description("The act a new file goes onto.")] Guid? actId = null,
         [Description("The file a new version goes onto.")] Guid? fileId = null,
         CancellationToken token = default)
     {
-        var (kind, targetId) = (caseId, actId, fileId) switch
+        var (kind, targetId) = (actId, fileId) switch
         {
-            ({ } id, null, null) => (FileLinkKind.CaseUpload, id),
-            (null, { } id, null) => (FileLinkKind.ActUpload, id),
-            (null, null, { } id) => (FileLinkKind.VersionUpload, id),
-            _ => throw McpProblem.Of(McpProblem.ValidationTitle, "Name exactly one of caseId, actId and fileId."),
+            ({ } id, null) => (FileLinkKind.ActUpload, id),
+            (null, { } id) => (FileLinkKind.VersionUpload, id),
+            _ => throw McpProblem.Of(McpProblem.ValidationTitle, "Name exactly one of actId and fileId."),
         };
 
         var lastSegment = FileNameRules.LastSegment(fileName);
@@ -96,7 +93,6 @@ internal static class FileLinkTools
         {
             throw kind switch
             {
-                FileLinkKind.CaseUpload => McpProblem.Of(CaseProblems.NotFound),
                 FileLinkKind.ActUpload => McpProblem.Of(ActProblems.NotFound),
                 FileLinkKind.VersionUpload => McpProblem.Of(FileProblems.NotFound),
                 FileLinkKind.Download => McpProblem.Of(version is null ? FileProblems.NotFound : FileProblems.VersionNotFound),

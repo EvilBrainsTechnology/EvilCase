@@ -15,17 +15,12 @@ public enum FileLinkKind
     Download = 0,
 
     /// <summary>
-    /// Uploads a new file onto a case.
-    /// </summary>
-    CaseUpload = 1,
-
-    /// <summary>
     /// Uploads a new file onto an act.
     /// </summary>
-    ActUpload = 2,
+    ActUpload = 1,
 
     /// <summary>
     /// Uploads a new version of a file.
     /// </summary>
-    VersionUpload = 3,
+    VersionUpload = 2,
 }

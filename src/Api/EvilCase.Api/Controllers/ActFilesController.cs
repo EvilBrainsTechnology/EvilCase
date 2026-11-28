@@ -39,7 +39,7 @@ public class ActFilesController : ControllerBase
         if (this.FileNameProblem(fileName) is { } problem)
             return problem;
 
-        return this.RenameAnswer(await writer.RenameActFile(actId, fileId, fileName, token), "act");
+        return this.RenameAnswer(await writer.RenameActFile(actId, fileId, fileName, token));
     }
 
     [HttpDelete("{fileId:guid}")]

@@ -43,8 +43,8 @@ textu souboru. Tvary REST API drží SDD-005, API tokeny SDD-006.
 
 ### Jednorázové odkazy
 
-- `create_file_upload_link` vydá odkaz na upload nového souboru do spisu nebo úkonu, nebo nové
-  verze souboru, pod jménem z argumentu. `create_file_download_link` vydá odkaz na stažení
+- `create_file_upload_link` vydá odkaz na upload nového souboru do úkonu nebo nové verze
+  souboru, pod jménem z argumentu. `create_file_download_link` vydá odkaz na stažení
   verze souboru, bez čísla aktuální; je to nástroj pro čtení.
 - Výsledek nese metodu, absolutní adresu, okamžik vypršení a příklad volání curl.
 - Adresa je `/api/file-links` se schématem a hostem požadavku na `/mcp`. Tajemství je 256
