@@ -93,7 +93,39 @@ public class CaseFilesModalRenderTests
         await component.WaitForElementAsync(".ec-card-error");
         await component.Find(".ec-card-error button").ClickAsync(new MouseEventArgs());
 
-        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-tree-row"), Is.Not.Empty, "the retry loads the tree"));
+        await component.WaitForAssertionAsync(
+            () => Assert.That(RowTitles(component), Is.EqualTo(["Podspis", "Odvolání", "odvolani.pdf", "priloha.pdf"]), "the retried tree opens as a first load does"));
+    }
+
+    [Test]
+    public async Task AFilePreviewPagesOverTheFilesOfItsActOnly()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var tree = Serve(ctx);
+        var act = tree.Acts[0];
+
+        var actFilesClient = Substitute.For<IActFilesClient>();
+        actFilesClient.ListActFiles(act.Act.ActId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = act.Files }));
+        ctx.Services.AddSingleton(actFilesClient);
+        ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
+        ctx.Services.AddSingleton(Substitute.For<IFilesClient>());
+        ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
+
+        var component = Render(ctx, tree.Case.CaseId);
+
+        await component.WaitForElementAsync(".ec-tree");
+        await component.Find(".ec-tree-file-name").ClickAsync(new MouseEventArgs());
+        await component.WaitForElementAsync("button[aria-label='Další soubor']");
+        await component.Find("button[aria-label='Další soubor']").ClickAsync(new MouseEventArgs());
+
+        var preview = component.FindComponent<FilePreviewModal>();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(preview.Instance.Files.Select(static file => file.FileId), Is.EqualTo(act.Files.Select(static file => file.FileId)), "the preview pages over the act's files");
+            Assert.That(preview.Instance.FileId, Is.EqualTo(act.Files[1].FileId), "a step shows the act's next file");
+        }
     }
 
     private static CaseListItem Case(string title)

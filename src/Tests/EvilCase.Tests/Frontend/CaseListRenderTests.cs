@@ -185,6 +185,9 @@ public class CaseListRenderTests
 
         Serve(ctx, out _, total: 2, items: [Row, withFiles]);
 
+        var casesClient = ctx.Services.GetRequiredService<ICasesClient>();
+        casesClient.GetCaseFileTree(withFiles.CaseId, Arg.Any<CancellationToken>()).Returns(Task.FromResult(new CaseFileTree { Case = withFiles }));
+
         var component = Render(ctx, [CaseColumn.Case, CaseColumn.Files]);
 
         await component.WaitForElementAsync("a.ec-table-row");

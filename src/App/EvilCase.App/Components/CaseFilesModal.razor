@@ -104,10 +104,6 @@
     protected override async Task OnInitializedAsync()
     {
         await this.Load();
-
-        // The case's own acts open; its sub-cases stay closed.
-        foreach (var act in this.tree?.Acts ?? [])
-            this.expanded.Add(act.Act.ActId);
     }
 
     private async Task Load()
@@ -116,7 +112,16 @@
 
         try
         {
-            this.tree = await this.CasesClient.GetCaseFileTree(this.CaseId, CancellationToken.None);
+            var loaded = await this.CasesClient.GetCaseFileTree(this.CaseId, CancellationToken.None);
+
+            // The first tree shown, also after a retry, opens the case's own acts; its sub-cases stay closed.
+            if (this.tree is null)
+            {
+                foreach (var act in loaded.Acts)
+                    this.expanded.Add(act.Act.ActId);
+            }
+
+            this.tree = loaded;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
