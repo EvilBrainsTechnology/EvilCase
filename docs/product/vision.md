@@ -33,8 +33,8 @@ Názvy v kódu jsou anglické: spis = `Case`, úkon = `Act`, soubor = `FileAsset
 [SDD-007](../sdd/sdd-007-domenovy-model.md).
 
 **Spis** — jedno řízení. Nese explicitní datum, název, popis, status (`Active`,
-`WaitingOnAuthority`, `Closed`), externí spisovou značku, nepovinný kontakt protistrany, štítky,
-komentáře a soubory. Spisy tvoří hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen
+`WaitingOnAuthority`, `Closed`), externí spisovou značku, nepovinný kontakt protistrany, štítky
+a komentáře; soubory nese jen přes své úkony. Spisy tvoří hierarchii: volitelný rodič, libovolná hloubka, UI ukazuje jen
 ploché seznamy.
 ([SDD-009](../sdd/sdd-009-spisy.md))
 
@@ -48,7 +48,7 @@ schránky a adresu jako jeden volný text. Vybírá se nebo zakládá inline vš
 nebo úkon jmenuje, a zakládá i spravuje se v agendě, která ukazuje jeho spisy a úkony.
 ([SDD-011](../sdd/sdd-011-kontakty.md))
 
-**Soubor** — patří právě jednomu spisu nebo úkonu; žádné odkazy mezi soubory a jinými
+**Soubor** — patří právě jednomu úkonu; žádné odkazy mezi soubory a jinými
 entitami. Bajty leží na disku, databáze nese metadata. Upload i download v prohlížeči, včetně
 hromadného přetažením. ([SDD-012](../sdd/sdd-012-soubory.md))
 

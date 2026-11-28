@@ -24,7 +24,7 @@ public class MainFilesMigrationTests
 
             var (caseOldest, actOldest) = await SeedFiles(context);
 
-            await migrator.MigrateAsync();
+            await migrator.MigrateAsync("MainFiles");
 
             var mainFileIds = await context.Database
                 .SqlQuery<Guid>($"""SELECT "Id" AS "Value" FROM "FileAssets" WHERE "IsMain" """)

@@ -98,8 +98,7 @@ public class FileSignatureReaderTests : TenantFixture
     public async Task AFileOfAnotherTenantIsNotFound()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherFile = await other.AddCaseFile(otherCase, "cizi.zfo");
+        var otherFile = await other.AddActFile(await other.AddAct(await other.AddCase(Day), Day), "cizi.zfo");
         this.ServeSealedMessage(otherFile.Versions.Single().StoragePath);
 
         var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(otherFile.Id, version: null, CancellationToken.None);
@@ -118,8 +117,8 @@ public class FileSignatureReaderTests : TenantFixture
     [Test]
     public async Task AFileWhoseBlobIsGoneIsNotFound()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "zprava.zfo");
 
         var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
@@ -129,8 +128,8 @@ public class FileSignatureReaderTests : TenantFixture
     [Test]
     public async Task AFileOverTheLimitIsTooLargeWithoutReadingItsBlob()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo", sizeBytes: FileLimits.MaxReadBytes + 1);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "zprava.zfo", sizeBytes: FileLimits.MaxReadBytes + 1);
 
         var signature = await this.Reader(new StubSignatureRevocation(SignatureRevocationStatus.NotRevoked)).ReadFileSignature(file.Id, version: null, CancellationToken.None);
 
@@ -184,8 +183,8 @@ public class FileSignatureReaderTests : TenantFixture
 
     private async Task<FileAsset> AddSealedFile()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "zprava.zfo");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "zprava.zfo");
         this.ServeSealedMessage(file.Versions.Single().StoragePath);
 
         return file;

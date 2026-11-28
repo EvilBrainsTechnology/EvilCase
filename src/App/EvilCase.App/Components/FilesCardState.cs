@@ -9,11 +9,15 @@ using Microsoft.AspNetCore.Components.Forms;
 namespace EvilBrains.EvilCase.App.Components;
 
 /// <summary>
-/// The files of a case or an act and the operations on them, shared by the files card and the main-file preview.
+/// The files of an act and the operations on them, shared by the files card and the main-file preview.
 /// Kept apart from the card, so a card moved between the detail columns shows the same list, highlights, notices and errors.
 /// </summary>
 public sealed class FilesCardState
 {
+    private readonly IActFilesClient actFiles;
+
+    private readonly IFilesClient files;
+
     private readonly IFileTransferClient fileTransfer;
 
     private readonly IFileVersionsClient fileVersions;
@@ -24,9 +28,12 @@ public sealed class FilesCardState
 
     private int uploads;
 
-    internal FilesCardState(IFileOwner owner, IFileTransferClient fileTransfer, IFileVersionsClient fileVersions, IMainFileClient mainFiles)
+    internal FilesCardState(
+        Guid actId, IActFilesClient actFiles, IFilesClient files, IFileTransferClient fileTransfer, IFileVersionsClient fileVersions, IMainFileClient mainFiles)
     {
-        this.Owner = owner;
+        this.ActId = actId;
+        this.actFiles = actFiles;
+        this.files = files;
         this.fileTransfer = fileTransfer;
         this.fileVersions = fileVersions;
         this.mainFiles = mainFiles;
@@ -35,14 +42,11 @@ public sealed class FilesCardState
     public event EventHandler? Placed;
 
     /// <summary>
-    /// The list was loaded again.
+    /// The list was loaded again and the card placed, unless an upload holds it.
     /// </summary>
     public event EventHandler? Changed;
 
-    /// <summary>
-    /// The case or the act, for the operations on its files that go through it.
-    /// </summary>
-    internal IFileOwner Owner { get; }
+    public Guid ActId { get; }
 
     public IReadOnlyList<FileListItem> Items { get; private set; } = [];
 
@@ -80,7 +84,7 @@ public sealed class FilesCardState
 
         try
         {
-            this.Items = await this.Owner.ListFiles(CancellationToken.None);
+            this.Items = (await this.actFiles.ListActFiles(this.ActId, CancellationToken.None)).Items;
         }
         catch (Exception exception) when (exception is ApiException or HttpRequestException)
         {
@@ -91,8 +95,8 @@ public sealed class FilesCardState
         }
 
         this.Loaded = true;
-        this.Changed?.Invoke(this, EventArgs.Empty);
         this.Place();
+        this.Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void UploadStarted()
@@ -117,6 +121,21 @@ public sealed class FilesCardState
 
         this.Wide = wide;
         this.Placed?.Invoke(this, EventArgs.Empty);
+    }
+
+    internal async Task<FileUploadResult> UploadFile(IBrowserFile file, CancellationToken token)
+    {
+        return await this.fileTransfer.UploadActFile(this.ActId, file, token);
+    }
+
+    internal async Task RenameFile(FileListItem file, string fileName, CancellationToken token)
+    {
+        await this.files.RenameFile(file.FileId, new FileRenameRequest { FileName = fileName }, token);
+    }
+
+    internal async Task DeleteFile(FileListItem file, CancellationToken token)
+    {
+        await this.files.DeleteFile(file.FileId, token);
     }
 
     /// <summary>
@@ -160,7 +179,7 @@ public sealed class FilesCardState
     }
 
     /// <summary>
-    /// Sets the file as the main file of its case or act, or unsets it; answers the failure to show, or none.
+    /// Sets the file as the main file of its act, or unsets it; answers the failure to show, or none.
     /// </summary>
     internal async Task<string?> ChangeMainFile(FileListItem file, bool main, ILogger logger)
     {

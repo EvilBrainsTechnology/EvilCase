@@ -4,7 +4,6 @@ using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Comments;
-using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.App.Components;
 using EvilBrains.EvilCase.App.Pages;
@@ -215,13 +214,10 @@ public class CaseRenderTests
         ctx.Services.GetRequiredService<IActsClient>()
             .ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 25 }));
-        ctx.Services.GetRequiredService<ICaseFilesClient>()
-            .ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(new FileListResponse { Items = [File()] }));
 
         var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
 
-        string[] expected = ["Soubory 1", "Podřízené spisy 4", "Úkony 25", "Komentáře 2"];
+        string[] expected = ["Podřízené spisy 4", "Úkony 25", "Komentáře 2"];
 
         await component.WaitForAssertionAsync(
             () => Assert.That(component.FindAll(".ec-anchor").Select(AnchorText), Is.EqualTo(expected)),
@@ -240,28 +236,6 @@ public class CaseRenderTests
         }
 
         Assert.That(Normalized(component.Find(".ec-child-all").TextContent), Is.EqualTo("Všechny 4 podřízené spisy"));
-    }
-
-    [Test]
-    public async Task AFailedFilesLoadLeavesTheFilesAnchorWithoutACount()
-    {
-        await using var ctx = FrontendContext.Create();
-
-        var caseId = Guid.CreateVersion7();
-
-        Serve(ctx, caseId, Detail(caseId));
-
-        ctx.Services.GetRequiredService<ICaseFilesClient>()
-            .ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<FileListResponse>(new HttpRequestException()));
-
-        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
-
-        await component.WaitForAssertionAsync(
-            () => Assert.That(component.FindAll("#files [role=alert]"), Has.Count.EqualTo(1)),
-            TimeSpan.FromSeconds(2));
-
-        Assert.That(component.FindAll(".ec-anchor[href$='#files'] .ec-anchor-count"), Is.Empty, "a list that failed to load has no count");
     }
 
     private static string AnchorText(IElement anchor)
@@ -302,19 +276,6 @@ public class CaseRenderTests
         };
     }
 
-    private static FileListItem File()
-    {
-        return new FileListItem
-        {
-            FileId = Guid.CreateVersion7(),
-            FileName = "rozhodnuti.pdf",
-            SizeBytes = 1024,
-            Created = DateTime.UtcNow,
-            Version = 1,
-            VersionCount = 1,
-        };
-    }
-
     private static CaseDetail Detail(Guid caseId)
     {
         return new CaseDetail
@@ -343,9 +304,6 @@ public class CaseRenderTests
             .ListCaseComments(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(new CommentListResponse { Items = [] }));
 
-        var caseFilesClient = Substitute.For<ICaseFilesClient>();
-        caseFilesClient.ListCaseFiles(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new FileListResponse { Items = [] }));
-
         var actsClient = Substitute.For<IActsClient>();
         actsClient.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(new ActListResponse { Items = [], TotalCount = 0 }));
 
@@ -355,11 +313,11 @@ public class CaseRenderTests
         ctx.Services.AddSingleton(casesClient);
         ctx.Services.AddSingleton(caseLabelsClient);
         ctx.Services.AddSingleton(caseCommentsClient);
-        ctx.Services.AddSingleton(caseFilesClient);
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(labelsClient);
         ctx.Services.AddSingleton(Substitute.For<IActFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
+        ctx.Services.AddSingleton(Substitute.For<IFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
         ctx.Services.AddSingleton(Substitute.For<IContactsClient>());
 

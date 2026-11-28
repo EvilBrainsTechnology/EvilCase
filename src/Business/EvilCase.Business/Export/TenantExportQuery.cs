@@ -45,7 +45,7 @@ internal static class TenantExportQuery
     }
 
     /// <summary>
-    /// The case's own fields, its comments and files left to the reader.
+    /// The case's own fields, its comments left to the reader.
     /// </summary>
     public static async Task<ExportedCase> ReadExportedCase(this IQueryable<Case> cases, Guid caseId, CancellationToken token)
     {

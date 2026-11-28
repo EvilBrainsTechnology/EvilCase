@@ -24,12 +24,12 @@ internal sealed class FileSignerReader(IDbSession dbSession, IFileBlobStore blob
         if (response.Problem is not null || !DetachedSignatures.IsDetached(content))
             return response;
 
-        var ownerFiles = await dbSession.Current.FileAssets
-            .OfSameOwner(fileVersion.FileAsset!)
+        var actFiles = await dbSession.Current.FileAssets
+            .OfAct(fileVersion.FileAsset!.ActId)
             .AsListItems()
             .ToListAsync(token);
 
-        var (signedFile, problem) = DetachedSignatures.Pair(fileVersion.FileAssetId, ownerFiles);
+        var (signedFile, problem) = DetachedSignatures.Pair(fileVersion.FileAssetId, actFiles);
 
         return response with { SignedFile = signedFile, SignedFileProblem = problem };
     }

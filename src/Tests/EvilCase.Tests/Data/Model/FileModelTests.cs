@@ -7,23 +7,20 @@ namespace EvilBrains.EvilCase.Tests.Data.Model;
 public class FileModelTests : ModelFixture
 {
     [Test]
-    public void AFileBelongsToOneCaseOrOneAct()
+    public void AFileBelongsToOneAct()
     {
         var asset = Model.FindEntityType(typeof(FileAsset));
         var designTime = DesignTimeModel.FindEntityType(typeof(FileAsset));
 
         Assert.That(new[] { asset, designTime }, Has.None.Null);
 
-        var check = designTime!.GetCheckConstraints().SingleOrDefault();
-
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(asset!.FindProperty(nameof(FileAsset.CaseId))?.IsNullable, Is.True);
-            Assert.That(asset.FindProperty(nameof(FileAsset.ActId))?.IsNullable, Is.True);
-            Assert.That(check?.Sql, Does.Contain("<>"), "exactly one owner — never both, never neither");
+            Assert.That(asset!.FindProperty(nameof(FileAsset.ActId))?.IsNullable, Is.False, "a file always hangs on an act");
+            Assert.That(designTime!.GetCheckConstraints(), Is.Empty, "with one owner no constraint chooses between two");
+            Assert.That(ForeignKeyTo<Case>(asset), Is.Null, "a case holds no files of its own");
             Assert.That(asset.FindProperty(nameof(FileAsset.FileName))?.IsNullable, Is.False, "the name lives with the bytes, not with whoever borrows them");
             Assert.That(asset.FindProperty(nameof(FileAsset.FileName))?.GetMaxLength(), Is.EqualTo(256));
-            Assert.That(IsIndexed(asset, nameof(FileAsset.CaseId)), Is.True, "a case reads its own files through this index");
             Assert.That(IsIndexed(asset, nameof(FileAsset.ActId)), Is.True, "an act reads its own files through this index");
         }
     }
@@ -91,20 +88,11 @@ public class FileModelTests : ModelFixture
     }
 
     [Test]
-    public void AFileGoesWithWhateverItHangsOn()
+    public void AFileGoesWithItsAct()
     {
-        var asset = Model.FindEntityType(typeof(FileAsset));
+        var toAct = ForeignKeyTo<Act>(Model.FindEntityType(typeof(FileAsset))!);
 
-        Assert.That(asset, Is.Not.Null);
-
-        var toCase = ForeignKeyTo<Case>(asset);
-        var toAct = ForeignKeyTo<Act>(asset);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(toCase?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade));
-            Assert.That(toAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade));
-        }
+        Assert.That(toAct?.DeleteBehavior, Is.EqualTo(DeleteBehavior.Cascade), "an act's files go with the act");
     }
 
     [Test]
@@ -118,7 +106,7 @@ public class FileModelTests : ModelFixture
             Assert.That(columns, Is.Not.Empty, "the file table is mapped at all, or this test passes vacuously");
             Assert.That(Naming(columns, "Role"), Is.Empty, "a role column is back on a file");
             Assert.That(Naming(kernel, "FileRole"), Is.Empty, "a file role enum is back in the shared kernel");
-            Assert.That(Model.FindEntityType("EvilBrains.EvilCase.Data.Entities.ActFileReference"), Is.Null, "a file belongs to exactly one owner");
+            Assert.That(Model.FindEntityType("EvilBrains.EvilCase.Data.Entities.ActFileReference"), Is.Null, "a file belongs to exactly one act");
         }
     }
 }

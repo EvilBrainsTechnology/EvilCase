@@ -16,19 +16,20 @@ Dashboard stojí nad reálnými daty tenantu:
 - dlaždice počtů spisů podle stavu, za celý tenant; dlaždice vede na seznam spisů zúžený na svůj
   stav včetně podřízených spisů (SDD-009),
 - naposledy změněné spisy, bez ohledu na stav, včetně podřízených spisů: datum spisu, název,
-  hlavní soubor, stav a změna (SDD-009),
+  stav a změna (SDD-009),
 - naposledy změněné úkony napříč spisy: datum úkonu, v jedné buňce název se štítky a pod ním
   název spisu, hlavní soubor, směr, stav, kontakt a změna (SDD-010); řádek vede do detailu úkonu.
 
-Obě seznamové dlaždice ukazují hlavní soubor hned za názvem; dlaždice spisů je první, dlaždice úkonů druhá. Dnešní změnu píšou jako „dnes 21:45“, včerejší jako „včera 9:10“, starší jako
+Dlaždice úkonů ukazuje hlavní soubor hned za názvem; dlaždice spisů je první, dlaždice úkonů druhá. Dnešní změnu píšou jako „dnes 21:45“, včerejší jako „včera 9:10“, starší jako
 okamžik (SDD-016); celý okamžik nese tooltip.
 
 Naposledy změněné spisy řadí vlastní `Updated` spisu. Nastaví ho úprava spisu, přidání, úprava
-nebo smazání jeho komentáře nebo souboru, přidání nebo smazání verze jeho souboru a přidání nebo
-odebrání jeho štítku. Úkon, podřízený spis ani kontakt ho nemění, stejně jako přejmenování,
+nebo smazání jeho komentáře a přidání nebo odebrání jeho štítku. Úkon, soubor úkonu, podřízený
+spis ani kontakt ho nemění, stejně jako přejmenování,
 přebarvení nebo smazání štítku v nastavení. Spis, který nikdo neupravil, se řadí a zobrazuje podle
 svého `Created`. Naposledy změněné úkony řadí stejně vlastní `Updated` úkonu, který nastaví úprava
-úkonu a tytéž zápisy u úkonu, nebo `Created` u úkonu, který nikdo neupravil. Seznamové dlaždice
+úkonu, tytéž zápisy u úkonu a přidání, úprava nebo smazání jeho souboru a přidání nebo smazání
+verze jeho souboru, nebo `Created` u úkonu, který nikdo neupravil. Seznamové dlaždice
 ukazují nejvýše 5 položek.
 
 Dashboard nemá vlastní API; skládá se na klientu z API entit (SDD-005): dlaždice počtů

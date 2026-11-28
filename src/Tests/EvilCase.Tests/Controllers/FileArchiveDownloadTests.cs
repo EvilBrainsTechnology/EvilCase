@@ -13,9 +13,9 @@ public class FileArchiveDownloadTests
     [Test]
     public async Task AnArchiveIsAZipAttachmentUnderItsCzechName()
     {
-        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
         var archives = Substitute.For<IFileArchiveReader>();
-        archives.ReadCaseFileArchive(caseId, includeVersions: true, Arg.Any<CancellationToken>()).Returns(Archive("Přestupek Novák (with versions).zip"));
+        archives.ReadActFileArchive(actId, includeVersions: true, Arg.Any<CancellationToken>()).Returns(Archive("Přestupek Novák (with versions).zip"));
         archives
             .WriteFileArchive(Arg.Any<FileArchive>(), Arg.Any<Stream>(), Arg.Any<CancellationToken>())
             .Returns(static async call => await call.Arg<Stream>().WriteAsync("PK"u8.ToArray()));
@@ -24,7 +24,7 @@ public class FileArchiveDownloadTests
         var body = new MemoryStream();
         context.Response.Body = body;
 
-        var result = await Controller(context).DownloadCaseFileArchive(archives, NullLogger<FileTransferController>.Instance, caseId, includeVersions: true, CancellationToken.None);
+        var result = await Controller(context).DownloadActFileArchive(archives, NullLogger<FileTransferController>.Instance, actId, includeVersions: true, CancellationToken.None);
 
         var disposition = ContentDispositionHeaderValue.Parse(context.Response.Headers.ContentDisposition.ToString());
 
@@ -90,7 +90,7 @@ public class FileArchiveDownloadTests
 
     private static FileArchive Archive(string fileName)
     {
-        return new FileArchive { OwnerId = Guid.CreateVersion7(), FileName = fileName, Entries = [] };
+        return new FileArchive { ActId = Guid.CreateVersion7(), FileName = fileName, Entries = [] };
     }
 
     private sealed class StartedResponse : HttpResponseFeature

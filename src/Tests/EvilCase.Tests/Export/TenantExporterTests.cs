@@ -39,7 +39,7 @@ public class TenantExporterTests : TenantFixture
     }
 
     [Test]
-    public async Task CasesNestAsFoldersWithTheirActsFilesAndVersions()
+    public async Task CasesNestAsFoldersWithTheirActsAndTheActsFilesAndVersions()
     {
         var tree = await this.SeedTree();
 
@@ -53,11 +53,10 @@ public class TenantExporterTests : TenantFixture
         [
             .. EmptyTenantEntries,
             $"{Root}/case.json",
-            $"{Root}/files/Smlouva (version 1).pdf",
-            $"{Root}/files/Smlouva.pdf",
             $"{appeal}/case.json",
             $"{cassation}/case.json",
             $"{filing}/act.json",
+            $"{filing}/files/Podání (version 1).pdf",
             $"{filing}/files/Podání.pdf",
             "contacts/Krajský úřad.json",
             "labels/labels.json",
@@ -65,15 +64,15 @@ public class TenantExporterTests : TenantFixture
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(entries.Keys, Is.EquivalentTo(expected));
-            Assert.That(entries[$"{Root}/files/Smlouva.pdf"], Is.EqualTo("smlouva 2"), "the current version goes under the file's name");
-            Assert.That(entries[$"{Root}/files/Smlouva (version 1).pdf"], Is.EqualTo("smlouva 1"));
+            Assert.That(entries.Keys, Is.EquivalentTo(expected), "a case folder holds no files, an act folder its files with their versions");
+            Assert.That(entries[$"{filing}/files/Podání.pdf"], Is.EqualTo("podani 2"), "the current version goes under the file's name");
+            Assert.That(entries[$"{filing}/files/Podání (version 1).pdf"], Is.EqualTo("podani 1"));
         }
 
         var root = Document(entries, $"{Root}/case.json");
-        var versions = root.GetProperty("files")[0].GetProperty("versions");
         var cassationCase = Document(entries, $"{cassation}/case.json");
         var act = Document(entries, $"{filing}/act.json");
+        var versions = act.GetProperty("files")[0].GetProperty("versions");
 
         using (Assert.EnterMultipleScope())
         {
@@ -81,7 +80,7 @@ public class TenantExporterTests : TenantFixture
             Assert.That(root.GetProperty("contact").GetProperty("name").GetString(), Is.EqualTo("Krajský úřad"));
             Assert.That(root.GetProperty("labels")[0].GetProperty("name").GetString(), Is.EqualTo("InfZ"));
             Assert.That(root.GetProperty("comments")[0].GetProperty("authorEmail").GetString(), Is.EqualTo(tree.UserEmail));
-            Assert.That(versions.EnumerateArray().Select(static version => version.GetProperty("path").GetString()), Is.EqualTo([$"{Root}/files/Smlouva (version 1).pdf", $"{Root}/files/Smlouva.pdf"]));
+            Assert.That(versions.EnumerateArray().Select(static version => version.GetProperty("path").GetString()), Is.EqualTo([$"{filing}/files/Podání (version 1).pdf", $"{filing}/files/Podání.pdf"]));
             Assert.That(cassationCase.GetProperty("parentCaseId").GetGuid(), Is.EqualTo(tree.AppealId), "a sub-case names the case above it");
             Assert.That(act.GetProperty("caseId").GetGuid(), Is.EqualTo(tree.CassationId));
             Assert.That(act.GetProperty("direction").GetString(), Is.EqualTo("Outgoing"));
@@ -119,27 +118,27 @@ public class TenantExporterTests : TenantFixture
         var first = await this.Tenant.AddCase(Day, title: "Přestupek");
         var second = await this.Tenant.AddCase(Day, title: "Přestupek");
         await this.Tenant.AddCase(Day, title: "Podání", parentCaseId: first.Id);
+        var filing = await this.Tenant.AddAct(first, Day, title: "Podání");
         await this.Tenant.AddAct(first, Day, title: "Podání");
-        await this.Tenant.AddAct(first, Day, title: "Podání");
-        this.Stored(await this.Tenant.AddCaseFile(first, "case.json"), "soubor");
-        this.Stored(await this.Tenant.AddCaseFile(first, "Smlouva?.pdf"), "smlouva a");
-        this.Stored(await this.Tenant.AddCaseFile(first, "Smlouva*.pdf"), "smlouva b");
+        this.Stored(await this.Tenant.AddActFile(filing, "act.json"), "soubor");
+        this.Stored(await this.Tenant.AddActFile(filing, "Smlouva?.pdf"), "smlouva a");
+        this.Stored(await this.Tenant.AddActFile(filing, "Smlouva*.pdf"), "smlouva b");
         await this.Tenant.AddContact("Novák");
         await this.Tenant.AddContact("Novák");
 
         var entries = await this.Export();
 
         var secondCase = Document(entries, $"{Root} (2)/case.json");
-        var files = Document(entries, $"{Root}/case.json").GetProperty("files").EnumerateArray().ToList();
+        var files = Document(entries, $"{Root}/acts/2026-08-21 Podání/act.json").GetProperty("files").EnumerateArray().ToList();
 
         string[] numbered =
         [
             $"{Root}/case.json",
-            $"{Root}/files/case.json",
-            $"{Root}/files/Smlouva_.pdf",
-            $"{Root}/files/Smlouva_ (2).pdf",
             $"{Root}/cases/2026-08-21 Podání/case.json",
             $"{Root}/acts/2026-08-21 Podání/act.json",
+            $"{Root}/acts/2026-08-21 Podání/files/act.json",
+            $"{Root}/acts/2026-08-21 Podání/files/Smlouva_.pdf",
+            $"{Root}/acts/2026-08-21 Podání/files/Smlouva_ (2).pdf",
             $"{Root}/acts/2026-08-21 Podání (2)/act.json",
             "contacts/Novák.json",
             "contacts/Novák (2).json",
@@ -151,8 +150,8 @@ public class TenantExporterTests : TenantFixture
             Assert.That(secondCase.GetProperty("caseId").GetGuid(), Is.EqualTo(second.Id));
             Assert.That(secondCase.GetProperty("title").GetString(), Is.EqualTo("Přestupek"));
             Assert.That(secondCase.GetProperty("path").GetString(), Is.EqualTo($"{Root} (2)"));
-            Assert.That(entries[$"{Root}/files/case.json"], Is.EqualTo("soubor"));
-            Assert.That(files.Select(static file => file.GetProperty("fileName").GetString()), Is.EqualTo(["case.json", "Smlouva?.pdf", "Smlouva*.pdf"]), "a numbered file keeps its real name in the document");
+            Assert.That(entries[$"{Root}/acts/2026-08-21 Podání/files/act.json"], Is.EqualTo("soubor"));
+            Assert.That(files.Select(static file => file.GetProperty("fileName").GetString()), Is.EqualTo(["act.json", "Smlouva?.pdf", "Smlouva*.pdf"]), "a numbered file keeps its real name in the document");
         }
     }
 
@@ -174,17 +173,18 @@ public class TenantExporterTests : TenantFixture
     [Test]
     public async Task AVersionWhoseBlobIsMissingIsMarkedAndTheExportCompletes()
     {
-        var @case = await this.Tenant.AddCase(Day, title: "Přestupek");
-        var file = this.Stored(await this.Tenant.AddCaseFile(@case, "Smlouva.pdf"), "smlouva 1");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day, title: "Přestupek"), Day, title: "Podání");
+        var file = this.Stored(await this.Tenant.AddActFile(act, "Smlouva.pdf"), "smlouva 1");
         await this.Tenant.AddFileVersion(file);
 
         var entries = await this.Export();
-        var versions = Document(entries, $"{Root}/case.json").GetProperty("files")[0].GetProperty("versions");
+        var filing = $"{Root}/acts/2026-08-21 Podání";
+        var versions = Document(entries, $"{filing}/act.json").GetProperty("files")[0].GetProperty("versions");
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(entries.Keys, Does.Contain($"{Root}/files/Smlouva (version 1).pdf"));
-            Assert.That(entries.Keys, Does.Not.Contain($"{Root}/files/Smlouva.pdf"), "a missing blob has no entry");
+            Assert.That(entries.Keys, Does.Contain($"{filing}/files/Smlouva (version 1).pdf"));
+            Assert.That(entries.Keys, Does.Not.Contain($"{filing}/files/Smlouva.pdf"), "a missing blob has no entry");
             Assert.That(versions[1].GetProperty("missing").GetBoolean(), Is.True);
             Assert.That(versions[1].GetProperty("path").ValueKind, Is.EqualTo(JsonValueKind.Null));
             Assert.That(versions[0].GetProperty("missing").GetBoolean(), Is.False);
@@ -219,8 +219,8 @@ public class TenantExporterTests : TenantFixture
     }
 
     /// <summary>
-    /// A root case with a contact, a label, a comment and a file in two versions; a sub-case under it, a sub-case under
-    /// that one, and an act there with a file.
+    /// A root case with a contact, a label and a comment; a sub-case under it, a sub-case under that one, and an act there
+    /// with a file in two versions.
     /// </summary>
     private async Task<SeededTree> SeedTree()
     {
@@ -230,15 +230,14 @@ public class TenantExporterTests : TenantFixture
         var root = await this.Tenant.AddCase(Day, title: "Přestupek", description: "Popis", externalCaseNumber: "KUP 1/2026", contact: contact);
         await this.Tenant.AddCaseLabel(root, label);
         await this.Tenant.AddCaseComment(root, "Poznámka");
-        var smlouva = this.Stored(await this.Tenant.AddCaseFile(root, "Smlouva.pdf"), "smlouva 1");
-        this.Stored(await this.Tenant.AddFileVersion(smlouva), "smlouva 2");
 
         var appeal = await this.Tenant.AddCase(new DateOnly(2026, 9, 1), title: "Odvolání", parentCaseId: root.Id);
         var cassation = await this.Tenant.AddCase(new DateOnly(2026, 10, 1), title: "Kasační stížnost", parentCaseId: appeal.Id);
         var act = await this.Tenant.AddAct(cassation, new DateOnly(2026, 10, 2), title: "Podání", contact: contact, direction: ActDirection.Outgoing);
         await this.Tenant.AddActLabel(act, label);
         await this.Tenant.AddActComment(act, "Odesláno");
-        this.Stored(await this.Tenant.AddActFile(act, "Podání.pdf"), "podani");
+        var podani = this.Stored(await this.Tenant.AddActFile(act, "Podání.pdf"), "podani 1");
+        this.Stored(await this.Tenant.AddFileVersion(podani), "podani 2");
 
         var userEmail = await this.Tenant.Context.Users
             .Where(user => user.Id == this.Tenant.UserId)

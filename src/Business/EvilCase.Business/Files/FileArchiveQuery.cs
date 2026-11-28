@@ -4,14 +4,6 @@ namespace EvilBrains.EvilCase.Business.Files;
 
 internal static class FileArchiveQuery
 {
-    /// <summary>
-    /// The versions of the case's own files, never those of its sub-cases or its acts.
-    /// </summary>
-    public static IQueryable<FileVersion> OfCaseFiles(this IQueryable<FileVersion> versions, Guid caseId)
-    {
-        return versions.Where(version => version.FileAsset!.CaseId == caseId);
-    }
-
     public static IQueryable<FileVersion> OfActFiles(this IQueryable<FileVersion> versions, Guid actId)
     {
         return versions.Where(version => version.FileAsset!.ActId == actId);

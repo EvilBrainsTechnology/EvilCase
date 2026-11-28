@@ -17,42 +17,6 @@ public class FileListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task TheFilesOfACaseComeOldestFirst()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-
-        await this.Tenant.AddCaseFile(@case, "prvni.txt");
-        await this.Tenant.AddCaseFile(@case, "druhy.txt");
-        await this.Tenant.AddCaseFile(@case, "treti.txt");
-
-        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
-
-        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of a case come back oldest first");
-    }
-
-    [Test]
-    public async Task AFileOfAnotherCaseIsNotListed()
-    {
-        var caseA = await this.Tenant.AddCase(Day);
-        var caseB = await this.Tenant.AddCase(Day);
-
-        await this.Tenant.AddCaseFile(caseA, "a.txt");
-        await this.Tenant.AddCaseFile(caseB, "b.txt");
-
-        var items = await this.reader.ListCaseFiles(caseA.Id, CancellationToken.None);
-
-        Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["a.txt"]), "a file of another case must not be listed");
-    }
-
-    [Test]
-    public async Task ListingTheFilesOfAMissingCaseAnswersWithNothing()
-    {
-        var items = await this.reader.ListCaseFiles(Guid.CreateVersion7(), CancellationToken.None);
-
-        Assert.That(items, Is.Null, "a tenant with no such case must get nothing rather than an empty list");
-    }
-
-    [Test]
     public async Task TheFilesOfAnActComeOldestFirst()
     {
         var @case = await this.Tenant.AddCase(Day);
@@ -65,25 +29,6 @@ public class FileListQueryTests : TenantFixture
         var items = await this.reader.ListActFiles(act.Id, CancellationToken.None);
 
         Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["prvni.txt", "druhy.txt", "treti.txt"]), "the files of an act come back oldest first");
-    }
-
-    [Test]
-    public async Task ACaseFileIsNeverListedOnItsActAndBackAgain()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day);
-
-        await this.Tenant.AddCaseFile(@case, "spis.txt");
-        await this.Tenant.AddActFile(act, "ukon.txt");
-
-        var actItems = await this.reader.ListActFiles(act.Id, CancellationToken.None);
-        var caseItems = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(actItems!.Select(static item => item.FileName), Is.EqualTo(["ukon.txt"]), "the act's list never shows a file of its case");
-            Assert.That(caseItems!.Select(static item => item.FileName), Is.EqualTo(["spis.txt"]), "the case's list never shows a file of its act");
-        }
     }
 
     [Test]
@@ -106,7 +51,7 @@ public class FileListQueryTests : TenantFixture
     {
         var items = await this.reader.ListActFiles(Guid.CreateVersion7(), CancellationToken.None);
 
-        Assert.That(items, Is.Null);
+        Assert.That(items, Is.Null, "a tenant with no such act must get nothing rather than an empty list");
     }
 
     [Test]
@@ -123,39 +68,27 @@ public class FileListQueryTests : TenantFixture
     }
 
     [Test]
-    public async Task ACaseFileCarriesTheDetachedSignatureOfItsName()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
-        await this.Tenant.AddCaseFile(@case, "Jiny.pdf");
-
-        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
-
-        Assert.That(items!.Select(static item => item.SignatureFileId), Is.EqualTo(new Guid?[] { signature.Id, null, null }), "only the file of the signed name carries the signature");
-    }
-
-    [Test]
     public async Task AnActFileCarriesTheDetachedSignatureOfItsName()
     {
         var @case = await this.Tenant.AddCase(Day);
         var act = await this.Tenant.AddAct(@case, Day);
         await this.Tenant.AddActFile(act, "Smlouva.pdf");
         var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
+        await this.Tenant.AddActFile(act, "Jiny.pdf");
 
         var items = await this.reader.ListActFiles(act.Id, CancellationToken.None);
 
-        Assert.That(items!.Select(static item => item.SignatureFileId), Is.EqualTo(new Guid?[] { signature.Id, null }));
+        Assert.That(items!.Select(static item => item.SignatureFileId), Is.EqualTo(new Guid?[] { signature.Id, null, null }), "only the file of the signed name carries the signature");
     }
 
     [Test]
     public async Task AFileWithSeveralVersionsIsListedOnceInItsCurrentVersion()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf", sizeBytes: 3);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "Smlouva.pdf", sizeBytes: 3);
         var second = await this.Tenant.AddFileVersion(file, sizeBytes: 5);
 
-        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
+        var items = await this.reader.ListActFiles(act.Id, CancellationToken.None);
 
         var item = items!.Single();
 
@@ -171,26 +104,27 @@ public class FileListQueryTests : TenantFixture
     [Test]
     public async Task ANewVersionLeavesTheFileWhereItsFirstUploadPutIt()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var first = await this.Tenant.AddCaseFile(@case, "A.txt");
-        await this.Tenant.AddCaseFile(@case, "B.txt");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var first = await this.Tenant.AddActFile(act, "A.txt");
+        await this.Tenant.AddActFile(act, "B.txt");
         await this.Tenant.AddFileVersion(first);
 
-        var items = await this.reader.ListCaseFiles(@case.Id, CancellationToken.None);
+        var items = await this.reader.ListActFiles(act.Id, CancellationToken.None);
 
         Assert.That(items!.Select(static item => item.FileName), Is.EqualTo(["A.txt", "B.txt"]), "the list stays in the order of the first uploads");
     }
 
     [Test]
-    public async Task ASignatureOnAnotherCaseDoesNotPair()
+    public async Task ASignatureOnAnotherActDoesNotPair()
     {
-        var caseA = await this.Tenant.AddCase(Day);
-        var caseB = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddCaseFile(caseA, "Smlouva.pdf");
-        await this.Tenant.AddCaseFile(caseB, "Smlouva.pdf.p7s");
+        var @case = await this.Tenant.AddCase(Day);
+        var actA = await this.Tenant.AddAct(@case, Day);
+        var actB = await this.Tenant.AddAct(@case, Day);
+        await this.Tenant.AddActFile(actA, "Smlouva.pdf");
+        await this.Tenant.AddActFile(actB, "Smlouva.pdf.p7s");
 
-        var items = await this.reader.ListCaseFiles(caseA.Id, CancellationToken.None);
+        var items = await this.reader.ListActFiles(actA.Id, CancellationToken.None);
 
-        Assert.That(items!.Single().SignatureFileId, Is.Null, "a signature pairs only within its own case or act");
+        Assert.That(items!.Single().SignatureFileId, Is.Null, "a signature pairs only within its own act");
     }
 }

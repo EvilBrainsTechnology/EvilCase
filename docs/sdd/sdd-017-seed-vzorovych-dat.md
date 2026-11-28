@@ -24,9 +24,9 @@ SDD-006.
 - Seed zakládá čtyři štítky a přiděluje je hlavnímu spisu, žádostem o informace a dvěma
   úkonům hlavního spisu (SDD-019).
 - Soubory jsou jednoduché syntetické TXT generované při seedu a zapsané úložištěm SDD-012.
-  Hlavní spis i každý úkon dostane jeden, jmenovaný podle svého čísla s lomítky nahrazenými
-  pomlčkami; poslední úkon hlavního spisu dostane druhý, s přílohami. Soubor hlavního spisu má dvě
-  verze. Žádná PDF, žádné binárky v repozitáři.
+  Každý úkon dostane jeden, jmenovaný podle svého čísla s lomítky nahrazenými pomlčkami;
+  poslední úkon hlavního spisu dostane druhý, s přílohami. Soubor prvního úkonu hlavního spisu má
+  dvě verze. Spis soubory nenese. Žádná PDF, žádné binárky v repozitáři.
 - Zdroj pravdy seedu je kód; markdown je předloha a neparsuje se.
 
 ## Rozhodnutí

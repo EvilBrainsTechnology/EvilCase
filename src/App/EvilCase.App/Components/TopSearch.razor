@@ -167,12 +167,12 @@
                             {
                                 var row = index++;
 
-                                <SearchOption Id="@this.OptionId(row)" Href="@OwnerHref(item.CaseId, item.ActId)" Kind="file" Title="@item.FileName" Term="@this.resultTerm"
+                                <SearchOption Id="@this.OptionId(row)" Href="@($"/acts/{item.ActId}")" Kind="file" Title="@item.FileName" Term="@this.resultTerm"
                                               Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
                                     <Icon><EcFileIcon FileName="@item.FileName" Size="EcFileIconSize.Compact" /></Icon>
                                     <Details>
                                         <span>@FileSizeDisplay.Text(item.SizeBytes)</span>
-                                        <span class="ec-sr-grow-text">@OwnerKind(item.CaseId) <span class="ec-sep" aria-hidden="true">·</span> @item.OwnerTitle</span>
+                                        <span class="ec-sr-grow-text">Úkon <span class="ec-sep" aria-hidden="true">·</span> @item.ActTitle</span>
                                     </Details>
                                 </SearchOption>
                             }
@@ -288,7 +288,7 @@
             .. response.Cases.Items.Select(static item => $"/cases/{item.CaseId}"),
             .. response.Acts.Items.Select(static item => $"/acts/{item.ActId}"),
             .. response.Contacts.Items.Select(static item => $"/contacts/{item.ContactId}"),
-            .. response.Files.Items.Select(static item => OwnerHref(item.CaseId, item.ActId)),
+            .. response.Files.Items.Select(static item => $"/acts/{item.ActId}"),
             .. response.Comments.Items.Select(static item => OwnerHref(item.CaseId, item.ActId)),
         ];
     }

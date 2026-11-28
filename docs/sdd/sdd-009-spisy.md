@@ -18,8 +18,9 @@ Case: `ParentCaseId?`, `CaseNumber`, `ExternalCaseNumber?`, explicitní datum (`
 popis, stav `Active` / `WaitingOnAuthority` / `Closed`, nepovinný kontakt protistrany (SDD-011)
 a štítky (SDD-019).
 
-Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony,
-soubory i komentáře jako každý jiný. Nový spis vzniká jako `Active` a s dnešním datem.
+Stav je jen štítek: na nic se neváže, spis ve stavu `Closed` jde editovat a přijímá úkony
+i komentáře jako každý jiný. Nový spis vzniká jako `Active` a s dnešním datem. Spis nepřijímá
+soubory; soubor patří úkonu (SDD-012).
 
 Délky: název nejvýše 256 znaků, popis 4000, externí značka 128, spisová značka 64. Povinné jsou
 název, datum a stav, v editaci i spisová značka; ostatní pole jsou nepovinná.
@@ -41,7 +42,7 @@ kontakt. Zadává se na editaci spisu.
 
 ### Stránky
 
-- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku vlastní název se štítky a pod ním šedě název rodičovského spisu, jako úkon v seznamu úkonů, hlavní soubor, stav
+- `/cases` — seznam spisů: datum, název se štítky jako drobnými značkami s názvem (SDD-019); podřízený spis ukazuje na prvním řádku vlastní název se štítky a pod ním šedě název rodičovského spisu, jako úkon v seznamu úkonů, stav
   s barevnou tečkou a okamžik poslední změny. Výchozí řazení je podle
   data spisu sestupně; záhlaví sloupce řadí podle sebe a druhý klik otočí směr. Seznam je
   stránkovaný podle SDD-005 a nese celkový počet. Lišta je na jednom řádku: hledání, přepínač
@@ -53,8 +54,8 @@ kontakt. Zadává se na editaci spisu.
   dělají dlaždice přehledu (SDD-015). Příchod na adresu seznamu nastaví všechny filtry podle
   adresy; co adresa nezmiňuje, má výchozí hodnotu.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
-- `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010), komentáře (SDD-013),
-  soubory (SDD-012). Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
+- `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010) a komentáře (SDD-013);
+  soubory nenese. Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
   Nabídka vedle Upravit spis nese Nový úkon, Nový podřízený spis, Zkopírovat odkaz na spis
   a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
@@ -65,10 +66,7 @@ kontakt. Zadává se na editaci spisu.
   aktivních filtrů.
 - Podřízené spisy v detailu spisu ukazují počet otevřených a uzavřených a ve výchozím stavu jen
   otevřené (vše kromě uzavřených); přepínač ukáže i uzavřené.
-- Každý seznam spisů nese hned za názvem úzký sloupec Soubor s hlavním souborem spisu (SDD-012);
-  podřízené spisy v detailu spisu ho nesou vpravo na řádku. Tlačítko, náhled bez listování
-  ostatními soubory spisu, obnovení seznamu po změně, prázdná buňka i mobil jsou jako v seznamu
-  úkonů (SDD-010).
+- Žádný seznam spisů nenese sloupec Soubor.
 
 ### Mazání
 

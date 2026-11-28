@@ -8,7 +8,6 @@
 @inject ICasesClient CasesClient
 @inject ICaseLabelsClient CaseLabelsClient
 @inject ICaseCommentsClient CaseCommentsClient
-@inject IFilesStates FilesStates
 
 <PageTitle>@(this.Detail is null ? "Spis" : this.Detail.Title) – EvilCase</PageTitle>
 
@@ -101,12 +100,10 @@
             </div>
         </EcCard>
 
-        <DetailAnchors Path="@this.LinkPath" Anchors="this.Anchors" Files="this.Files" />
+        <DetailAnchors Path="@this.LinkPath" Anchors="this.Anchors" />
 
         <div class="ec-detail-layout">
             <div class="ec-detail-main ec-case-acts">
-                <FilesSlot State="this.Files" Wide Card="this.FilesCardContent" />
-
                 <ActList @key="(nameof(ActList), this.CaseId)"
                          Id="acts"
                          TotalChanged="count => this.actCount = count"
@@ -133,8 +130,6 @@
 
             <aside class="ec-detail-aside">
                 <CaseChildrenCard ParentCaseId="this.CaseId" Id="children" CountChanged="count => this.childCount = count" />
-
-                <FilesSlot State="this.Files" Card="this.FilesCardContent" />
 
                 <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
                               Id="comments"
@@ -190,19 +185,8 @@
 
     private int? commentCount;
 
-    private RenderFragment<bool> FilesCardContent => compact =>
-        @<FilesCard @key="this.Files"
-                    Id="files"
-                    State="this.Files"
-                    Title="Soubory spisu"
-                    OwnerGoneError="spis už neexistuje."
-                    UploadTarget="ke spisu"
-                    ArchiveUrl="@FileUrl.CaseArchive(this.CaseId)"
-                    Compact="compact" />;
-
     private IReadOnlyList<DetailAnchor> Anchors =>
     [
-        new DetailAnchor("Soubory", "files", () => this.Files is { Loaded: true, ListFailure: null } ? this.Files.Items.Count : null),
         new DetailAnchor("Podřízené spisy", "children", () => this.childCount),
         new DetailAnchor("Úkony", "acts", () => this.actCount),
         new DetailAnchor("Komentáře", "comments", () => this.commentCount),
@@ -264,11 +248,6 @@
     protected override CaseDetail WithLabels(CaseDetail detail, IReadOnlyList<LabelItem> labels)
     {
         return detail with { Labels = labels };
-    }
-
-    protected override FilesCardState CreateFiles()
-    {
-        return this.FilesStates.ForCase(this.CaseId);
     }
 
     private void EditCase()

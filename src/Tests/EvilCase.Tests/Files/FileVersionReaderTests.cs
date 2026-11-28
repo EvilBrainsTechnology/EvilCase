@@ -23,8 +23,8 @@ public class FileVersionReaderTests : TenantFixture
     [Test]
     public async Task TheVersionsOfAFileComeNewestFirstWithWhoUploadedThem()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "a.pdf", sizeBytes: 3);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "a.pdf", sizeBytes: 3);
         var colleague = await this.Tenant.AddUser();
         await this.Tenant.AddFileVersion(file, sizeBytes: 5, uploaderId: colleague.Id);
         var ownEmail = await this.Tenant.Context.Users
@@ -54,8 +54,7 @@ public class FileVersionReaderTests : TenantFixture
     public async Task ListingTheVersionsOfAnotherTenantsFileAnswersWithNothing()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherFile = await other.AddCaseFile(otherCase);
+        var otherFile = await other.AddActFile(await other.AddAct(await other.AddCase(Day), Day));
 
         var items = await this.reader.ListFileVersions(otherFile.Id, CancellationToken.None);
 
@@ -65,8 +64,8 @@ public class FileVersionReaderTests : TenantFixture
     [Test]
     public async Task TheContentIsTheCurrentVersionUnlessTheReadNamesAnother()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "a.txt");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "a.txt");
         var first = file.Versions.Single();
         var second = await this.Tenant.AddFileVersion(file);
         this.blobs.WrittenByPath[first.StoragePath] = "prvni";
@@ -87,9 +86,9 @@ public class FileVersionReaderTests : TenantFixture
     [Test]
     public async Task AVersionNumberIsLookedUpThroughItsOwnFile()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var fileA = await this.Tenant.AddCaseFile(@case, "a.txt");
-        var fileB = await this.Tenant.AddCaseFile(@case, "b.txt");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var fileA = await this.Tenant.AddActFile(act, "a.txt");
+        var fileB = await this.Tenant.AddActFile(act, "b.txt");
         var secondOfB = await this.Tenant.AddFileVersion(fileB);
         this.blobs.WrittenByPath[fileA.Versions.Single().StoragePath] = "a";
         this.blobs.WrittenByPath[fileB.Versions.First().StoragePath] = "b1";

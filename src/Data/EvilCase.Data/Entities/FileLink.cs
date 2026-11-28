@@ -30,7 +30,7 @@ public sealed record FileLink : IEntity
     public required FileLinkKind Kind { get; init; }
 
     /// <summary>
-    /// The case, the act or the file <see cref="Kind"/> names.
+    /// The act or the file <see cref="Kind"/> names.
     /// </summary>
     public required Guid TargetId { get; init; }
 

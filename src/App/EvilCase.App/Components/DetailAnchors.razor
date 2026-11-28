@@ -1,5 +1,3 @@
-@implements IDisposable
-
 @* Below lg a row of chips under the detail header scrolls to each section; the desktop shows the sections side by side. *@
 <nav class="ec-anchors" aria-label="Sekce stránky">
     @foreach (var anchor in this.Anchors)
@@ -23,36 +21,4 @@
 
     [Parameter, EditorRequired]
     public required IReadOnlyList<DetailAnchor> Anchors { get; set; }
-
-    /// <summary>The files list, whose loads change the files count outside the page's own renders.</summary>
-    [Parameter, EditorRequired]
-    public required FilesCardState Files { get; set; }
-
-    private FilesCardState? watched;
-
-    protected override void OnParametersSet()
-    {
-        if (ReferenceEquals(this.watched, this.Files))
-            return;
-
-        this.Unwatch();
-        this.watched = this.Files;
-        this.watched.Changed += this.Redraw;
-    }
-
-    public void Dispose()
-    {
-        this.Unwatch();
-    }
-
-    private void Unwatch()
-    {
-        if (this.watched is not null)
-            this.watched.Changed -= this.Redraw;
-    }
-
-    private void Redraw(object? sender, EventArgs args)
-    {
-        _ = this.InvokeAsync(this.StateHasChanged);
-    }
 }

@@ -33,6 +33,25 @@ public class FilesCardStateTests
     }
 
     [Test]
+    public async Task ALoadReportsTheChangeOnlyOnceTheCardIsPlaced()
+    {
+        IReadOnlyList<FileListItem> files = [File()];
+        var state = State(_ => Task.FromResult(files));
+        bool? wideOnChange = null;
+
+        state.Changed += (_, _) => wideOnChange = state.Wide;
+
+        await state.EnsureLoaded(NullLogger.Instance);
+
+        Assert.That(wideOnChange, Is.True, "a page rendered on the change shows the card in the column it is about to leave, and the card's drop zone loses its element");
+
+        files = [];
+        await state.Reload(NullLogger.Instance);
+
+        Assert.That(wideOnChange, Is.False, "a page rendered on the change shows the card in the column it is about to leave");
+    }
+
+    [Test]
     public async Task TheCardKeepsItsPlaceWhileAnUploadRunsAndMovesWhenItEnds()
     {
         IReadOnlyList<FileListItem> files = [];
@@ -119,15 +138,13 @@ public class FilesCardStateTests
 
     private static FilesCardState State(Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> loadFiles)
     {
-        var caseId = Guid.CreateVersion7();
-        var caseFiles = Substitute.For<ICaseFilesClient>();
+        var actId = Guid.CreateVersion7();
+        var actFiles = Substitute.For<IActFilesClient>();
 
-        caseFiles.ListCaseFiles(caseId, Arg.Any<CancellationToken>())
+        actFiles.ListActFiles(actId, Arg.Any<CancellationToken>())
             .Returns(async call => new FileListResponse { Items = await loadFiles(call.Arg<CancellationToken>()) });
 
-        var fileTransfer = new StubFileTransferClient();
-
-        return new FilesCardState(new CaseFileOwner(caseId, caseFiles, fileTransfer), fileTransfer, Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
+        return new FilesCardState(actId, actFiles, Substitute.For<IFilesClient>(), new StubFileTransferClient(), Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
     }
 
     private static FileListItem File()

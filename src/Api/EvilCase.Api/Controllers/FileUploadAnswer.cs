@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
@@ -13,14 +14,14 @@ internal static class FileUploadAnswer
 {
     private const string FileTransferController = "FileTransfer";
 
-    public static ActionResult<FileListItem> Answer(this ControllerBase controller, UploadFileResult result, string ownerNotFound)
+    public static ActionResult<FileListItem> Answer(this ControllerBase controller, UploadFileResult result)
     {
         return result switch
         {
             UploadedFile { Kind: UploadKind.Unchanged } unchanged => controller.Ok(unchanged.File),
             UploadedFile uploaded => controller.CreatedAtAction(
                 nameof(Controllers.FileTransferController.DownloadFileContent), FileTransferController, new { fileId = uploaded.File.FileId }, uploaded.File),
-            UploadFileFailure.OwnerNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: ownerNotFound),
+            UploadFileFailure.ActNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }
@@ -42,14 +43,14 @@ internal static class FileUploadAnswer
         };
     }
 
-    public static ActionResult RenameAnswer(this ControllerBase controller, FileRenameOutcome outcome, string ownerWord)
+    public static ActionResult RenameAnswer(this ControllerBase controller, FileRenameOutcome outcome)
     {
         return outcome switch
         {
             FileRenameOutcome.Renamed => controller.NoContent(),
             FileRenameOutcome.NotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
             FileRenameOutcome.NameTaken => controller.Problem(
-                detail: FileProblems.NameTakenDetail(ownerWord), statusCode: StatusCodes.Status409Conflict, title: FileProblems.NameTaken),
+                detail: FileProblems.NameTakenDetail, statusCode: StatusCodes.Status409Conflict, title: FileProblems.NameTaken),
             _ => throw new UnreachableException(),
         };
     }

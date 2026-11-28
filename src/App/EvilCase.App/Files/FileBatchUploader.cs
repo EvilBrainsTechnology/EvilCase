@@ -18,7 +18,6 @@ internal static class FileBatchUploader
     public static async Task Run(
         InputFileChangeEventArgs args,
         Func<IBrowserFile, CancellationToken, Task<FileUploadResult>> uploadFile,
-        string ownerGoneError,
         List<string> failures,
         Action<int, string> reportProgress,
         Action<FileUploadResult> reportUploaded,
@@ -56,9 +55,9 @@ internal static class FileBatchUploader
             }
             catch (ApiException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
             {
-                logger.LogWarning(exception, "Uploading a file failed: the owner is gone");
+                logger.LogWarning(exception, "Uploading a file failed: the act is gone");
 
-                failures.Add($"{file.Name}: {ownerGoneError}");
+                failures.Add($"{file.Name}: úkon už neexistuje.");
             }
             catch (Exception exception) when (exception is ApiException or HttpRequestException or IOException or JSException)
             {

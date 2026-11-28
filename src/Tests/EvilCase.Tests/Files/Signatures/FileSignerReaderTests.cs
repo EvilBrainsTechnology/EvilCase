@@ -20,8 +20,8 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task AStoredSignedFileListsItsSigners()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m");
         this.ServeSignedFile(file.Versions.Single().StoragePath);
 
         var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
@@ -37,8 +37,7 @@ public class FileSignerReaderTests : TenantFixture
     public async Task AFileOfAnotherTenantIsNotFound()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherFile = await other.AddCaseFile(otherCase, "cizi.pdf.p7m");
+        var otherFile = await other.AddActFile(await other.AddAct(await other.AddCase(Day), Day), "cizi.pdf.p7m");
         this.ServeSignedFile(otherFile.Versions.Single().StoragePath);
 
         var response = await this.Reader().ListFileSigners(otherFile.Id, version: null, CancellationToken.None);
@@ -57,8 +56,8 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task AFileWhoseBlobIsGoneIsNotFound()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m");
 
         var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
 
@@ -68,8 +67,8 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task AFileOverTheLimitIsTooLargeWithoutReadingItsBlob()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxReadBytes + 1);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxReadBytes + 1);
 
         var response = await this.Reader().ListFileSigners(file.Id, version: null, CancellationToken.None);
 
@@ -84,9 +83,9 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task ADetachedSignatureNamesItsSignedFile()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var pdf = await this.Tenant.AddActFile(act, "Smlouva.pdf");
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
         this.ServeSignedFile(signature.Versions.Single().StoragePath, detached: true);
 
         var response = await this.Reader().ListFileSigners(signature.Id, version: null, CancellationToken.None);
@@ -101,8 +100,8 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task ADetachedSignatureWithoutItsFileSaysSo()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
         this.ServeSignedFile(signature.Versions.Single().StoragePath, detached: true);
 
         var response = await this.Reader().ListFileSigners(signature.Id, version: null, CancellationToken.None);
@@ -117,9 +116,9 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task AnAttachedSignatureHasNoSignedFile()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        await this.Tenant.AddActFile(act, "Smlouva.pdf");
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m");
         this.ServeSignedFile(signature.Versions.Single().StoragePath);
 
         var response = await this.Reader().ListFileSigners(signature.Id, version: null, CancellationToken.None);
@@ -134,8 +133,8 @@ public class FileSignerReaderTests : TenantFixture
     [Test]
     public async Task TheSignersOfTheVersionTheRequestNamesAreRead()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m");
         this.ServeSignedFile(file.Versions.Single().StoragePath);
         await this.Tenant.AddFileVersion(file);
 

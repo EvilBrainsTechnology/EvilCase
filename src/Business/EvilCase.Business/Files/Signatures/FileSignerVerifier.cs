@@ -36,12 +36,12 @@ internal sealed class FileSignerVerifier(
 
         var file = fileVersion.FileAsset!;
 
-        var ownerFiles = await context.FileAssets
-            .OfSameOwner(file)
+        var actFiles = await context.FileAssets
+            .OfAct(file.ActId)
             .AsListItems()
             .ToListAsync(token);
 
-        var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, ownerFiles);
+        var (signedFile, pairingProblem) = DetachedSignatures.Pair(file.Id, actFiles);
 
         // A detached signature is verified against the current version of the file it signs.
         var signedVersion = signedFile is null

@@ -9,19 +9,19 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 public class FileTransferClientTests
 {
     [Test]
-    public async Task AnUploadPostsTheFileAsMultipartToTheCaseSFiles()
+    public async Task AnUploadPostsTheFileAsMultipartToTheActSFiles()
     {
-        var caseId = Guid.CreateVersion7();
+        var actId = Guid.CreateVersion7();
         var handler = new CapturingHandler(Stored(HttpStatusCode.Created, 1, 1));
 
         var client = Client(handler);
 
-        var result = await client.UploadCaseFile(caseId, new StubBrowserFile("smlouva.pdf", "application/pdf", "abc"u8.ToArray()), CancellationToken.None);
+        var result = await client.UploadActFile(actId, new StubBrowserFile("smlouva.pdf", "application/pdf", "abc"u8.ToArray()), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(handler.Request!.Method, Is.EqualTo(HttpMethod.Post));
-            Assert.That(handler.Request.RequestUri!.AbsolutePath, Is.EqualTo($"/api/cases/{caseId}/files"));
+            Assert.That(handler.Request.RequestUri!.AbsolutePath, Is.EqualTo($"/api/acts/{actId}/files"));
             Assert.That(handler.Request.Content!.Headers.ContentType!.MediaType, Is.EqualTo("multipart/form-data"));
             Assert.That(handler.Body, Does.Contain("name=file"));
             Assert.That(handler.Body, Does.Contain("smlouva.pdf"));
@@ -34,7 +34,7 @@ public class FileTransferClientTests
     {
         var client = Client(new CapturingHandler(Stored(HttpStatusCode.Created, 3, 3)));
 
-        var result = await client.UploadCaseFile(Guid.CreateVersion7(), new StubBrowserFile("a.txt", "text/plain", "a"u8.ToArray()), CancellationToken.None);
+        var result = await client.UploadActFile(Guid.CreateVersion7(), new StubBrowserFile("a.txt", "text/plain", "a"u8.ToArray()), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -90,7 +90,7 @@ public class FileTransferClientTests
         var client = Client(handler);
 
         var exception = await Assert.ThrowsAsync<ApiException>(
-            async () => await client.UploadCaseFile(Guid.CreateVersion7(), new StubBrowserFile("a.txt", "text/plain", "a"u8.ToArray()), CancellationToken.None));
+            async () => await client.UploadActFile(Guid.CreateVersion7(), new StubBrowserFile("a.txt", "text/plain", "a"u8.ToArray()), CancellationToken.None));
 
         Assert.That(exception.StatusCode, Is.EqualTo(HttpStatusCode.RequestEntityTooLarge), "a failed upload raises the same exception type every generated client raises");
     }

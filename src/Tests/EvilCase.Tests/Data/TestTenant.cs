@@ -237,14 +237,36 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.Comments, comment);
     }
 
-    public async Task<FileAsset> AddCaseFile(Case @case, string fileName = "dokument.pdf", long sizeBytes = 1, bool isMain = false, Guid? fileId = null)
+    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf", long sizeBytes = 1, bool isMain = false, Guid? fileId = null)
     {
-        return await this.AddFile(@case.Id, actId: null, fileName, sizeBytes, isMain, fileId);
-    }
+        var fileAssetId = fileId ?? Guid.CreateVersion7();
+        var fileVersionId = Guid.CreateVersion7();
 
-    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf", bool isMain = false)
-    {
-        return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes: 1, isMain, fileId: null);
+        var version = new FileVersion
+        {
+            Id = fileVersionId,
+            TenantId = this.tenantId,
+            UserId = this.UserId,
+            FileAssetId = fileAssetId,
+            Number = 1,
+            ContentHash = new string('a', 64),
+            SizeBytes = sizeBytes,
+            MediaType = "application/pdf",
+            StoragePath = $"{this.tenantId}/{fileVersionId}",
+        };
+
+        var file = new FileAsset
+        {
+            Id = fileAssetId,
+            TenantId = this.tenantId,
+            UserId = this.UserId,
+            ActId = act.Id,
+            FileName = fileName,
+            IsMain = isMain,
+            Versions = [version],
+        };
+
+        return await this.Save(this.Context.FileAssets, file);
     }
 
     /// <summary>
@@ -300,38 +322,6 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.Save(this.Context.LabelAssignments, assignment);
     }
 
-    private async Task<FileAsset> AddFile(Guid? caseId, Guid? actId, string fileName, long sizeBytes, bool isMain, Guid? fileId)
-    {
-        var fileAssetId = fileId ?? Guid.CreateVersion7();
-        var fileVersionId = Guid.CreateVersion7();
-
-        var version = new FileVersion
-        {
-            Id = fileVersionId,
-            TenantId = this.tenantId,
-            UserId = this.UserId,
-            FileAssetId = fileAssetId,
-            Number = 1,
-            ContentHash = new string('a', 64),
-            SizeBytes = sizeBytes,
-            MediaType = "application/pdf",
-            StoragePath = $"{this.tenantId}/{fileVersionId}",
-        };
-
-        var file = new FileAsset
-        {
-            Id = fileAssetId,
-            TenantId = this.tenantId,
-            UserId = this.UserId,
-            CaseId = caseId,
-            ActId = actId,
-            FileName = fileName,
-            IsMain = isMain,
-            Versions = [version],
-        };
-
-        return await this.Save(this.Context.FileAssets, file);
-    }
 
     private int NextSequence(string prefix)
     {

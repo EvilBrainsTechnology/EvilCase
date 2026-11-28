@@ -11,11 +11,6 @@ internal sealed class FileTransferClient(HttpClient httpClient) : IFileTransferC
 {
     private const string DefaultMediaType = "application/octet-stream";
 
-    public async Task<FileUploadResult> UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
-    {
-        return await this.Upload(new Uri($"api/cases/{caseId}/files", UriKind.Relative), file, token);
-    }
-
     public async Task<FileUploadResult> UploadActFile(Guid actId, IBrowserFile file, CancellationToken token)
     {
         return await this.Upload(new Uri($"api/acts/{actId}/files", UriKind.Relative), file, token);

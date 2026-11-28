@@ -26,18 +26,18 @@ public class MainFileTests : TenantFixture
     }
 
     [Test]
-    public async Task TheFirstUploadIntoAnEmptyCaseIsItsMainFileAndTheNextIsNot()
+    public async Task TheFirstUploadIntoAnEmptyActIsItsMainFileAndTheNextIsNot()
     {
-        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
 
-        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf"), CancellationToken.None));
-        var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("priloha.pdf"), CancellationToken.None));
-        var version = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("Priloha.pdf", content: "b"), CancellationToken.None));
+        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("smlouva.pdf"), CancellationToken.None));
+        var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("priloha.pdf"), CancellationToken.None));
+        var version = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("Priloha.pdf", content: "b"), CancellationToken.None));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(first.File.IsMain, Is.True, "the first file of an empty case becomes its main file");
-            Assert.That(second.File.IsMain, Is.False, "an upload into a case that has a file does not take the mark");
+            Assert.That(first.File.IsMain, Is.True, "the first file of an empty act becomes its main file");
+            Assert.That(second.File.IsMain, Is.False, "an upload into an act that has a file does not take the mark");
             Assert.That(version.File.IsMain, Is.False, "a new version never changes the main file");
             Assert.That(await this.MainFileIds(), Is.EqualTo([first.File.FileId]));
         }
@@ -46,13 +46,13 @@ public class MainFileTests : TenantFixture
     [Test]
     public async Task AnUploadAfterTheMarkWasUnsetDoesNotTakeIt()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("smlouva.pdf"), CancellationToken.None));
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var first = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("smlouva.pdf"), CancellationToken.None));
 
         await this.writer.UnsetMainFile(first.File.FileId, CancellationToken.None);
-        var later = UnionAssert.Holds<UploadedFile>(await this.writer.UploadCaseFile(@case.Id, Upload("priloha.pdf"), CancellationToken.None));
+        var later = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("priloha.pdf"), CancellationToken.None));
 
-        Assert.That(later.File.IsMain, Is.False, "only an upload into a case without any file becomes main");
+        Assert.That(later.File.IsMain, Is.False, "only an upload into an act without any file becomes main");
     }
 
     [Test]
@@ -75,11 +75,11 @@ public class MainFileTests : TenantFixture
     }
 
     [Test]
-    public async Task UnsettingTheMainFileLeavesTheCaseWithoutOne()
+    public async Task UnsettingTheMainFileLeavesTheActWithoutOne()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var main = await this.Tenant.AddCaseFile(@case, "a.pdf", isMain: true);
-        var other = await this.Tenant.AddCaseFile(@case, "b.pdf");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var main = await this.Tenant.AddActFile(act, "a.pdf", isMain: true);
+        var other = await this.Tenant.AddActFile(act, "b.pdf");
 
         var ofOther = await this.writer.UnsetMainFile(other.Id, CancellationToken.None);
         var kept = await this.MainFileIds();
@@ -90,28 +90,43 @@ public class MainFileTests : TenantFixture
             Assert.That(ofOther, Is.EqualTo(MainFileOutcome.Changed), "unsetting a file that is not main succeeds and changes nothing");
             Assert.That(kept, Is.EqualTo([main.Id]));
             Assert.That(ofMain, Is.EqualTo(MainFileOutcome.Changed));
-            Assert.That(await this.MainFileIds(), Is.Empty, "after unsetting, no file of the case is main");
+            Assert.That(await this.MainFileIds(), Is.Empty, "after unsetting, no file of the act is main");
         }
     }
 
     [Test]
     public async Task DeletingTheMainFileMakesTheOldestRemainingFileMain()
     {
-        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
         var fileIds = TestTenant.SortedEntityIds(3);
 
         // Upload order and identifier order disagree, so only the upload moment picks the oldest.
-        var main = await this.Tenant.AddCaseFile(@case, "a.pdf", isMain: true);
-        var oldest = await this.Tenant.AddCaseFile(@case, "b.pdf", fileId: fileIds[2]);
-        await this.Tenant.AddCaseFile(@case, "c.pdf", fileId: fileIds[1]);
+        var main = await this.Tenant.AddActFile(act, "a.pdf", isMain: true);
+        var oldest = await this.Tenant.AddActFile(act, "b.pdf", fileId: fileIds[2]);
+        await this.Tenant.AddActFile(act, "c.pdf", fileId: fileIds[1]);
 
-        var outcome = await this.writer.DeleteCaseFile(@case.Id, main.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(main.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.MainFileIds(), Is.EqualTo([oldest.Id]), "the oldest remaining file, in upload order, takes the mark");
         }
+    }
+
+    [Test]
+    public async Task DeletingTheMainFileHandsTheMarkOnWithinItsAct()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var unmarked = await this.Tenant.AddAct(@case, Day, "Výzva");
+        await this.Tenant.AddActFile(unmarked, "a.pdf");
+        var act = await this.Tenant.AddAct(@case, Day, "Rozhodnutí");
+        var main = await this.Tenant.AddActFile(act, "b.pdf", isMain: true);
+        var remaining = await this.Tenant.AddActFile(act, "c.pdf");
+
+        await this.writer.DeleteFile(main.Id, CancellationToken.None);
+
+        Assert.That(await this.MainFileIds(), Is.EqualTo([remaining.Id]), "the mark passes to a file of the deleted file's act, never to an older file of another act");
     }
 
     [Test]
@@ -125,8 +140,8 @@ public class MainFileTests : TenantFixture
         var first = await this.Tenant.AddActFile(unmarked, "c.pdf");
         await this.Tenant.AddActFile(unmarked, "d.pdf");
 
-        await this.writer.DeleteActFile(act.Id, other.Id, CancellationToken.None);
-        await this.writer.DeleteActFile(unmarked.Id, first.Id, CancellationToken.None);
+        await this.writer.DeleteFile(other.Id, CancellationToken.None);
+        await this.writer.DeleteFile(first.Id, CancellationToken.None);
 
         Assert.That(await this.MainFileIds(), Is.EqualTo([main.Id]), "a deleted file that was not main neither moves the mark nor gives one to an act without it");
     }
@@ -134,10 +149,10 @@ public class MainFileTests : TenantFixture
     [Test]
     public async Task DeletingTheLastFileLeavesNoMainFile()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var main = await this.Tenant.AddCaseFile(@case, "a.pdf", isMain: true);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var main = await this.Tenant.AddActFile(act, "a.pdf", isMain: true);
 
-        var outcome = await this.writer.DeleteCaseFile(@case.Id, main.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(main.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -147,23 +162,22 @@ public class MainFileTests : TenantFixture
     }
 
     [Test]
-    public async Task TheDatabaseRefusesASecondMainFileOfOneCase()
+    public async Task TheDatabaseRefusesASecondMainFileOfOneAct()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        await this.Tenant.AddCaseFile(@case, "a.pdf", isMain: true);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        await this.Tenant.AddActFile(act, "a.pdf", isMain: true);
 
         Assert.That(
-            async () => await this.Tenant.AddCaseFile(@case, "b.pdf", isMain: true),
+            async () => await this.Tenant.AddActFile(act, "b.pdf", isMain: true),
             Throws.InstanceOf<DbUpdateException>(),
-            "a case has at most one main file, whatever the writer does");
+            "an act has at most one main file, whatever the writer does");
     }
 
     [Test]
     public async Task AFileOfAnotherTenantIsNotFoundForTheMark()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherFile = await other.AddCaseFile(otherCase, "a.pdf", isMain: true);
+        var otherFile = await other.AddActFile(await other.AddAct(await other.AddCase(Day), Day), "a.pdf", isMain: true);
 
         var set = await this.writer.SetMainFile(otherFile.Id, CancellationToken.None);
         var unset = await this.writer.UnsetMainFile(otherFile.Id, CancellationToken.None);
@@ -200,9 +214,9 @@ public class MainFileTests : TenantFixture
     [Test]
     public async Task ASetMeetingAConcurrentSetRetriesAndTakesTheMark()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var first = await this.Tenant.AddCaseFile(@case, "a.pdf");
-        var second = await this.Tenant.AddCaseFile(@case, "b.pdf");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var first = await this.Tenant.AddActFile(act, "a.pdf");
+        var second = await this.Tenant.AddActFile(act, "b.pdf");
         await using var other = TestDatabase.CreateMigratedAsHost(this.Tenant.UserContext);
         await using var observer = TestDatabase.CreateMigratedAsHost(this.Tenant.UserContext);
 

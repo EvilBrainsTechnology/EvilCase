@@ -1,4 +1,6 @@
+using System.Net;
 using Bunit;
+using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Client;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
@@ -43,7 +45,7 @@ public class ActListRenderTests
         {
             Assert.That(preview.Instance.FileId, Is.EqualTo(Main.FileId));
             Assert.That(preview.Instance.Files.Select(static file => file.FileId), Is.EqualTo([Main.FileId]), "the preview pages over no other file of the act");
-            Assert.That(component.FindComponent<MainFilePreview>().Instance.OwnerId, Is.EqualTo(withMain));
+            Assert.That(component.FindComponent<MainFilePreview>().Instance.ActId, Is.EqualTo(withMain));
         }
     }
 
@@ -70,6 +72,30 @@ public class ActListRenderTests
         await mainFiles.Received(1).UnsetMainFile(Main.FileId, Arg.Any<CancellationToken>());
     }
 
+    [Test]
+    public async Task AStarInThePreviewOnAFileFoundGoneSaysSo()
+    {
+        await using var ctx = FrontendContext.Create();
+        Serve(ctx);
+        var mainFiles = ctx.Services.GetRequiredService<IMainFileClient>();
+
+        mainFiles.UnsetMainFile(Main.FileId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new ApiException(HttpStatusCode.NotFound, responseBody: null)));
+
+        var component = Render(ctx);
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll("button.ec-main-file"), Has.Count.EqualTo(1)));
+        await component.Find("button.ec-main-file").ClickAsync(new MouseEventArgs());
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-preview-name-row .ec-main-star"), Has.Count.EqualTo(1)));
+
+        await component.Find(".ec-preview-name-row .ec-main-star").ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(() => Assert.That(
+            component.Find(".ec-preview-alert").TextContent,
+            Is.EqualTo("Soubor rozhodnuti.pdf už neexistuje."),
+            "the main-file preview names a file found gone as the files card does"));
+    }
+
     private static IRenderedComponent<ActList> Render(BunitContext ctx)
     {
         return ctx.Render<ActList>(static parameters => parameters
@@ -94,8 +120,8 @@ public class ActListRenderTests
 
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(actFilesClient);
-        ctx.Services.AddSingleton(Substitute.For<ICaseFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
+        ctx.Services.AddSingleton(Substitute.For<IFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
 
         return (actsClient, withMain);

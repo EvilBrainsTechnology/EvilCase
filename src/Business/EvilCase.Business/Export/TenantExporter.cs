@@ -6,7 +6,6 @@ using EvilBrains.EvilCase.Business.Comments;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
 using EvilBrains.EvilCase.Data.DbContexts;
-using EvilBrains.EvilCase.Data.Entities;
 using EvilBrains.EvilCase.Domain.Users;
 using EvilBrains.EvilCase.Files;
 using Microsoft.EntityFrameworkCore;
@@ -184,7 +183,7 @@ internal sealed class TenantExporter(
     }
 
     /// <summary>
-    /// The case's document, its files, its sub-cases and its acts; answers how many blobs were missing.
+    /// The case's document, its sub-cases and its acts; answers how many blobs were missing.
     /// </summary>
     private async Task<int> WriteCaseFolder(
         ZipStreamWriter zip,
@@ -195,8 +194,6 @@ internal sealed class TenantExporter(
         CancellationToken token)
     {
         var context = dbSession.Current;
-
-        var (files, missing) = await this.WriteFiles(zip, context.FileVersions.OfCaseFiles(@case.CaseId), path, token);
 
         var comments = await context.Comments
             .OnCase(@case.CaseId)
@@ -210,10 +207,10 @@ internal sealed class TenantExporter(
             zip,
             $"{path}/{TenantExportLayout.CaseDocumentName}",
             FileArchiveLayout.PragueTime(exported.Updated ?? exported.Created),
-            exported with { Comments = comments, Files = files, Path = path },
+            exported with { Comments = comments, Path = path },
             token);
 
-        missing += await this.WriteCaseFolders(zip, subCases, caseActs, subCases[@case.CaseId], $"{path}/{TenantExportLayout.CasesFolder}", token);
+        var missing = await this.WriteCaseFolders(zip, subCases, caseActs, subCases[@case.CaseId], $"{path}/{TenantExportLayout.CasesFolder}", token);
 
         var names = FileArchiveLayout.ClaimedNames();
 
@@ -227,43 +224,19 @@ internal sealed class TenantExporter(
         return missing;
     }
 
+    /// <summary>
+    /// The act's document and its files. Every version goes in the files folder under the names "Stáhnout vše včetně
+    /// verzí" gives them; a version whose blob is missing stays out of the archive and is marked in its file. Answers
+    /// how many blobs were missing.
+    /// </summary>
     private async Task<int> WriteActFolder(ZipStreamWriter zip, OutlinedAct act, string path, CancellationToken token)
     {
         var context = dbSession.Current;
 
-        var (files, missing) = await this.WriteFiles(zip, context.FileVersions.OfActFiles(act.ActId), path, token);
-
-        var comments = await context.Comments
-            .OnAct(act.ActId)
-            .AsExportedComments(context.Users)
-            .InDiaryOrder()
-            .ToListAsync(token);
-
-        var exported = await context.Acts.ReadExportedAct(act.ActId, token);
-
-        await WriteJson(
-            zip,
-            $"{path}/{TenantExportLayout.ActDocumentName}",
-            FileArchiveLayout.PragueTime(exported.Updated ?? exported.Created),
-            exported with { Comments = comments, Files = files, Path = path },
-            token);
-
-        return missing;
-    }
-
-    /// <summary>
-    /// Every version in the files folder under the names "Stáhnout vše včetně verzí" gives them.
-    /// A version whose blob is missing stays out of the archive and is marked in its file.
-    /// </summary>
-    private async Task<(List<ExportedFile> Files, int Missing)> WriteFiles(
-        ZipStreamWriter zip,
-        IQueryable<FileVersion> versions,
-        string path,
-        CancellationToken token)
-    {
-        var rows = await versions
+        var rows = await context.FileVersions
+            .OfActFiles(act.ActId)
             .InFileOrder()
-            .AsExportedVersionRows(dbSession.Current.Users)
+            .AsExportedVersionRows(context.Users)
             .ToListAsync(token);
 
         var archived = rows.ConvertAll(static row => new ArchivedVersion
@@ -300,6 +273,21 @@ internal sealed class TenantExporter(
             entryPaths[row.FileVersionId] = entryPath;
         }
 
-        return (ExportedFiles(rows, entryPaths), entryPaths.Values.Count(static entryPath => entryPath is null));
+        var comments = await context.Comments
+            .OnAct(act.ActId)
+            .AsExportedComments(context.Users)
+            .InDiaryOrder()
+            .ToListAsync(token);
+
+        var exported = await context.Acts.ReadExportedAct(act.ActId, token);
+
+        await WriteJson(
+            zip,
+            $"{path}/{TenantExportLayout.ActDocumentName}",
+            FileArchiveLayout.PragueTime(exported.Updated ?? exported.Created),
+            exported with { Comments = comments, Files = ExportedFiles(rows, entryPaths), Path = path },
+            token);
+
+        return entryPaths.Values.Count(static entryPath => entryPath is null);
     }
 }

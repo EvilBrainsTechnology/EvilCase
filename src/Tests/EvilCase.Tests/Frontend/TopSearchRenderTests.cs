@@ -203,7 +203,7 @@ public class TopSearchRenderTests
                 FileName = "pojistna-smlouva-2025.pdf",
                 SizeBytes = 421_888,
                 ActId = ActId,
-                OwnerTitle = "Výzva pojišťovně k plnění",
+                ActTitle = "Výzva pojišťovně k plnění",
             });
     }
 

@@ -42,8 +42,8 @@ public class FileSignerVerifierTests : TenantFixture
     [Test]
     public async Task AnAttachedSignatureReadsItsVerdict()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m");
         this.Serve(signature, this.Sign(Pdf, detached: false));
 
         var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
@@ -83,8 +83,8 @@ public class FileSignerVerifierTests : TenantFixture
     [Test]
     public async Task ADetachedSignatureWithoutItsFileIsUnverifiable()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
         this.Serve(signature, this.Sign(Pdf, detached: true));
 
         var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
@@ -98,26 +98,25 @@ public class FileSignerVerifierTests : TenantFixture
     }
 
     [Test]
-    public async Task AFileOfTheSignedNameOnAnotherCaseIsNotPaired()
+    public async Task AFileOfTheSignedNameOnAnotherActIsNotPaired()
     {
-        var caseA = await this.Tenant.AddCase(Day);
-        var caseB = await this.Tenant.AddCase(Day);
-        var pdf = await this.Tenant.AddCaseFile(caseA, "Smlouva.pdf");
-        var signature = await this.Tenant.AddCaseFile(caseB, "Smlouva.pdf.p7s");
+        var @case = await this.Tenant.AddCase(Day);
+        var pdf = await this.Tenant.AddActFile(await this.Tenant.AddAct(@case, Day), "Smlouva.pdf");
+        var signature = await this.Tenant.AddActFile(await this.Tenant.AddAct(@case, Day), "Smlouva.pdf.p7s");
         this.Serve(pdf, Pdf);
         this.Serve(signature, this.Sign(Pdf, detached: true));
 
         var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
-        Assert.That(response?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.SignedFileMissing), "a signature pairs only within its own case or act");
+        Assert.That(response?.Signers.Single().Problem, Is.EqualTo(FileSignerProblem.SignedFileMissing), "a signature pairs only within its own act");
     }
 
     [Test]
     public async Task ASignedFileOverTheLimitIsNotRead()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf", sizeBytes: FileLimits.MaxReadBytes + 1);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var pdf = await this.Tenant.AddActFile(act, "Smlouva.pdf", sizeBytes: FileLimits.MaxReadBytes + 1);
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
         this.Serve(pdf, Pdf);
         this.Serve(signature, this.Sign(Pdf, detached: true));
 
@@ -161,7 +160,7 @@ public class FileSignerVerifierTests : TenantFixture
             .Where(file => file.Id == pdf.Id)
             .ExecuteDeleteAsync();
 
-        var replacement = await this.Tenant.AddCaseFile(await this.Tenant.Context.Cases.SingleAsync(), "Smlouva.pdf");
+        var replacement = await this.Tenant.AddActFile(await this.Tenant.Context.Acts.SingleAsync(), "Smlouva.pdf");
         this.Serve(replacement, "%PDF-1.5"u8.ToArray());
 
         var second = await verifier.VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
@@ -214,8 +213,7 @@ public class FileSignerVerifierTests : TenantFixture
     public async Task AFileOfAnotherTenantIsNotFound()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherFile = await other.AddCaseFile(otherCase, "cizi.pdf.p7m");
+        var otherFile = await other.AddActFile(await other.AddAct(await other.AddCase(Day), Day), "cizi.pdf.p7m");
         this.Serve(otherFile, this.Sign(Pdf, detached: false));
 
         var response = await this.Verifier().VerifyFileSigners(otherFile.Id, version: null, CancellationToken.None);
@@ -234,8 +232,8 @@ public class FileSignerVerifierTests : TenantFixture
     [Test]
     public async Task AFileWhoseBlobIsGoneIsNotFound()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m");
 
         var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
@@ -245,8 +243,8 @@ public class FileSignerVerifierTests : TenantFixture
     [Test]
     public async Task ASignatureOverTheLimitIsTooLargeWithoutReadingItsBlob()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxReadBytes + 1);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7m", sizeBytes: FileLimits.MaxReadBytes + 1);
 
         var response = await this.Verifier().VerifyFileSigners(signature.Id, version: null, CancellationToken.None);
 
@@ -271,9 +269,9 @@ public class FileSignerVerifierTests : TenantFixture
 
     private async Task<(FileAsset Pdf, FileAsset Signature)> AddDetachedPair()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var pdf = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf");
-        var signature = await this.Tenant.AddCaseFile(@case, "Smlouva.pdf.p7s");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var pdf = await this.Tenant.AddActFile(act, "Smlouva.pdf");
+        var signature = await this.Tenant.AddActFile(act, "Smlouva.pdf.p7s");
         this.Serve(pdf, Pdf);
         this.Serve(signature, this.Sign(Pdf, detached: true));
 

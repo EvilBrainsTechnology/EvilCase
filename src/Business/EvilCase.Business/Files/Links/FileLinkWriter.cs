@@ -29,7 +29,6 @@ internal sealed class FileLinkWriter(IDbSession dbSession, IUserContext userCont
         var targetExists = kind switch
         {
             FileLinkKind.Download => await context.FileVersions.ReadFileVersion(targetId, version, token) is not null,
-            FileLinkKind.CaseUpload => await context.Cases.Exists(targetId, token),
             FileLinkKind.ActUpload => await context.Acts.Exists(targetId, token),
             FileLinkKind.VersionUpload => await context.FileAssets.Exists(targetId, token),
             _ => throw new UnreachableException(),

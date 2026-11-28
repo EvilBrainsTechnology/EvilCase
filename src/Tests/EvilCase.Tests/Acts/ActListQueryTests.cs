@@ -184,7 +184,6 @@ public class ActListQueryTests : TenantFixture
         await this.Tenant.AddActFile(withMain, "priloha.pdf");
         var main = await this.Tenant.AddActFile(withMain, "rozhodnuti.pdf", isMain: true);
         await this.Tenant.AddActFile(withoutMain, "vyzva.pdf");
-        await this.Tenant.AddCaseFile(@case, "spis.pdf", isMain: true);
 
         var items = await this.Tenant.Context.Acts.OfCase(@case.Id).AsListItems().ToDictionaryAsync(static item => item.ActId);
 
@@ -192,7 +191,7 @@ public class ActListQueryTests : TenantFixture
         {
             Assert.That(items[withMain.Id].MainFile?.FileId, Is.EqualTo(main.Id), "the act's main file, not its other file");
             Assert.That(items[withMain.Id].MainFile?.FileName, Is.EqualTo("rozhodnuti.pdf"));
-            Assert.That(items[withoutMain.Id].MainFile, Is.Null, "an act whose files carry no main mark has no main file, and never the case's");
+            Assert.That(items[withoutMain.Id].MainFile, Is.Null, "an act whose files carry no main mark has no main file");
         }
     }
 

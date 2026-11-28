@@ -7,6 +7,7 @@
 @using EvilBrains.EvilCase.Api.Contract.Labels
 @using EvilBrains.EvilCase.Domain.Acts
 @inherits DetailPage<ActDetail>
+@implements IDisposable
 @inject IActsClient ActsClient
 @inject ILogger<Act> Logger
 @inject IActLabelsClient ActLabelsClient
@@ -112,7 +113,7 @@
             </div>
         </EcCard>
 
-        <DetailAnchors Path="@this.LinkPath" Anchors="this.Anchors" Files="this.Files" />
+        <DetailAnchors Path="@this.LinkPath" Anchors="this.Anchors" />
 
         <div class="ec-detail-layout">
             <div class="ec-detail-main">
@@ -244,14 +245,15 @@
 
     private int? commentCount;
 
+    /// <summary>
+    /// The files card's list and operations, shared by the card's slot in each column.
+    /// </summary>
+    private FilesCardState Files { get; set; } = null!;
+
     private RenderFragment<bool> FilesCardContent => compact =>
         @<FilesCard @key="this.Files"
                     Id="files"
                     State="this.Files"
-                    Title="Soubory úkonu"
-                    OwnerGoneError="úkon už neexistuje."
-                    UploadTarget="k úkonu"
-                    ArchiveUrl="@FileUrl.ActArchive(this.ActId)"
                     Compact="compact" />;
 
     private IReadOnlyList<DetailAnchor> Anchors =>
@@ -301,13 +303,22 @@
 
     protected override void OnParametersSet()
     {
-        // Another act starts without the count and the status error of the last one.
+        // Another act starts without the count, the status error and the files of the last one.
         if (this.countedActId == this.ActId)
             return;
 
         this.countedActId = this.ActId;
         this.commentCount = null;
         this.statusError = null;
+
+        this.UnwatchFiles();
+        this.Files = this.FilesStates.ForAct(this.ActId);
+        this.Files.Changed += this.FilesChanged;
+    }
+
+    public void Dispose()
+    {
+        this.UnwatchFiles();
     }
 
     protected override Task<ActDetail> Fetch()
@@ -325,9 +336,16 @@
         return detail with { Labels = labels };
     }
 
-    protected override FilesCardState CreateFiles()
+    // The files list loads outside the page's own renders and changes the files anchor's count.
+    private void FilesChanged(object? sender, EventArgs args)
     {
-        return this.FilesStates.ForAct(this.ActId);
+        _ = this.InvokeAsync(this.StateHasChanged);
+    }
+
+    private void UnwatchFiles()
+    {
+        if (this.Files is not null)
+            this.Files.Changed -= this.FilesChanged;
     }
 
     private void EditAct()

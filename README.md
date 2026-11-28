@@ -1,6 +1,6 @@
 # EvilCase
 
-A case-file system for administrative and legal proceedings: a case accumulates acts, contacts, file marks, files and comments, and hangs under an optional parent case. Built so far — the domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend for cases, acts, contacts, files, comments and a dashboard over them.
+A case-file system for administrative and legal proceedings: a case accumulates acts, contacts, file marks and comments, an act its files and comments, and a case hangs under an optional parent case. Built so far — the domain model in PostgreSQL, authentication, and a Blazor WebAssembly frontend for cases, acts, contacts, files, comments and a dashboard over them.
 
 > **Proprietary — all rights reserved.** This repository is public to read, not to use. No right to run, copy, modify or distribute the software is granted; see [LICENSE.txt](LICENSE.txt) and ask before you use anything.
 
@@ -92,4 +92,4 @@ The token acts as its user, tenant included. A read-only token gets 403 on every
 claude mcp add --transport http evilcase https://<host>/mcp --header "Authorization: Bearer <token>"
 ```
 
-A read-only token lists and calls only the read tools. File bytes never travel through a tool: `create_file_upload_link` and `create_file_download_link` return a one-time URL, valid 10 minutes, with a curl example; the upload is a PUT of the raw bytes. `read_file_text` returns the text of a text file, PDF or DOCX in pages of 50,000 characters.
+A read-only token lists and calls only the read tools. File bytes never travel through a tool: `create_file_upload_link` (a new file onto an act or a new version of a file) and `create_file_download_link` return a one-time URL, valid 10 minutes, with a curl example; the upload is a PUT of the raw bytes. `read_file_text` returns the text of a text file, PDF or DOCX in pages of 50,000 characters.

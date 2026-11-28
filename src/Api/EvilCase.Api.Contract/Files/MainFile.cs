@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.Api.Contract.Files;
 
 /// <summary>
-/// The main file of a case or act, as a list names it.
+/// The main file of an act, as the act list names it.
 /// </summary>
 public sealed record MainFile
 {

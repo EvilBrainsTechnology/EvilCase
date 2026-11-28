@@ -43,8 +43,8 @@ public class SearchReaderTests : TenantFixture
     [Test]
     public async Task AFileIsFoundOnceWithTheSizeOfItsCurrentVersion()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "verzovany-dokument.pdf", sizeBytes: 1);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "verzovany-dokument.pdf", sizeBytes: 1);
         await this.Tenant.AddFileVersion(file, sizeBytes: 7);
 
         var response = await this.Find("verzovany");
@@ -60,7 +60,7 @@ public class SearchReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day, "Spis", caseNumber: "EC/20260824-007", externalCaseNumber: "JID-55/2026");
         var act = await this.Tenant.AddAct(@case, Day, "Úkon", actNumber: "EC/20260824-007/03", externalActNumber: "SZ-901");
         await this.Tenant.AddContact("Kontakt", dataBoxId: "abc1234", address: "Náměstí Míru 3");
-        await this.Tenant.AddCaseFile(@case, "smlouva-2026.pdf");
+        await this.Tenant.AddActFile(act, "smlouva-2026.pdf");
 
         var byCaseNumber = await this.Find("20260824-007");
         var byExternalCase = await this.Find("jid-55");
@@ -113,8 +113,9 @@ public class SearchReaderTests : TenantFixture
         var @case = await this.Tenant.AddCase(Day, "Spis");
         var olderContact = await this.Tenant.AddContact("Archiv A");
         var newerContact = await this.Tenant.AddContact("Archiv B");
-        await this.Tenant.AddCaseFile(@case, "archiv-a.pdf");
-        await this.Tenant.AddCaseFile(@case, "archiv-b.pdf");
+        var act = await this.Tenant.AddAct(@case, Day, "Úkon");
+        await this.Tenant.AddActFile(act, "archiv-a.pdf");
+        await this.Tenant.AddActFile(act, "archiv-b.pdf");
         await this.Tenant.AddCaseComment(@case, "Archiv A");
         await this.Tenant.AddCaseComment(@case, "Archiv B");
 
@@ -152,11 +153,10 @@ public class SearchReaderTests : TenantFixture
     }
 
     [Test]
-    public async Task AFileAndACommentNameTheCaseOrTheActTheyHangOn()
+    public async Task AFileNamesItsActAndACommentTheCaseOrTheActItHangsOn()
     {
         var @case = await this.Tenant.AddCase(Day, "Spis o pokutě");
         var act = await this.Tenant.AddAct(@case, Day, "Úkon k pokutě");
-        await this.Tenant.AddCaseFile(@case, "pokuta-spis.pdf");
         await this.Tenant.AddActFile(act, "pokuta-ukon.pdf");
         await this.Tenant.AddCaseComment(@case, "Pokuta zaplacena");
         await this.Tenant.AddActComment(act, "Pokuta napadena");
@@ -166,9 +166,9 @@ public class SearchReaderTests : TenantFixture
         using (Assert.EnterMultipleScope())
         {
             Assert.That(
-                response.Files.Items.Select(static item => (item.CaseId is not null, item.ActId is not null, item.OwnerTitle)),
-                Is.EquivalentTo([(true, false, "Spis o pokutě"), (false, true, "Úkon k pokutě")]),
-                "a file names the owner it hangs on");
+                response.Files.Items.Select(static item => (item.ActId, item.ActTitle)),
+                Is.EqualTo([(act.Id, "Úkon k pokutě")]),
+                "a file names its act");
             Assert.That(
                 response.Comments.Items.Select(static item => (item.CaseId is not null, item.ActId is not null, item.OwnerTitle)),
                 Is.EquivalentTo([(true, false, "Spis o pokutě"), (false, true, "Úkon k pokutě")]),

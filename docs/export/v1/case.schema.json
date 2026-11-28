@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": [
     "type", "caseId", "caseNumber", "externalCaseNumber", "date", "title", "description", "status", "parentCaseId",
-    "contact", "labels", "comments", "files", "created", "updated", "path"
+    "contact", "labels", "comments", "created", "updated", "path"
   ],
   "properties": {
     "type": { "enum": ["case"] },
@@ -23,7 +23,6 @@
     },
     "labels": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/labelReference" } },
     "comments": { "type": "array", "items": { "$ref": "common.schema.json#/definitions/comment" } },
-    "files": { "description": "The case's own files, not those of its sub-cases or acts.", "type": "array", "items": { "$ref": "common.schema.json#/definitions/file" } },
     "created": { "$ref": "common.schema.json#/definitions/moment" },
     "updated": { "$ref": "common.schema.json#/definitions/optionalMoment" },
     "path": { "description": "The case's folder in the archive.", "type": "string" }
