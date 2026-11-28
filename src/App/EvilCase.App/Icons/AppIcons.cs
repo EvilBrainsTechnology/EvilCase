@@ -1,7 +1,7 @@
 namespace EvilBrains.EvilCase.App.Icons;
 
-// The path data is copied from Tabler icons; the file type glyphs, the hand, the compare, the maximize and the restore are
-// drawn for the design.
+// The path data is copied from Tabler icons; the file type glyphs, the hand, the compare, the maximize, the restore and the
+// expand and collapse of a tree are drawn for the design.
 public static class AppIcons
 {
     public const string AlertTriangle = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
@@ -104,6 +104,18 @@ public static class AppIcons
     public const string Clock = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0' />"
         + "<path d='M12 7v5l3 3' />";
+
+    /// <summary>
+    /// Sbalit vše of a tree: two chevrons pointing at each other.
+    /// </summary>
+    public const string ChevronsCollapse = "<path d='M7 4l5 5 5-5' />"
+        + "<path d='M7 20l5-5 5 5' />";
+
+    /// <summary>
+    /// Rozbalit vše of a tree: two chevrons pointing apart.
+    /// </summary>
+    public const string ChevronsExpand = "<path d='M7 9l5-5 5 5' />"
+        + "<path d='M7 15l5 5 5-5' />";
 
     public const string Code = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M7 8l-4 4l4 4' />"
@@ -210,6 +222,11 @@ public static class AppIcons
 
     public const string FileTypeOther = "<path d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z' />"
         + "<path d='M14 3v5h5' />";
+
+    public const string Files = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
+        + "<path d='M15 3v4a1 1 0 0 0 1 1h4' />"
+        + "<path d='M18 17h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h4l5 5v7a2 2 0 0 1 -2 2z' />"
+        + "<path d='M16 17v2a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h2' />";
 
     public const string Filter = "<path stroke='none' d='M0 0h24v24H0z' fill='none' />"
         + "<path d='M4 6h16' />"

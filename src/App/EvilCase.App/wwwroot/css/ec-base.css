@@ -896,6 +896,34 @@ html.ec-scroll-locked {
     height: var(--ec-file-icon-compact-glyph);
 }
 
+/* A case is a solid accent tile, an act an accent outline on white: the top bar's Spisy and Úkony glyphs. */
+.ec-entity-tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--ec-entity-tile);
+    height: var(--ec-entity-tile);
+    border-radius: var(--ec-radius-md);
+
+    & .ec-icon {
+        width: var(--ec-entity-tile-glyph);
+        height: var(--ec-entity-tile-glyph);
+    }
+}
+
+.ec-entity-tile-case {
+    background: var(--ec-accent);
+    color: var(--ec-on-accent);
+}
+
+.ec-entity-tile-act {
+    background: var(--ec-surface);
+    color: var(--ec-accent);
+    box-shadow: inset 0 0 0 var(--ec-entity-tile-ring) var(--ec-accent);
+}
+
 .ec-file-icon-large {
     width: var(--ec-file-icon-large-size);
     height: var(--ec-file-icon-large-size);

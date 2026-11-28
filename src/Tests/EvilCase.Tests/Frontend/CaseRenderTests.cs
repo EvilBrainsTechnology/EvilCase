@@ -236,6 +236,46 @@ public class CaseRenderTests
         }
     }
 
+    [Test]
+    public async Task ClosingTheFileTreeTakesTheCasesNewFileCounts()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var caseId = Guid.CreateVersion7();
+
+        var (casesClient, _, _, _) = Serve(ctx, caseId, Detail(caseId) with { FileCount = 1, FileActCount = 1 });
+
+        casesClient
+            .GetCase(caseId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Detail(caseId) with { FileCount = 1, FileActCount = 1 }), Task.FromResult(Detail(caseId)));
+        casesClient
+            .GetCaseFileTree(caseId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new CaseFileTree
+            {
+                Case = new CaseListItem
+                {
+                    CaseId = caseId,
+                    CaseNumber = "EC/20260821-001",
+                    Title = "Přestupek",
+                    Date = new DateOnly(2026, 8, 21),
+                    Status = CaseStatus.Active,
+                    Changed = DateTime.UtcNow,
+                },
+            }));
+
+        var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
+
+        await component.Find(".ec-case-files-button button").ClickAsync(new MouseEventArgs());
+        await component
+            .FindComponent<CaseFilesModal>()
+            .Find(".ec-modal-header button[aria-label=Zavřít]")
+            .ClickAsync(new MouseEventArgs());
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll(".ec-case-files-button"), Is.Empty, "a tree left without a file takes its button with it"),
+            TimeSpan.FromSeconds(2));
+    }
+
     private static string AnchorText(IElement anchor)
     {
         var count = anchor.QuerySelector(".ec-anchor-count")!.TextContent;

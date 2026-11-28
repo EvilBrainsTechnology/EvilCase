@@ -181,16 +181,6 @@
     border-radius: var(--ec-radius-md);
 }
 
-.ec-sr-icon-case {
-    background: var(--ec-accent-soft);
-    color: var(--ec-accent);
-}
-
-.ec-sr-icon-act {
-    background: var(--ec-closed-bg);
-    color: var(--ec-text-number);
-}
-
 .ec-sr-icon-contact {
     background: var(--ec-official-bg);
     color: var(--ec-official-text);
@@ -201,7 +191,7 @@
     color: var(--ec-waiting-text);
 }
 
-.ec-sr-icon .ec-file-icon {
+.ec-sr-icon :is(.ec-file-icon, .ec-entity-tile) {
     width: var(--ec-sr-icon);
     height: var(--ec-sr-icon);
 }

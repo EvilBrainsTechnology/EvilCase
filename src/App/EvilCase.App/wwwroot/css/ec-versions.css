@@ -148,7 +148,8 @@
     opacity: 0.6;
 }
 
-.ec-preview-versions-count {
+.ec-preview-versions-count,
+.ec-case-files-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;

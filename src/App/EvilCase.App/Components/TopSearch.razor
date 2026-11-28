@@ -92,7 +92,7 @@
 
                                 <SearchOption Id="@this.OptionId(row)" Href="@($"/cases/{item.CaseId}")" Kind="case" Title="@item.Title" Term="@this.resultTerm"
                                               Labels="item.Labels" Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
-                                    <Icon><EcIcon Paths="@AppIcons.Folders" /></Icon>
+                                    <Icon><EcEntityTile Kind="EcEntityKind.Case" /></Icon>
                                     <Details>
                                         <span class="ec-sr-mono"><SearchMark Text="@item.CaseNumber" Term="@this.resultTerm" /></span>
                                         <EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" />
@@ -115,7 +115,7 @@
 
                                 <SearchOption Id="@this.OptionId(row)" Href="@($"/acts/{item.ActId}")" Kind="act" Title="@item.Title" Term="@this.resultTerm"
                                               Active="@(row == this.active)" OnActivate="() => this.Activate(row)" OnOpen="this.Close">
-                                    <Icon><EcIcon Paths="@AppIcons.FileText" /></Icon>
+                                    <Icon><EcEntityTile Kind="EcEntityKind.Act" /></Icon>
                                     <Details>
                                         <span class="ec-sr-mono"><SearchMark Text="@item.ActNumber" Term="@this.resultTerm" /></span>
                                         @if (item.Direction is { } direction)

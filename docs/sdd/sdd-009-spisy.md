@@ -3,7 +3,8 @@
 - **Stav:** platí
 - **Milníky:** M3
 - **Související SDD:** [007](sdd-007-domenovy-model.md), [008](sdd-008-cislovani.md),
-  [011](sdd-011-kontakty.md), [013](sdd-013-komentare.md), [019](sdd-019-stitky.md)
+  [011](sdd-011-kontakty.md), [012](sdd-012-soubory.md), [013](sdd-013-komentare.md),
+  [019](sdd-019-stitky.md)
 
 ## Rozsah
 
@@ -32,8 +33,8 @@ název, datum a stav, v editaci i spisová značka; ostatní pole jsou nepovinn�
 - Podřízený spis se zakládá z detailu rodiče a rodiče na formuláři jen ukazuje; v editaci spisu
   jde rodič vybrat z kterýchkoli spisů tenantu kromě samotného spisu. Cyklus se pozná až při
   uložení.
-- UI zobrazuje jen ploché seznamy: detail spisu ukazuje odkaz na rodiče a seznam přímých
-  podřízených spisů, drobečky celou cestu od kořenového spisu (SDD-016). Žádný strom.
+- Detail spisu ukazuje odkaz na rodiče a seznam přímých podřízených spisů, drobečky celou cestu
+  od kořenového spisu (SDD-016). Strom ukazuje jen okno Soubory spisu.
 
 ### Externí spisová značka
 
@@ -55,7 +56,7 @@ kontakt. Zadává se na editaci spisu.
   adresy; co adresa nezmiňuje, má výchozí hodnotu.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
 - `/cases/{id}` — detail: údaje, štítky, úkony (SDD-010), podřízené spisy a komentáře (SDD-013);
-  soubory nenese. Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
+  soubory nenese, ukazuje je okno Soubory spisu. Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
   Nabídka vedle Upravit spis nese Nový úkon, Nový podřízený spis, Zkopírovat odkaz na spis
   a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
@@ -69,7 +70,30 @@ kontakt. Zadává se na editaci spisu.
   seznamu `/cases`; výchozí je Otevřené. Seznam je stránkovaný po 20 a nese Nový podřízený spis.
   Spis bez podřízených spisů ukazuje místo lišty a seznamu jednu větu; spis, jehož podřízené
   spisy skryje jen výchozí stav, lištu nechává.
-- Žádný seznam spisů nenese sloupec Soubor.
+- Každý seznam spisů nese hned za názvem sloupec Soubory: dlaždice otevírá okno Soubory spisu
+  daného spisu. Pod lg stojí dlaždice vpravo, svisle uprostřed řádku.
+
+### Soubory spisu
+
+- Okno ukazuje rozbalovací strom jednoho spisu: podřízené spisy do libovolné hloubky, úkony
+  každého spisu ve stromu a soubory každého úkonu. Strom nic nemění.
+- Na každé úrovni jsou nejdřív podřízené spisy v pořadí seznamu podřízených spisů v detailu,
+  pak úkony spisu chronologicky. Strom ukazuje i spisy a úkony bez souborů.
+- Po otevření jsou rozbalené úkony otevřeného spisu a sbalené jeho podřízené spisy. Klik na řádek
+  spisu nebo úkonu ho rozbalí nebo sbalí; Rozbalit vše a Sbalit vše platí pro celý strom.
+- Řádek spisu nese název, datum, počet úkonů, podřízených spisů a souborů celého podstromu,
+  štítky, stav a odkaz na detail. Řádek úkonu nese název, datum, kontakt, počet souborů, štítky,
+  směr (příchozí nebo odchozí jen ikonou s popiskem, jako v seznamech úkonů; úkon bez směru ho
+  nenese), stav a odkaz na detail. Řádek souboru nese ikonu, název, verzi, velikost, okamžik nahrání,
+  hvězdu u hlavního souboru a stažení. Pod lg řádky nenesou štítky, stav ukazují tečkou.
+- Klik na název souboru otevře plný náhled (SDD-012) ve velikosti okna stromu; šipky náhledu
+  listují jen soubory téhož úkonu. Změny z náhledu strom ukáže po jeho zavření.
+- Stáhnout vše stáhne archiv celého stromu, Stáhnout vše včetně verzí i se staršími verzemi
+  (SDD-012).
+- Okno jde maximalizovat; pod lg zabírá celou obrazovku.
+- Okno otevírá tlačítko Soubory s počtem souborů v hlavičce detailu spisu, pod lg řádek Soubory
+  v údajích spisu s textem „26 souborů v 6 úkonech“, a dlaždice v seznamech spisů. Tlačítko,
+  řádek i dlaždice jsou jen u spisu, jehož strom nese aspoň jeden soubor.
 
 ### Mazání
 
@@ -79,7 +103,8 @@ Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda
 ## Rozhodnutí
 
 - Podřízené spisy při smazání rodiče: kaskáda / osiření. Platí kaskáda — celý podstrom zaniká.
-- Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy.
+- Hierarchie v UI: strom / ploché seznamy. Platí ploché seznamy; strom ukazuje jen okno Soubory
+  spisu.
 - Filtr stavu v seznamu `/cases`: select / přepínač. Platí přepínač.
 - Podřízené spisy v seznamu `/cases`: skryté / volitelný přepínač. Platí přepínač, výchozí
   zapnutý.

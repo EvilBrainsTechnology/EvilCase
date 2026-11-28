@@ -28,6 +28,7 @@
     --ec-accent-hover: #19338F;
     --ec-accent-text: #1C3A9F;
     --ec-accent-soft: #E9EDF9;
+    --ec-accent-border-soft: rgba(31, 63, 174, 0.33);
     --ec-on-accent: #FFFFFF;
 
     /* Stav spisu */
@@ -147,6 +148,9 @@
     --ec-file-icon-glyph: 20px;
     --ec-file-icon-compact-size: 36px;
     --ec-file-icon-compact-glyph: 18px;
+    --ec-entity-tile: 36px;
+    --ec-entity-tile-glyph: 18px;
+    --ec-entity-tile-ring: 1.5px;
     --ec-file-icon-large-size: 72px;
     --ec-file-icon-large-glyph: 34px;
     --ec-file-icon-large-radius: 18px;
@@ -240,6 +244,7 @@
     --ec-list-col-address: 300px;
     --ec-list-col-contact: 200px;
     --ec-list-col-main-file: 44px;
+    --ec-list-col-case-files: 60px;
     --ec-list-badge-height: 24px;
     --ec-list-badge-pad: 10px;
     --ec-cell-stack-gap: 2px;
@@ -310,6 +315,18 @@
     --ec-file-row-compact-height: 56px;
     --ec-drop-badge: 48px;
     --ec-drop-overlay: rgba(233, 237, 249, 0.92);
+
+    /* Soubory spisu (docs/design/soubory-spisu.html, docs/design/soubory-spisu-mobil.html) */
+    --ec-case-files-tile: 28px;
+    --ec-case-files-tile-glyph: 15px;
+    --ec-case-files-tile-radius: 7px;
+    --ec-tree-row-height: 60px;
+    --ec-tree-indent: 28px;
+    --ec-tree-indent-mobile: 14px;
+    --ec-tree-toggle: 28px;
+    --ec-tree-toggle-radius: 7px;
+    --ec-tree-tile-mobile: 32px;
+    --ec-tree-tile-glyph-mobile: 16px;
 
     /* File preview (docs/design/detail-ukonu.html) */
     --ec-preview-width: 1320px;

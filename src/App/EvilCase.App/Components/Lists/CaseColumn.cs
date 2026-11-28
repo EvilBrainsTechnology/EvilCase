@@ -17,4 +17,9 @@ public enum CaseColumn
     Status = 3,
 
     Changed = 4,
+
+    /// <summary>
+    /// The button opening the case's file tree, where the tree holds a file.
+    /// </summary>
+    Files = 5,
 }

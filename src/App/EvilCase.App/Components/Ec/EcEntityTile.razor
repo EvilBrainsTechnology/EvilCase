@@ -1,0 +1,35 @@
+@using System.Diagnostics
+
+@* A case is a solid accent tile, an act an accent outline on white: the top bar's Spisy and Úkony glyphs. *@
+<span class="@this.CssClass" aria-hidden="true"><EcIcon Paths="@this.Glyph" /></span>
+
+@code {
+    [Parameter, EditorRequired]
+    public required EcEntityKind Kind { get; set; }
+
+    private string CssClass
+    {
+        get
+        {
+            return this.Kind switch
+            {
+                EcEntityKind.Case => "ec-entity-tile ec-entity-tile-case",
+                EcEntityKind.Act => "ec-entity-tile ec-entity-tile-act",
+                _ => throw new UnreachableException(),
+            };
+        }
+    }
+
+    private string Glyph
+    {
+        get
+        {
+            return this.Kind switch
+            {
+                EcEntityKind.Case => AppIcons.Folders,
+                EcEntityKind.Act => AppIcons.FileText,
+                _ => throw new UnreachableException(),
+            };
+        }
+    }
+}

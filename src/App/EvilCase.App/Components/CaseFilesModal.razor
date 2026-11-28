@@ -1,0 +1,334 @@
+@using EvilBrains.ApiClient
+@using EvilBrains.EvilCase.Api.Client
+@using EvilBrains.EvilCase.Api.Contract.Cases
+@using EvilBrains.EvilCase.Api.Contract.Files
+@inject ICasesClient CasesClient
+@inject IBrowserFiles BrowserFiles
+@inject ILogger<CaseFilesModal> Logger
+
+@* The read-only tree of one case: its sub-cases at any depth, the acts of each and their files (SDD-009). *@
+<EcModal Title="Soubory spisu" Large Maximizable MaximizedChanged="maximized => this.maximized = maximized" Open OpenChanged="this.Close">
+    <Heading>
+        <span class="ec-case-files-tile ec-case-files-heading-tile" aria-hidden="true"><EcIcon Paths="@AppIcons.Files" /></span>
+        <div class="ec-preview-title">
+            <h2 class="ec-preview-name">Soubory spisu</h2>
+            <span class="ec-preview-meta ec-case-files-meta">
+                <a class="ec-case-files-case" href="@($"/cases/{this.CaseId}")" data-tooltip-overflow @onclick="this.Close">@(this.tree?.Case.Title ?? this.CaseTitle)</a>
+                @if (this.tree is not null)
+                {
+                    <span class="ec-case-files-total"><span class="ec-sep" aria-hidden="true">·</span> @CaseFileTreeDisplay.FilesText(CaseFileTreeDisplay.FileCount(this.tree))</span>
+                }
+            </span>
+        </div>
+        @if (this.tree is not null)
+        {
+            <div class="ec-case-files-actions">
+                <span class="ec-case-files-expand">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronsExpand" OnClick="this.ExpandAll">Rozbalit vše</EcButton>
+                </span>
+                @* Below lg the download opens a menu with both archives. *@
+                <span class="ec-case-files-download-narrow">
+                    <EcMenu AriaLabel="Stáhnout vše" Icon="@AppIcons.Download" Title="@this.tree.Case.Title" Items="this.ArchiveActions(withPlain: true)" />
+                </span>
+                <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.ChevronsCollapse" AriaLabel="Sbalit vše" OnClick="this.CollapseAll"><span class="ec-case-files-label">Sbalit vše</span></EcButton>
+                <div class="ec-split-button ec-case-files-download-wide">
+                    <EcButton Variant="EcButtonVariant.Secondary" Icon="@AppIcons.Download" AriaLabel="Stáhnout vše"
+                              OnClick="() => this.DownloadArchive(this.ArchiveUrl)"><span class="ec-split-button-text">Stáhnout vše</span></EcButton>
+                    <EcMenu AriaLabel="Další možnosti stažení" Icon="@AppIcons.ChevronDown" Items="this.ArchiveActions(withPlain: false)" />
+                </div>
+                <span class="ec-preview-divider" aria-hidden="true"></span>
+            </div>
+        }
+    </Heading>
+    <ChildContent>
+        <div class="ec-case-files-stage">
+            @if (this.failure is not null)
+            {
+                <div class="ec-card-error">
+                    <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@this.failure</div>
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Load">Zkusit znovu</EcButton>
+                </div>
+            }
+            else if (this.tree is null)
+            {
+                <p class="ec-card-state">Načítám…</p>
+            }
+            else
+            {
+                <div class="ec-tree" role="tree" aria-label="Soubory spisu">
+                    @this.Children(this.tree, 1)
+                </div>
+            }
+        </div>
+    </ChildContent>
+</EcModal>
+
+@if (this.previewed is { } previewed)
+{
+    <MainFilePreview @key="previewed" ActId="previewed.ActId" FileId="previewed.FileId" PageActFiles StartMaximized="this.maximized"
+                     OnChanged="() => this.changed = true" OnClosed="this.ClosePreview" />
+}
+
+@code {
+    // Deeper levels keep the indent of the last one.
+    private const int MaxIndentLevel = 8;
+
+    [Parameter, EditorRequired]
+    public Guid CaseId { get; set; }
+
+    /// <summary>
+    /// The case's title, shown until the tree loads.
+    /// </summary>
+    [Parameter]
+    public string? CaseTitle { get; set; }
+
+    [Parameter]
+    public EventCallback OnClosed { get; set; }
+
+    // The cases and acts shown open.
+    private readonly HashSet<Guid> expanded = [];
+
+    private CaseFileTree? tree;
+
+    private string? failure;
+
+    private bool maximized;
+
+    private (Guid ActId, Guid FileId)? previewed;
+
+    // The preview changed a file, so the tree loads anew once it closes.
+    private bool changed;
+
+    private string ArchiveUrl => FileUrl.CaseArchive(this.CaseId);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await this.Load();
+    }
+
+    private async Task Load()
+    {
+        this.failure = null;
+
+        try
+        {
+            var loaded = await this.CasesClient.GetCaseFileTree(this.CaseId, CancellationToken.None);
+
+            // The first tree shown, also after a retry, opens the case's own acts; its sub-cases stay closed.
+            if (this.tree is null)
+            {
+                foreach (var act in loaded.Acts)
+                    this.expanded.Add(act.Act.ActId);
+            }
+
+            this.tree = loaded;
+        }
+        catch (Exception exception) when (exception is ApiException or HttpRequestException)
+        {
+            this.Logger.LogWarning(exception, "The file tree of case {CaseId} failed to load", this.CaseId);
+            this.failure = "Soubory spisu se nepodařilo načíst. Zkuste to za chvíli znovu.";
+        }
+    }
+
+    private async Task Close()
+    {
+        await this.OnClosed.InvokeAsync();
+    }
+
+    private void Toggle(Guid nodeId)
+    {
+        if (!this.expanded.Remove(nodeId))
+            this.expanded.Add(nodeId);
+    }
+
+    private void ExpandAll()
+    {
+        void Expand(CaseFileTree node)
+        {
+            foreach (var subCase in node.SubCases)
+            {
+                this.expanded.Add(subCase.Case.CaseId);
+                Expand(subCase);
+            }
+
+            foreach (var act in node.Acts)
+                this.expanded.Add(act.Act.ActId);
+        }
+
+        Expand(this.tree!);
+    }
+
+    private void CollapseAll()
+    {
+        this.expanded.Clear();
+    }
+
+    private void OpenFile(Guid actId, Guid fileId)
+    {
+        this.changed = false;
+        this.previewed = (actId, fileId);
+    }
+
+    private async Task ClosePreview()
+    {
+        this.previewed = null;
+
+        if (this.changed)
+            await this.Load();
+    }
+
+    private async Task Download(FileListItem file)
+    {
+        await this.BrowserFiles.DownloadFile(file.FileId, null, file.FileName, CancellationToken.None);
+    }
+
+    private IReadOnlyList<EcMenuItem> ArchiveActions(bool withPlain)
+    {
+        var withVersions = new EcMenuItem
+        {
+            Text = "Stáhnout vše včetně verzí",
+            Icon = AppIcons.Download,
+            OnSelect = EventCallback.Factory.Create(this, () => this.DownloadArchive(FileUrl.WithAllVersions(this.ArchiveUrl))),
+        };
+
+        if (!withPlain)
+            return [withVersions];
+
+        var plain = new EcMenuItem
+        {
+            Text = "Stáhnout vše",
+            Icon = AppIcons.Download,
+            OnSelect = EventCallback.Factory.Create(this, () => this.DownloadArchive(this.ArchiveUrl)),
+        };
+
+        return [plain, withVersions];
+    }
+
+    private async Task DownloadArchive(string archiveUrl)
+    {
+        await this.BrowserFiles.DownloadArchive(archiveUrl, CancellationToken.None);
+    }
+
+    private static string RowClass(string kind, int level)
+    {
+        return $"ec-tree-row ec-tree-row-{kind} ec-tree-level-{Math.Min(level, MaxIndentLevel).ToString(CultureInfo.InvariantCulture)}";
+    }
+
+    // The sub-cases first, then the acts, each followed by what it shows open.
+    private RenderFragment Children(CaseFileTree node, int level)
+    {
+        return @<text>
+            @foreach (var subCase in node.SubCases)
+            {
+                @this.CaseRow(subCase, level)
+            }
+            @foreach (var act in node.Acts)
+            {
+                @this.ActRow(act, level)
+            }
+        </text>;
+    }
+
+    private RenderFragment CaseRow(CaseFileTree node, int level)
+    {
+        var shown = node.Case;
+        var hasChildren = node.SubCases.Count > 0 || node.Acts.Count > 0;
+        var open = hasChildren && this.expanded.Contains(shown.CaseId);
+
+        return @<text>
+            <div class="@RowClass("case", level)" role="treeitem" aria-level="@level" aria-expanded="@(hasChildren ? open ? "true" : "false" : null)"
+                 @key="shown.CaseId" @onclick="() => this.Toggle(shown.CaseId)">
+                @this.Toggler(hasChildren, open, shown.Title)
+                <EcEntityTile Kind="EcEntityKind.Case" />
+                <span class="ec-tree-main">
+                    <span class="ec-tree-name ec-tree-name-case" data-tooltip-overflow>@shown.Title</span>
+                    <span class="ec-tree-meta"><strong class="ec-tree-date">@DateDisplay.Text(shown.Date)</strong> <span class="ec-sep" aria-hidden="true">·</span> @CaseFileTreeDisplay.CaseFacts(node)</span>
+                </span>
+                <LabelChips Labels="shown.Labels" />
+                <span class="ec-tree-spacer"></span>
+                <span class="ec-tree-status"><EcBadge Text="@CaseStatusDisplay.Text(shown.Status)" Tone="CaseStatusDisplay.Tone(shown.Status)" ShowDot="true" Compact="true" /></span>
+                @this.DetailLink($"/cases/{shown.CaseId}", $"Otevřít detail spisu {shown.Title}", "Otevřít detail spisu")
+            </div>
+            @if (open)
+            {
+                @this.Children(node, level + 1)
+            }
+        </text>;
+    }
+
+    private RenderFragment ActRow(ActFileTree node, int level)
+    {
+        var act = node.Act;
+        var hasFiles = node.Files.Count > 0;
+        var open = hasFiles && this.expanded.Contains(act.ActId);
+
+        return @<text>
+            <div class="@RowClass("act", level)" role="treeitem" aria-level="@level" aria-expanded="@(hasFiles ? open ? "true" : "false" : null)"
+                 @key="act.ActId" @onclick="() => this.Toggle(act.ActId)">
+                @this.Toggler(hasFiles, open, act.Title)
+                <EcEntityTile Kind="EcEntityKind.Act" />
+                <span class="ec-tree-main">
+                    <span class="ec-tree-name" data-tooltip-overflow>@act.Title</span>
+                    <span class="ec-tree-meta"><strong class="ec-tree-date">@DateDisplay.Text(act.Date)</strong> <span class="ec-sep" aria-hidden="true">·</span> @CaseFileTreeDisplay.ActFacts(node)</span>
+                </span>
+                <LabelChips Labels="act.Labels" />
+                <span class="ec-tree-spacer"></span>
+                @if (act.Direction is { } direction)
+                {
+                    <span class="ec-tree-direction"><EcBadge Text="@ActDirectionDisplay.Text(direction)" Tone="ActDirectionDisplay.Tone(direction)" Icon="@ActDirectionDisplay.Icon(direction)" Compact="true" /></span>
+                }
+                @if (act.Status is { } status)
+                {
+                    <span class="ec-tree-status"><EcBadge Text="@ActStatusDisplay.Text(status)" Tone="ActStatusDisplay.Tone(status)" ShowDot="true" Compact="true" /></span>
+                }
+                @this.DetailLink($"/acts/{act.ActId}", $"Otevřít detail úkonu {act.Title}", "Otevřít detail úkonu")
+            </div>
+            @if (open)
+            {
+                @foreach (var file in node.Files)
+                {
+                    @this.FileRow(act.ActId, file, level + 1)
+                }
+            }
+        </text>;
+    }
+
+    private RenderFragment FileRow(Guid actId, FileListItem file, int level)
+    {
+        return @<div class="@RowClass("file", level)" role="treeitem" aria-level="@level" @key="file.FileId">
+            <span class="ec-tree-toggle" aria-hidden="true"></span>
+            <EcFileIcon FileName="@file.FileName" Size="EcFileIconSize.Compact" />
+            <span class="ec-tree-main">
+                <button type="button" class="ec-tree-name ec-tree-file-name" data-tooltip="Otevřít náhled"
+                        @onclick="() => this.OpenFile(actId, file.FileId)">@file.FileName</button>
+                <span class="ec-tree-meta">@if (file.VersionCount > 1) { <EcBadge Text="@($"verze {file.Version}")" Tone="EcBadgeTone.FileVersion" /> }@FileSizeDisplay.Text(file.SizeBytes) <span class="ec-sep" aria-hidden="true">·</span> @MomentDisplay.Text(file.Created)</span>
+            </span>
+            @if (file.IsMain)
+            {
+                <span class="ec-tree-main-file" role="img" aria-label="Hlavní soubor" data-tooltip="Hlavní soubor"><EcIcon Paths="@AppIcons.Star" /></span>
+            }
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Download"
+                      AriaLabel="@($"Stáhnout {file.FileName}")" data-tooltip="Stáhnout" OnClick="() => this.Download(file)" />
+        </div>;
+    }
+
+    // An act without files has nothing to open, but keeps the place, so the tiles stay in line.
+    private RenderFragment Toggler(bool shown, bool open, string title)
+    {
+        if (!shown)
+            return @<span class="ec-tree-toggle" aria-hidden="true"></span>;
+
+        return @<button type="button" class="ec-tree-toggle" aria-expanded="@(open ? "true" : "false")" aria-label="@($"{(open ? "Sbalit" : "Rozbalit")} {title}")">
+            <EcIcon Paths="@(open ? AppIcons.ChevronDown : AppIcons.ChevronRight)" />
+        </button>;
+    }
+
+    private RenderFragment DetailLink(string href, string label, string tooltip)
+    {
+        // The link leaves the tree for the detail, so the tree closes.
+        return @<span class="ec-tree-detail" @onclick="this.Close" @onclick:stopPropagation>
+            <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.ArrowRight" Href="@href"
+                      AriaLabel="@label" data-tooltip="@tooltip" />
+        </span>;
+    }
+}
