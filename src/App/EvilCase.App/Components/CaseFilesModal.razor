@@ -239,7 +239,7 @@
             <div class="@RowClass("case", level)" role="treeitem" aria-level="@level" aria-expanded="@(hasChildren ? open ? "true" : "false" : null)"
                  @key="shown.CaseId" @onclick="() => this.Toggle(shown.CaseId)">
                 @this.Toggler(hasChildren, open, shown.Title)
-                <span class="ec-tree-tile ec-tree-tile-case" aria-hidden="true"><EcIcon Paths="@AppIcons.Folders" /></span>
+                <EcEntityTile Kind="EcEntityKind.Case" />
                 <span class="ec-tree-main">
                     <span class="ec-tree-name ec-tree-name-case" data-tooltip-overflow>@shown.Title</span>
                     <span class="ec-tree-meta"><strong class="ec-tree-date">@DateDisplay.Text(shown.Date)</strong> <span class="ec-sep" aria-hidden="true">·</span> @CaseFileTreeDisplay.CaseFacts(node)</span>
@@ -266,7 +266,7 @@
             <div class="@RowClass("act", level)" role="treeitem" aria-level="@level" aria-expanded="@(hasFiles ? open ? "true" : "false" : null)"
                  @key="act.ActId" @onclick="() => this.Toggle(act.ActId)">
                 @this.Toggler(hasFiles, open, act.Title)
-                <span class="ec-tree-tile ec-tree-tile-act" aria-hidden="true"><EcIcon Paths="@AppIcons.FileText" /></span>
+                <EcEntityTile Kind="EcEntityKind.Act" />
                 <span class="ec-tree-main">
                     <span class="ec-tree-name" data-tooltip-overflow>@act.Title</span>
                     <span class="ec-tree-meta"><strong class="ec-tree-date">@DateDisplay.Text(act.Date)</strong> <span class="ec-sep" aria-hidden="true">·</span> @CaseFileTreeDisplay.ActFacts(node)</span>

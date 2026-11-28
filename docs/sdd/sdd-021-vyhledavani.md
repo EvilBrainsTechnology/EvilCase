@@ -39,7 +39,8 @@ Spisy a úkony jdou od nejnovějšího data, ostatní skupiny od nejnovějšího
   shody prázdný stav.
 - Skupiny jdou v pořadí spisy, úkony, kontakty, soubory, komentáře; skupina nese počet.
 - Řádek ukazuje druh entity ikonou a základní údaje; hledaný text je v názvu i v údajích
-  zvýrazněný bez ohledu na diakritiku a velikost písmen.
+  zvýrazněný bez ohledu na diakritiku a velikost písmen. Spis a úkon nesou tutéž dlaždici jako
+  ve stromu Soubory spisu (SDD-009), soubor ikonu svého typu.
 - Šipky procházejí řádky přes skupiny dokola, Enter řádek otevře, Esc nabídku zavře; zavře ji
   i klik mimo ni.
 - Spis, úkon a kontakt otevřou svůj detail; soubor detail svého úkonu, komentář detail spisu nebo

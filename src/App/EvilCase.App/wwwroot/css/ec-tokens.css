@@ -148,6 +148,9 @@
     --ec-file-icon-glyph: 20px;
     --ec-file-icon-compact-size: 36px;
     --ec-file-icon-compact-glyph: 18px;
+    --ec-entity-tile: 36px;
+    --ec-entity-tile-glyph: 18px;
+    --ec-entity-tile-ring: 1.5px;
     --ec-file-icon-large-size: 72px;
     --ec-file-icon-large-glyph: 34px;
     --ec-file-icon-large-radius: 18px;
@@ -322,11 +325,8 @@
     --ec-tree-indent-mobile: 14px;
     --ec-tree-toggle: 28px;
     --ec-tree-toggle-radius: 7px;
-    --ec-tree-tile: 36px;
-    --ec-tree-tile-glyph: 18px;
     --ec-tree-tile-mobile: 32px;
     --ec-tree-tile-glyph-mobile: 16px;
-    --ec-tree-tile-ring: 1.5px;
 
     /* File preview (docs/design/detail-ukonu.html) */
     --ec-preview-width: 1320px;

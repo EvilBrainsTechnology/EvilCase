@@ -68,7 +68,9 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
   z nabídky; stojí na něm výběr kontaktu i štítku.
 - `EcEmptyState` — ikona, věta, volitelná výzva k založení.
 - `EcFileIcon` — dlaždice s ikonou typu souboru, bez textu přípony; ikonu i barvu určuje
-  přípona (SDD-012).
+  přípona (SDD-012). Soubor nese tutéž ikonu všude, kde ho aplikace ukazuje.
+- `EcEntityTile` — dlaždice spisu (plná v barvě akcentu, bílá ikona spisů) a úkonu (bílá
+  s obrysem a ikonou v barvě akcentu); nese ji strom Soubory spisu i výsledky hledání.
 
 ### Ikony
 

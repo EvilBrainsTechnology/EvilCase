@@ -218,34 +218,6 @@
     }
 }
 
-/* A case is a solid accent tile, an act an accent outline on white: the top bar's Spisy and Úkony glyphs. */
-.ec-tree-tile {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    width: var(--ec-tree-tile);
-    height: var(--ec-tree-tile);
-    border-radius: var(--ec-radius-md);
-
-    & .ec-icon {
-        width: var(--ec-tree-tile-glyph);
-        height: var(--ec-tree-tile-glyph);
-    }
-}
-
-.ec-tree-tile-case {
-    background: var(--ec-accent);
-    color: var(--ec-on-accent);
-}
-
-.ec-tree-tile-act {
-    background: var(--ec-surface);
-    color: var(--ec-accent);
-    box-shadow: inset 0 0 0 var(--ec-tree-tile-ring) var(--ec-accent);
-}
-
 .ec-tree-main {
     display: flex;
     flex: 0 1 auto;
@@ -442,8 +414,7 @@
         padding-left: calc(var(--ec-space-4) + var(--ec-tree-depth, 0) * var(--ec-tree-step));
     }
 
-    .ec-tree-tile,
-    .ec-tree-row .ec-file-icon-compact {
+    .ec-tree-row :is(.ec-entity-tile, .ec-file-icon-compact) {
         width: var(--ec-tree-tile-mobile);
         height: var(--ec-tree-tile-mobile);
 
