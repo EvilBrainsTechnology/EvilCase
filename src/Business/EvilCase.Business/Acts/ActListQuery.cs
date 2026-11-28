@@ -37,6 +37,11 @@ internal static class ActListQuery
         return caseId is null ? acts : acts.Where(act => act.CaseId == caseId);
     }
 
+    public static IQueryable<Act> OfCases(this IQueryable<Act> acts, IReadOnlyList<Guid> caseIds)
+    {
+        return acts.Where(act => caseIds.Contains(act.CaseId));
+    }
+
     public static IQueryable<Act> OfCaseWithStatus(this IQueryable<Act> acts, CaseStatusFilter filter)
     {
         return filter switch

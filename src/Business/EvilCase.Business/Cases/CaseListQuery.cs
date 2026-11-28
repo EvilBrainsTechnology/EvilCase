@@ -103,6 +103,7 @@ internal static class CaseListQuery
             CaseNumber = @case.CaseNumber,
             ExternalCaseNumber = @case.ExternalCaseNumber,
             Title = @case.Title,
+            ParentCaseId = @case.ParentCaseId,
             ParentCaseTitle = @case.ParentCase!.Title,
             Date = @case.Date,
             Status = @case.Status,
@@ -117,5 +118,20 @@ internal static class CaseListQuery
                 })
                 .ToList(),
         });
+    }
+
+    /// <summary>
+    /// Sets HasFiles on each item of a page: one query tells which of the cases hold a file in their tree.
+    /// </summary>
+    public static async Task<List<CaseListItem>> WithFileFlags(this ApplicationDbContext context, List<CaseListItem> items, CancellationToken token)
+    {
+        var caseIds = items.ConvertAll(static item => item.CaseId).ToArray();
+
+        var withFiles = (await context.Database
+            .SqlQuery<Guid>($"""SELECT case_id AS "Value" FROM cases_with_files({caseIds})""")
+            .ToListAsync(token))
+            .ToHashSet();
+
+        return items.ConvertAll(item => item with { HasFiles = withFiles.Contains(item.CaseId) });
     }
 }

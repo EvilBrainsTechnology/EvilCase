@@ -36,4 +36,12 @@ public static class DatabaseFunctions
     {
         throw new NotSupportedException($"{nameof(CaseAncestors)} runs in the database and has no in-memory form.");
     }
+
+    /// <summary>
+    /// The case and every case below it, through the function the <c>CaseTree</c> migration creates.
+    /// </summary>
+    public static IQueryable<Case> CaseTree(Guid caseId)
+    {
+        throw new NotSupportedException($"{nameof(CaseTree)} runs in the database and has no in-memory form.");
+    }
 }

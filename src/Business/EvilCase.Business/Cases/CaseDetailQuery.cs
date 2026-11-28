@@ -59,6 +59,13 @@ internal static class CaseDetailQuery
                         Color = assignment.Label!.Color,
                     })
                     .ToList(),
+                FileCount = DatabaseFunctions.CaseTree(@case.Id)
+                    .SelectMany(static tree => tree.Acts)
+                    .SelectMany(static act => act.Files)
+                    .Count(),
+                FileActCount = DatabaseFunctions.CaseTree(@case.Id)
+                    .SelectMany(static tree => tree.Acts)
+                    .Count(static act => act.Files.Count > 0),
             })
             .SingleOrDefaultAsync(token);
     }

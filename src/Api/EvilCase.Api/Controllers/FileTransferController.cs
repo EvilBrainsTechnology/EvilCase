@@ -1,4 +1,5 @@
 using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Export;
 using EvilBrains.EvilCase.Business.Files;
@@ -87,7 +88,35 @@ public class FileTransferController : ControllerBase
         await this.SendZip(
             archive.FileName,
             async target => await archives.WriteFileArchive(archive, target, token),
-            exception => logger.LogError(exception, "File archive of {ActId} was cut short", archive.ActId),
+            exception => logger.LogError(exception, "File archive of {ActId} was cut short", archive.OwnerId),
+            token);
+
+        return new EmptyResult();
+    }
+
+    /// <summary>
+    /// The files of the case and of every case below it, in folders that follow the tree (SDD-012).
+    /// </summary>
+    [HttpGet("cases/{caseId:guid}/files/archive")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DownloadCaseFileArchive(
+        [FromServices] IFileArchiveReader archives,
+        [FromServices] ILogger<FileTransferController> logger,
+        [FromRoute] Guid caseId,
+        [FromQuery] bool includeVersions,
+        CancellationToken token)
+    {
+        var archive = await archives.ReadCaseFileArchive(caseId, includeVersions, token);
+
+        if (archive is null)
+            return this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound);
+
+        await this.SendZip(
+            archive.FileName,
+            async target => await archives.WriteFileArchive(archive, target, token),
+            exception => logger.LogError(exception, "File archive of {CaseId} was cut short", archive.OwnerId),
             token);
 
         return new EmptyResult();

@@ -8,6 +8,12 @@ public interface IFileArchiveReader
     public Task<FileArchive?> ReadActFileArchive(Guid actId, bool includeVersions, CancellationToken token);
 
     /// <summary>
+    /// The files of the case and of every case below it, the current versions or all of them; null where the case is
+    /// unknown.
+    /// </summary>
+    public Task<FileArchive?> ReadCaseFileArchive(Guid caseId, bool includeVersions, CancellationToken token);
+
+    /// <summary>
     /// Streams the archive to the target, writing only asynchronously and holding no more than tens of kilobytes. A
     /// blob that cannot be read throws, and what was written then lacks the archive's end.
     /// </summary>

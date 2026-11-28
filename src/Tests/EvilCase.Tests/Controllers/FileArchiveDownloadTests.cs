@@ -90,7 +90,7 @@ public class FileArchiveDownloadTests
 
     private static FileArchive Archive(string fileName)
     {
-        return new FileArchive { ActId = Guid.CreateVersion7(), FileName = fileName, Entries = [] };
+        return new FileArchive { OwnerId = Guid.CreateVersion7(), FileName = fileName, Entries = [] };
     }
 
     private sealed class StartedResponse : HttpResponseFeature

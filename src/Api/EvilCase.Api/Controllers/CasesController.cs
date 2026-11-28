@@ -64,6 +64,18 @@ public class CasesController : ControllerBase
             : this.Ok(@case);
     }
 
+    [HttpGet("{caseId:guid}/file-tree")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CaseFileTree>> GetCaseFileTree([FromServices] ICaseReader cases, [FromRoute] Guid caseId, CancellationToken token)
+    {
+        var tree = await cases.GetCaseFileTree(caseId, token);
+
+        return tree is null
+            ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: CaseProblems.NotFound)
+            : this.Ok(tree);
+    }
+
     [HttpPut("{caseId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

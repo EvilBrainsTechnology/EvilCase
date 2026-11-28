@@ -45,6 +45,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         return this.FromExpression(() => DatabaseFunctions.CaseAncestors(caseId));
     }
 
+    /// <summary>
+    /// The case and every case below it, as a query root; a projection calls <see cref="DatabaseFunctions.CaseTree"/>.
+    /// </summary>
+    public IQueryable<Case> CaseTree(Guid caseId)
+    {
+        return this.FromExpression(() => DatabaseFunctions.CaseTree(caseId));
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -75,6 +83,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         modelBuilder
             .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.CaseAncestors), [typeof(Guid)])!)
             .HasName("case_ancestors");
+
+        modelBuilder
+            .HasDbFunction(typeof(DatabaseFunctions).GetMethod(nameof(DatabaseFunctions.CaseTree), [typeof(Guid)])!)
+            .HasName("case_tree");
 
         // A case stands on a path once, so its id keys the row.
         modelBuilder.Entity<CaseAncestor>()

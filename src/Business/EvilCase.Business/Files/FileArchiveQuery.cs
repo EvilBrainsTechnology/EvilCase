@@ -9,6 +9,11 @@ internal static class FileArchiveQuery
         return versions.Where(version => version.FileAsset!.ActId == actId);
     }
 
+    public static IQueryable<FileVersion> OfFiles(this IQueryable<FileVersion> versions, IReadOnlyList<Guid> fileIds)
+    {
+        return versions.Where(version => fileIds.Contains(version.FileAssetId));
+    }
+
     /// <summary>
     /// The files in the order of the file list, the versions of each file by number.
     /// </summary>

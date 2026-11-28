@@ -1,4 +1,6 @@
 using System.IO.Compression;
+using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Business.Cases;
 using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Data.DbContexts;
 using EvilBrains.EvilCase.Files;
@@ -29,9 +31,32 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
 
         return new FileArchive
         {
-            ActId = actId,
-            FileName = FileArchiveLayout.ArchiveName(title, includeVersions),
+            OwnerId = actId,
+            FileName = FileArchiveLayout.ArchiveName(title, FileArchiveLayout.ActArchiveFallback, includeVersions),
             Entries = FileArchiveLayout.Entries(versions, includeVersions),
+        };
+    }
+
+    public async Task<FileArchive?> ReadCaseFileArchive(Guid caseId, bool includeVersions, CancellationToken token)
+    {
+        var context = dbSession.Current;
+
+        var tree = await context.ReadCaseFileTree(caseId, token);
+
+        if (tree is null)
+            return null;
+
+        var versions = await context.FileVersions
+            .OfFiles(CaseFileIds(tree))
+            .InFileOrder()
+            .AsArchivedVersions()
+            .ToListAsync(token);
+
+        return new FileArchive
+        {
+            OwnerId = caseId,
+            FileName = FileArchiveLayout.ArchiveName(tree.Case.Title, FileArchiveLayout.CaseArchiveFallback, includeVersions),
+            Entries = FileArchiveLayout.CaseEntries(tree, versions, includeVersions),
         };
     }
 
@@ -50,6 +75,17 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
 
         await zip.Complete(token);
 
-        logger.LogInformation("File archive of {ActId} was written, {EntryCount} entries", archive.ActId, archive.Entries.Count);
+        logger.LogInformation("File archive of {OwnerId} was written, {EntryCount} entries", archive.OwnerId, archive.Entries.Count);
+    }
+
+    private static List<Guid> CaseFileIds(CaseFileTree tree)
+    {
+        return
+        [
+            .. tree.Acts
+                .SelectMany(static act => act.Files)
+                .Select(static file => file.FileId),
+            .. tree.SubCases.SelectMany(CaseFileIds),
+        ];
     }
 }

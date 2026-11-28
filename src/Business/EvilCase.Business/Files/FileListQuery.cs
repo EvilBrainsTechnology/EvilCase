@@ -11,6 +11,11 @@ internal static class FileListQuery
         return files.Where(file => file.ActId == actId);
     }
 
+    public static IQueryable<FileAsset> OfActs(this IQueryable<FileAsset> files, IReadOnlyList<Guid> actIds)
+    {
+        return files.Where(file => actIds.Contains(file.ActId));
+    }
+
     public static IQueryable<FileAsset> InUploadOrder(this IQueryable<FileAsset> files)
     {
         return files.OrderBy(static file => file.Created).ThenBy(static file => file.Id);
@@ -29,21 +34,35 @@ internal static class FileListQuery
     /// </summary>
     public static IQueryable<FileListItem> AsListItems(this IQueryable<FileAsset> files)
     {
-        return files.Select(static file => new FileListItem
+        return files
+            .AsActFiles()
+            .Select(static file => file.File);
+    }
+
+    /// <summary>
+    /// Each file once, carrying its current version, with its act.
+    /// </summary>
+    public static IQueryable<ActFile> AsActFiles(this IQueryable<FileAsset> files)
+    {
+        return files.Select(static file => new ActFile
         {
-            FileId = file.Id,
-            FileName = file.FileName,
-            IsMain = file.IsMain,
-            SizeBytes = file.Versions
-                .OrderByDescending(static version => version.Number)
-                .Select(static version => version.SizeBytes)
-                .First(),
-            Created = file.Versions
-                .OrderByDescending(static version => version.Number)
-                .Select(static version => version.Created)
-                .First(),
-            Version = file.Versions.Max(static version => version.Number),
-            VersionCount = file.Versions.Count,
+            ActId = file.ActId,
+            File = new FileListItem
+            {
+                FileId = file.Id,
+                FileName = file.FileName,
+                IsMain = file.IsMain,
+                SizeBytes = file.Versions
+                    .OrderByDescending(static version => version.Number)
+                    .Select(static version => version.SizeBytes)
+                    .First(),
+                Created = file.Versions
+                    .OrderByDescending(static version => version.Number)
+                    .Select(static version => version.Created)
+                    .First(),
+                Version = file.Versions.Max(static version => version.Number),
+                VersionCount = file.Versions.Count,
+            },
         });
     }
 }

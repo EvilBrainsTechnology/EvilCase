@@ -20,10 +20,12 @@ internal sealed class SearchReader(IDbSession dbSession) : ISearchReader
         var pattern = request.Q.ContainsLikePattern();
 
         // Sequential: one DbContext serves one query at a time.
+        var cases = await ReadGroup(
+            context.Cases.MatchingTerm(pattern).InSortOrder(CaseSortKey.Date, ListSortDirection.Descending), static cases => cases.AsListItems(), token);
+
         return new SearchResponse
         {
-            Cases = await ReadGroup(
-                context.Cases.MatchingTerm(pattern).InSortOrder(CaseSortKey.Date, ListSortDirection.Descending), static cases => cases.AsListItems(), token),
+            Cases = cases with { Items = await context.WithFileFlags([.. cases.Items], token) },
             Acts = await ReadGroup(
                 context.Acts.MatchingTerm(pattern).InSortOrder(ActSortKey.Date, ListSortDirection.Descending), static acts => acts.AsListItems(), token),
             Contacts = await ReadGroup(context.Contacts.MatchingSearch(request.Q).InSearchOrder(), static contacts => contacts.AsListItems(), token),
