@@ -4,11 +4,10 @@ using Microsoft.EntityFrameworkCore;
 namespace EvilBrains.EvilCase.Data.Entities;
 
 /// <summary>
-/// Exactly one of CaseId and ActId is set (check constraint). Its name is unique within its case or act, ignoring
-/// case, through indexes the FileVersions migration creates. A case or an act has at most one main file.
+/// Its name is unique within its act, ignoring case, through an index the FileVersions migration creates. An act has at
+/// most one main file.
 /// </summary>
 [Index(nameof(TenantId))]
-[Index(nameof(CaseId))]
 [Index(nameof(ActId))]
 public sealed record FileAsset : IUserOwnedEntity
 {
@@ -19,9 +18,7 @@ public sealed record FileAsset : IUserOwnedEntity
 
     public Guid UserId { get; init; }
 
-    public Guid? CaseId { get; init; }
-
-    public Guid? ActId { get; init; }
+    public required Guid ActId { get; init; }
 
     [MaxLength(256)]
     public required string FileName { get; init; }
@@ -31,8 +28,6 @@ public sealed record FileAsset : IUserOwnedEntity
     public DateTime Created { get; init; }
 
     public DateTime? Updated { get; init; }
-
-    public Case? Case { get; init; }
 
     public Act? Act { get; init; }
 

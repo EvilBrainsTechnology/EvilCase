@@ -37,7 +37,7 @@ internal sealed class FileSignerVerifier(
         var file = fileVersion.FileAsset!;
 
         var actFiles = await context.FileAssets
-            .OfAct(file.ActId!.Value)
+            .OfAct(file.ActId)
             .AsListItems()
             .ToListAsync(token);
 

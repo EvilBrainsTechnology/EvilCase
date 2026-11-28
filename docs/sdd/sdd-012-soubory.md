@@ -13,9 +13,9 @@ Ukládání souborů a jejich verzí, vlastnictví, upload, download a mazání.
 
 ### Vlastnictví
 
-FileAsset patří právě jednomu spisu XOR úkonu. Žádné vazby mezi soubory a jinými entitami;
-tentýž dokument ve dvou spisech jsou dva soubory. Jméno souboru je u jeho spisu nebo úkonu
-jedinečné bez ohledu na velikost písmen.
+FileAsset patří právě jednomu úkonu; spis vlastní soubory nemá. Žádné vazby mezi soubory
+a jinými entitami; tentýž dokument ve dvou úkonech jsou dva soubory. Jméno souboru je v jeho
+úkonu jedinečné bez ohledu na velikost písmen.
 
 ### Úložiště
 
@@ -37,18 +37,18 @@ jedinečné bez ohledu na velikost písmen.
   zahazuje. `MediaType` se bere z uploadu, nejvýše 128 znaků; příponě se nevěří. Delší hodnota
   nebo chybějící název je 400.
 - Soubor jde přejmenovat. Platí pro nové jméno stejná pravidla jako při uploadu; jméno, které
-  bez ohledu na velikost písmen nese jiný soubor téhož spisu nebo úkonu, je 409, změna jen
-  velikosti písmen vlastního jména projde. Verze, jejich bajty, hash a `MediaType` zůstávají.
-  Soubor cizího vlastníka je 404.
+  bez ohledu na velikost písmen nese jiný soubor téhož úkonu, je 409, změna jen velikosti písmen
+  vlastního jména projde. Verze, jejich bajty, hash a `MediaType` zůstávají. Soubor jiného úkonu
+  je 404.
 - Verze bez blobu je 404.
 
 ### Verze
 
 - Soubor má verze od 1, aktuální je verze s nejvyšším číslem. Obsah, velikost a `MediaType` nese
   verze, jméno soubor.
-- Upload jména, které spis nebo úkon už má (bez ohledu na velikost písmen), přidá souboru verzi
-  a soubor si nechá své jméno. Shoda platí jen u téhož spisu nebo úkonu, ne u podřízených spisů
-  ani u úkonů spisu; v dávce se druhý soubor téhož jména stane další verzí prvního.
+- Upload jména, které úkon už má (bez ohledu na velikost písmen), přidá souboru verzi a soubor
+  si nechá své jméno. Shoda platí jen u téhož úkonu, ne u jiných úkonů téhož spisu; v dávce se
+  druhý soubor téhož jména stane další verzí prvního.
 - Upload nové verze konkrétního souboru jeho jméno nepoužije. Jiná přípona (bez ohledu na
   velikost písmen) je 400, limity platí jako u uploadu.
 - Obsah shodný s aktuální verzí (stejný SHA-256) verzi nevytvoří a upload odpoví 200 s aktuální
@@ -68,13 +68,13 @@ jedinečné bez ohledu na velikost písmen.
 
 ### Hlavní soubor
 
-- Spis i úkon má nejvýše jeden hlavní soubor. Hlavní je soubor, ne jeho verze: náhled ukazuje
-  jeho aktuální verzi a přejmenování, nová verze ani smazání verze hlavní soubor nemění.
-- Hlavním se stane soubor nahraný do spisu nebo úkonu, který žádný soubor nemá, v dávce
-  její první soubor. Upload do spisu nebo úkonu, který soubor má, hlavní soubor nemění, ani když
-  žádný hlavní není.
-- Nastavit jako hlavní soubor přesune označení na jiný soubor téhož spisu nebo úkonu. Zrušit
-  hlavní soubor nechá spis nebo úkon bez hlavního souboru.
+- Úkon má nejvýše jeden hlavní soubor; spis hlavní soubor nemá. Hlavní je soubor, ne jeho verze:
+  náhled ukazuje jeho aktuální verzi a přejmenování, nová verze ani smazání verze hlavní soubor
+  nemění.
+- Hlavním se stane soubor nahraný do úkonu, který žádný soubor nemá, v dávce její první soubor.
+  Upload do úkonu, který soubor má, hlavní soubor nemění, ani když žádný hlavní není.
+- Nastavit jako hlavní soubor přesune označení na jiný soubor téhož úkonu. Zrušit hlavní soubor
+  nechá úkon bez hlavního souboru.
 - Smazání hlavního souboru udělá hlavním nejstarší zbývající soubor v pořadí seznamu souborů;
   smazání jiného souboru hlavní soubor nemění. Po smazání posledního souboru hlavní soubor není.
 - Hlavní soubor nastavit i zrušit smí kdokoli z tenantu. Neznámý soubor a soubor jiného tenantu
@@ -82,16 +82,15 @@ jedinečné bez ohledu na velikost písmen.
 
 ### UI
 
-Karta souborů leží na detailu spisu i úkonu podle toho, zda nese soubor. Bez souborů je
-kompaktní v pravém sloupci: ve spisu pod Podřízenými spisy nad komentáři, v úkonu pod kartou
-Spis nad Průběhem spisu. S aspoň jedním souborem je široká v hlavním sloupci: ve spisu nad
-úkony, v úkonu nad komentáři. Karta se přesune hned po prvním nahraném souboru a po smazání
+Karta souborů leží jen na detailu úkonu, podle toho, zda úkon nese soubor. Bez souborů je
+kompaktní v pravém sloupci pod kartou Spis nad Průběhem spisu. S aspoň jedním souborem je
+široká v hlavním sloupci nad komentáři. Karta se přesune hned po prvním nahraném souboru a po smazání
 posledního, bez obnovení stránky; během nahrávání zůstane na místě a přesune se, až nahrávání
 skončí. Přesunutá karta ukazuje dál zvýraznění, hlášky a chyby. Dokud se seznam nenačte, karta
 není v žádném sloupci; seznam, který se načíst nepodaří, ukáže karta v pravém sloupci
 s nabídkou opakování. Na mobilu jde hlavní sloupec před bočním.
 
-Drag-and-drop multi-upload na detailu spisu i úkonu; soubory lze pustit kamkoli na kartu
+Drag-and-drop multi-upload na detailu úkonu; soubory lze pustit kamkoli na kartu
 souborů a karta při tažení ukáže, kam se nahrají, a limity. Hromadné přetažení běží po
 souborech a odmítne jen soubor, který selže. Dávka nad 100 souborů se odmítá celá. Soubory
 přetažené nebo vybrané během nahrávání se odmítnou s hláškou a nenahrají se; rozběhlá dávka
@@ -108,11 +107,11 @@ verze všech souborů karty jako jeden archiv zip, šipka vedle něj otevře nab
 včetně verzí. Kompaktní karta ho nenese. Na mobilu nesou Nahrát soubory i Stáhnout vše jen
 ikonu. Stažení je obyčejné stažení prohlížečem.
 
-- Archiv nese jen soubory spisu nebo úkonu samého, ne podřízených spisů ani úkonů spisu. Spis
-  nebo úkon bez souborů vydá prázdný archiv; neznámý nebo cizí je 404.
-- Archiv se jmenuje podle názvu spisu nebo úkonu, „Přestupek.zip“, s verzemi „Přestupek (with
+- Archiv nese jen soubory úkonu samého, ne jiných úkonů téhož spisu. Úkon bez souborů vydá
+  prázdný archiv; neznámý nebo cizí je 404.
+- Archiv se jmenuje podle názvu úkonu, „Přestupek.zip“, s verzemi „Přestupek (with
   versions).zip“. Název ztratí znaky, které jméno souboru nesmí obsahovat, jako příloha datové
-  zprávy; prázdný nahradí `case files` nebo `act files`.
+  zprávy; prázdný nahradí `act files`.
 - Archiv je plochý: aktuální verze souboru leží pod jeho jménem, starší verze vedle něj jako
   „Smlouva (version 2).pdf“, jméno bez přípony dostane číslo verze na konec. Jméno, ze kterého
   nic nezbude, nahradí `file`. Jméno položky nenese
@@ -505,7 +504,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 
 ### Samostatný podpis a jeho soubor
 
-- Samostatný podpis patří k souboru téhož spisu nebo úkonu, jehož jméno je jméno podpisu bez
+- Samostatný podpis patří k souboru téhož úkonu, jehož jméno je jméno podpisu bez
   koncovky p7s (Smlouva.pdf.p7s ke Smlouva.pdf). Koncovka smí mít velká písmena, zbytek jména se
   musí shodovat přesně. Přejmenování, nahrání i smazání souboru párování změní. Soubor p7m nese
   dokument uvnitř a k žádnému souboru nepatří. Podpis se ověřuje proti aktuální verzi souboru,
@@ -578,7 +577,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Místo karty souborů: pevné / podle toho, zda nese soubor. Platí podle toho, zda nese soubor.
 - Datum v seznamu: první nahrání / aktuální verze. Platí aktuální verze; pořadí podle prvního
   nahrání.
-- Archiv vlastníka bez souborů: 404 / prázdný archiv. Platí prázdný archiv.
+- Archiv úkonu bez souborů: 404 / prázdný archiv. Platí prázdný archiv.
 - Úprava starší verze: povolit / jen aktuální verze. Platí jen aktuální verze.
 - Souběžná úprava: kontrolovat / nekontrolovat. Platí nekontrolovat; uložení vytvoří verzi nad
   aktuální.
@@ -602,6 +601,7 @@ Esc a Zrušit ho zahodí. Jméno jiného souboru odmítne hláškou „Soubor to
 - Hlavní soubor uploadu: první soubor bez hlavního / první soubor vůbec. Platí první soubor
   vůbec.
 - Po smazání hlavního souboru: žádný hlavní / nejstarší zbývající. Platí nejstarší zbývající.
+- Soubory spisu: ano / ne. Platí ne; soubor patří úkonu a spis ho nese jen přes své úkony.
 
 ## Dopady
 

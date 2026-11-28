@@ -58,8 +58,8 @@ public class SampleDataSeedDatabaseTests
                 Assert.That(cases.TrueForAll(@case => @case.UserId == userId), Is.True, "the write stamps the seeding user, which the seed itself never names");
                 Assert.That(actCount, Is.EqualTo(55), "23 main-case acts plus two on each of the sixteen sub-cases");
                 Assert.That(contactCount, Is.EqualTo(11), "the eleven sample contacts");
-                Assert.That(fileAssetCount, Is.EqualTo(57), "55 act files, one main-case file and one evidence bundle");
-                Assert.That(fileVersionCount, Is.EqualTo(58), "every file has a first version and the main-case file a second");
+                Assert.That(fileAssetCount, Is.EqualTo(56), "55 act files and one evidence bundle");
+                Assert.That(fileVersionCount, Is.EqualTo(57), "every file has a first version and the main file of the main case's first act a second");
                 Assert.That(commentCount, Is.EqualTo(6), "the six sample comments");
                 Assert.That(mainCase.ExternalCaseNumber, Is.EqualTo("VV41/2025/08464"), "the main case carries its external mark");
                 Assert.That(actsWithExternalNumber, Is.GreaterThan(0), "acts carry their external reference numbers");

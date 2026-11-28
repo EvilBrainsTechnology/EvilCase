@@ -339,10 +339,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ActId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("CaseId")
+                    b.Property<Guid>("ActId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("Created")
@@ -371,8 +368,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
 
                     b.HasIndex("ActId");
 
-                    b.HasIndex("CaseId");
-
                     b.HasIndex("TenantId");
 
                     b.HasIndex("UserId");
@@ -381,14 +376,7 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsUnique()
                         .HasFilter("\"IsMain\"");
 
-                    b.HasIndex(new[] { "TenantId", "CaseId" }, "IX_FileAssets_TenantId_CaseId_IsMain")
-                        .IsUnique()
-                        .HasFilter("\"IsMain\"");
-
-                    b.ToTable("FileAssets", t =>
-                        {
-                            t.HasCheckConstraint("CK_FileAssets_OnACaseOrAnAct", "(\"CaseId\" IS NULL) <> (\"ActId\" IS NULL)");
-                        });
+                    b.ToTable("FileAssets");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileLink", b =>
@@ -825,12 +813,8 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Act", "Act")
                         .WithMany("Files")
                         .HasForeignKey("ActId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("EvilBrains.EvilCase.Data.Entities.Case", "Case")
-                        .WithMany("Files")
-                        .HasForeignKey("CaseId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("EvilBrains.EvilCase.Data.Entities.Tenant", null)
                         .WithMany()
@@ -845,8 +829,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                         .IsRequired();
 
                     b.Navigation("Act");
-
-                    b.Navigation("Case");
                 });
 
             modelBuilder.Entity("EvilBrains.EvilCase.Data.Entities.FileLink", b =>
@@ -978,8 +960,6 @@ namespace EvilBrains.EvilCase.Data.Migrations.Migrations
                     b.Navigation("ChildCases");
 
                     b.Navigation("Comments");
-
-                    b.Navigation("Files");
 
                     b.Navigation("Labels");
                 });

@@ -24,7 +24,7 @@ public class FileVersionsMigrationTests
 
             var (tenantId, userId, fileId) = await SeedFile(context);
 
-            await migrator.MigrateAsync();
+            await migrator.MigrateAsync("FileVersions");
 
             var movedVersions = await context.Database
                 .SqlQuery<int>(

@@ -128,36 +128,20 @@ internal sealed class SampleDataSeeder(
             counters.CommentCount++;
         }
 
-        if (string.Equals(sampleCase.Key, SampleData.MainCaseKey, StringComparison.Ordinal))
-        {
-            var body = FileBody(sampleCase.Title, "Spisová značka", caseNumber, sampleCase.Date);
-
-            // The main case's file carries a second version.
-            await this.AddFile(
-                tenantId,
-                @case.Id,
-                actId: null,
-                caseNumber.Replace('/', '-') + ".txt",
-                [body, body + "\n\nDoplněné znění, druhá verze dokumentu."],
-                isMain: true,
-                counters,
-                token);
-        }
-
         await dbSession.Current.SaveChangesAsync(token);
 
-        var sampleActs = string.Equals(sampleCase.Key, SampleData.MainCaseKey, StringComparison.Ordinal)
-            ? SampleData.MainCaseActs
-            : SubCaseActs(sampleCase);
+        var isMainCase = string.Equals(sampleCase.Key, SampleData.MainCaseKey, StringComparison.Ordinal);
+        var sampleActs = isMainCase ? SampleData.MainCaseActs : SubCaseActs(sampleCase);
 
-        foreach (var sampleAct in sampleActs)
-            await this.SeedAct(tenantId, @case, sampleAct, contactsByKey, labelsByKey, counters, token);
+        for (var index = 0; index < sampleActs.Count; index++)
+            await this.SeedAct(tenantId, @case, sampleActs[index], isMainCase && index == 0, contactsByKey, labelsByKey, counters, token);
     }
 
     private async Task SeedAct(
         Guid tenantId,
         Case @case,
         SampleAct sampleAct,
+        bool withSecondVersion,
         Dictionary<string, Contact> contactsByKey,
         Dictionary<string, Label> labelsByKey,
         SeedCounters counters,
@@ -186,21 +170,23 @@ internal sealed class SampleDataSeeder(
 
         this.AssignLabels(sampleAct.LabelKeys, labelsByKey, caseId: null, act.Id);
 
-        foreach (var body in sampleAct.Comments)
+        foreach (var comment in sampleAct.Comments)
         {
-            dbSession.Current.Comments.Add(new Comment { ActId = act.Id, Body = body });
+            dbSession.Current.Comments.Add(new Comment { ActId = act.Id, Body = comment });
             counters.CommentCount++;
         }
 
+        var body = FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date);
+        string[] versionContents = withSecondVersion ? [body, body + "\n\nDoplněné znění, druhá verze dokumentu."] : [body];
+
         // The first file of an act is its main file, as an upload makes it.
-        await this.AddFile(
-            tenantId, caseId: null, act.Id, actNumber.Replace('/', '-') + ".txt", [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], isMain: true, counters, token);
+        await this.AddFile(tenantId, act.Id, actNumber.Replace('/', '-') + ".txt", versionContents, isMain: true, counters, token);
 
         if (sampleAct.ExtraFileSuffix is not null)
         {
             var fileName = actNumber.Replace('/', '-') + "-" + sampleAct.ExtraFileSuffix + ".txt";
 
-            await this.AddFile(tenantId, caseId: null, act.Id, fileName, [FileBody(sampleAct.Title, "Číslo jednací", actNumber, sampleAct.Date)], isMain: false, counters, token);
+            await this.AddFile(tenantId, act.Id, fileName, [body], isMain: false, counters, token);
         }
 
         await dbSession.Current.SaveChangesAsync(token);
@@ -234,8 +220,7 @@ internal sealed class SampleDataSeeder(
 
     private async Task AddFile(
         Guid tenantId,
-        Guid? caseId,
-        Guid? actId,
+        Guid actId,
         string fileName,
         IReadOnlyList<string> versionContents,
         bool isMain,
@@ -244,7 +229,7 @@ internal sealed class SampleDataSeeder(
     {
         var context = dbSession.Current;
 
-        var file = new FileAsset { CaseId = caseId, ActId = actId, FileName = fileName, IsMain = isMain };
+        var file = new FileAsset { ActId = actId, FileName = fileName, IsMain = isMain };
 
         context.FileAssets.Add(file);
         counters.FileCount++;

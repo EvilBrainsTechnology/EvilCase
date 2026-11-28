@@ -25,7 +25,7 @@ internal sealed class FileSignerReader(IDbSession dbSession, IFileBlobStore blob
             return response;
 
         var actFiles = await dbSession.Current.FileAssets
-            .OfAct(fileVersion.FileAsset!.ActId!.Value)
+            .OfAct(fileVersion.FileAsset!.ActId)
             .AsListItems()
             .ToListAsync(token);
 

@@ -193,7 +193,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
             try
             {
                 await files
-                    .OfAct(file.ActId!.Value)
+                    .OfAct(file.ActId)
                     .Where(static other => other.IsMain)
                     .Where(other => other.Id != fileId)
                     .ExecuteUpdateAsync(static setters => setters.SetProperty(static other => other.IsMain, valueExpression: false), token);

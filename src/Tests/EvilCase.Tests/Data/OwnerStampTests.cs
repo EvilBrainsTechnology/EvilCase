@@ -48,23 +48,29 @@ public class OwnerStampTests : TenantFixture
     }
 
     [Test]
-    public async Task AFileVersionUploadAndDeleteStampTheCase()
+    public async Task AFileAndItsVersionsStampTheActAndNotItsCase()
     {
         var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case);
-        var afterFile = await this.CaseUpdated(@case.Id);
+        var act = await this.Tenant.AddAct(@case, Day);
+        var file = await this.Tenant.AddActFile(act);
+        var afterFile = await this.ActUpdated(act.Id);
 
         var version = await this.Tenant.AddFileVersion(file);
-        var afterUpload = await this.CaseUpdated(@case.Id);
+        var afterUpload = await this.ActUpdated(act.Id);
 
         await this.Tenant.Context.FileVersions.Where(row => row.Id == version.Id).ExecuteDeleteAsync();
-        var afterDelete = await this.CaseUpdated(@case.Id);
+        var afterVersionDelete = await this.ActUpdated(act.Id);
+
+        await this.Tenant.Context.FileAssets.Where(row => row.Id == file.Id).ExecuteDeleteAsync();
+        var afterFileDelete = await this.ActUpdated(act.Id);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(afterFile, Is.Not.Null, "a file stored on a case stamps the case's Updated");
-            Assert.That(afterUpload, Is.GreaterThan(afterFile.GetValueOrDefault()), "a new version of a file stamps the Updated of the file's case");
-            Assert.That(afterDelete, Is.GreaterThan(afterUpload.GetValueOrDefault()), "a deleted version of a file stamps the Updated of the file's case");
+            Assert.That(afterFile, Is.Not.Null, "a file stored on an act stamps the act's Updated");
+            Assert.That(afterUpload, Is.GreaterThan(afterFile.GetValueOrDefault()), "a new version of a file stamps the Updated of the file's act");
+            Assert.That(afterVersionDelete, Is.GreaterThan(afterUpload.GetValueOrDefault()), "a deleted version of a file stamps the Updated of the file's act");
+            Assert.That(afterFileDelete, Is.GreaterThan(afterVersionDelete.GetValueOrDefault()), "a deleted file stamps the Updated of its act");
+            Assert.That(await this.CaseUpdated(@case.Id), Is.Null, "a file write leaves the Updated of the act's case alone");
         }
     }
 

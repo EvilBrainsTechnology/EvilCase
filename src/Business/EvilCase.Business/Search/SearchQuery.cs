@@ -63,7 +63,7 @@ internal static class SearchQuery
                 .OrderByDescending(static version => version.Number)
                 .Select(static version => version.SizeBytes)
                 .First(),
-            ActId = file.ActId!.Value,
+            ActId = file.ActId,
             ActTitle = file.Act!.Title,
         });
     }

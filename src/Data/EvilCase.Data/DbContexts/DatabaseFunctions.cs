@@ -21,8 +21,8 @@ public static class DatabaseFunctions
     }
 
     /// <summary>
-    /// The key a file name is unique by within its case or act: lower case under the Czech collation, through the
-    /// function the <c>FileVersions</c> migration creates.
+    /// The key a file name is unique by within its act: lower case under the Czech collation, through the function the
+    /// <c>FileVersions</c> migration creates.
     /// </summary>
     public static string FileNameKey(string fileName)
     {

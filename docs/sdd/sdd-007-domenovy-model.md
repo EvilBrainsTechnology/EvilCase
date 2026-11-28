@@ -19,8 +19,8 @@ Account → Tenant → User (SDD-006). Tenantová data:
 - **Case** — spis, volitelný rodič `ParentCaseId`, nepovinný kontakt (SDD-009).
 - **Act** — úkon spisu, nepovinný kontakt se směrem (SDD-010).
 - **Contact** — kontakt (SDD-011).
-- **FileAsset** — soubor spisu XOR úkonu, jméno jedinečné u vlastníka, u vlastníka nejvýše
-  jeden hlavní (SDD-012).
+- **FileAsset** — soubor úkonu, jméno jedinečné v úkonu, v úkonu nejvýše jeden hlavní
+  (SDD-012).
 - **FileVersion** — verze souboru: obsah, velikost, hash a kdo ji nahrál (SDD-012).
 - **Comment** — komentář spisu XOR úkonu (SDD-013).
 - **Label** — štítek tenantu (SDD-019).
@@ -39,7 +39,7 @@ Account → Tenant → User (SDD-006). Tenantová data:
 
 | Entita | Smazání |
 | --- | --- |
-| Case | kaskáda: úkony, komentáře, soubory s jejich verzemi, přidělené štítky; podřízené spisy do libovolné hloubky se vším, co k nim patří |
+| Case | kaskáda: úkony se svými soubory, komentáře, přidělené štítky; podřízené spisy do libovolné hloubky se vším, co k nim patří |
 | Act | kaskáda: komentáře, soubory s jejich verzemi, přidělené štítky |
 | Contact | jen ten, na který neodkazuje žádný spis ani úkon (SDD-011) |
 | FileAsset | kaskáda: všechny jeho verze; bloby přežívají záznam; smazaný hlavní soubor předá označení nejstaršímu zbývajícímu (SDD-012) |
