@@ -8,7 +8,7 @@ using Microsoft.JSInterop;
 namespace EvilBrains.EvilCase.App.Components;
 
 /// <summary>
-/// The load, label save, link copy and files that the case and the act detail share.
+/// The load, label save and link copy that the case and the act detail share.
 /// </summary>
 public abstract class DetailPage<TDetail> : ComponentBase
     where TDetail : class
@@ -24,8 +24,6 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     private Task labelsWrite = Task.CompletedTask;
 
-    private string? filesPath;
-
     protected TDetail? Detail { get; set; }
 
     protected bool NotFound { get; private set; }
@@ -35,11 +33,6 @@ public abstract class DetailPage<TDetail> : ComponentBase
     protected string? LabelsError { get; private set; }
 
     protected string? Announcement { get; private set; }
-
-    /// <summary>
-    /// The files card's list and operations, shared by the card's slot in each column.
-    /// </summary>
-    protected FilesCardState Files { get; private set; } = null!;
 
     protected abstract string LoadFailedText { get; }
 
@@ -55,20 +48,8 @@ public abstract class DetailPage<TDetail> : ComponentBase
 
     protected abstract TDetail WithLabels(TDetail detail, IReadOnlyList<LabelItem> labels);
 
-    /// <summary>
-    /// The files state of the case or act the page shows.
-    /// </summary>
-    protected abstract FilesCardState CreateFiles();
-
     protected override async Task OnParametersSetAsync()
     {
-        // The link path names the entity, so another case or act gets its own list.
-        if (!string.Equals(this.filesPath, this.LinkPath, StringComparison.Ordinal))
-        {
-            this.filesPath = this.LinkPath;
-            this.Files = this.CreateFiles();
-        }
-
         await this.Load();
     }
 

@@ -33,6 +33,25 @@ public class FilesCardStateTests
     }
 
     [Test]
+    public async Task ALoadReportsTheChangeOnlyOnceTheCardIsPlaced()
+    {
+        IReadOnlyList<FileListItem> files = [File()];
+        var state = State(_ => Task.FromResult(files));
+        bool? wideOnChange = null;
+
+        state.Changed += (_, _) => wideOnChange = state.Wide;
+
+        await state.EnsureLoaded(NullLogger.Instance);
+
+        Assert.That(wideOnChange, Is.True, "a page rendered on the change shows the card in the column it is about to leave, and the card's drop zone loses its element");
+
+        files = [];
+        await state.Reload(NullLogger.Instance);
+
+        Assert.That(wideOnChange, Is.False, "a page rendered on the change shows the card in the column it is about to leave");
+    }
+
+    [Test]
     public async Task TheCardKeepsItsPlaceWhileAnUploadRunsAndMovesWhenItEnds()
     {
         IReadOnlyList<FileListItem> files = [];

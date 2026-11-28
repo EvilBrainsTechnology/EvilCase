@@ -97,10 +97,10 @@ jeho záhlaví.
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned pod
 názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící údaj je
 světlá pomlčka jako v seznamu. Adresa začínající http:// nebo https:// je v popisu i v komentáři
-odkaz, který se otevře na nové kartě. Obsah, který patří spisu, je v pravém sloupci, kromě karty
-souborů, která se soubory leží v hlavním sloupci (SDD-012); obsah, který patří úkonu, je uvnitř
-úkonu. Soubory a komentáře proto existují dvakrát a název to vždycky říká: „Soubory spisu"
-a „Soubory úkonu".
+odkaz, který se otevře na nové kartě. Obsah, který patří spisu, je v pravém sloupci. Karta
+souborů je jen v detailu úkonu a se soubory leží v hlavním sloupci (SDD-012); obsah, který patří
+úkonu, je uvnitř úkonu. Dvakrát proto existují jen komentáře a název to vždycky říká: „Komentáře
+spisu" a „Komentáře úkonu".
 
 Další akce detailu jsou v nabídce `EcMenu` vedle hlavní akce; smazání je v ní poslední
 a oddělené. Spisovou značku, číslo jednací i externí značky v řádku údajů jde zkopírovat
@@ -117,7 +117,7 @@ u ostatních prázdná a šedá. Stažení a nabídka ⋯ jsou ohraničená tla�
 Nahrát novou verzi, Verze (3), Přejmenovat a oddělené, červené Smazat. Soubor s více verzemi
 nese štítek „verze 3“, nově nahraný soubor nebo verze světle modrý řádek se štítkem „nový“ nebo
 „nová verze“. Při tažení souborů přes kartu ji přikryje přerušovaný akcentový rámeček s textem
-„Pusťte soubory a nahrají se k úkonu" (ve spisu „ke spisu") a limity. Náhled souboru je velký
+„Pusťte soubory a nahrají se k úkonu" a limity. Náhled souboru je velký
 modal; hlavička nese ikonu, název s hvězdou hlavního souboru, velikost a okamžik nahrání, Upravit,
 u souboru s více verzemi přepínač Verze s počtem a Porovnat, nabídku ⋯ se Stáhnout, Nahrát novou
 verzi, Přejmenovat a odděleným, červeným Smazat, u víc souborů karty přechod mezi nimi s pořadím
@@ -152,7 +152,7 @@ posledním polem, karta s ovládáním (nadřízený spis, spis) nad tlačítky 
 na mobilu nekreslí. Výběr kontaktu a spisu je spodní panel s nadpisem, hledáním a Hotovo. Pole i celá lišta seznamu mají na mobilu písmo
 16 px. Seznam se nikdy neposouvá vodorovně: řádek nese název na nejvýše dva řádky, pod ním
 spis, do něhož patří, jednu řádku údajů (datum, stav nebo směr, zkrácený kontakt, změněno) a štítky
-pod ní; spis i úkon nese vpravo vedle názvu ikonu hlavního souboru. Řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
+pod ní; úkon nese vpravo vedle názvu ikonu hlavního souboru. Řazení přebírá select v liště. Odkaz na celý seznam v záhlaví sekce je jen šipka.
 
 Na mobilu stránka karty nemá: sekce jsou bílé bloky přes celou šířku oddělené jednou linkou,
 bez šedého podkladu mezi nimi, a odsazení 16 px nese jen text. Řádek seznamu, údaj detailu,
@@ -168,7 +168,7 @@ v řádku názvu vpravo. Na detailu má název celý řádek, pod ním stav vlev
 vpravo. Štítky jsou chipy jen pro čtení; tužka v řádku Štítky a pole Štítky ve formuláři otevřou
 spodní panel se všemi štítky, kde klepnutí štítek přidá nebo odebere a Hotovo panel zavře. Pod
 hlavičkou detailu je řádek kotev se sekcemi a jejich počty, který se posouvá vodorovně; klepnutí
-doscrolluje na sekci. Sekce jdou jednou pod druhou: na spisu Soubory, Podřízené spisy (tři řádky
+doscrolluje na sekci. Sekce jdou jednou pod druhou: na spisu Podřízené spisy (tři řádky
 a tlačítko na zbytek), Úkony, Komentáře; na úkonu Soubory, Komentáře, Průběh spisu, Spis.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Řádek souboru nese ikonu, název na až dva řádky, metadata na jednom

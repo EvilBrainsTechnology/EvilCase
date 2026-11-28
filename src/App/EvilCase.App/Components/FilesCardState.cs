@@ -35,7 +35,7 @@ public sealed class FilesCardState
     public event EventHandler? Placed;
 
     /// <summary>
-    /// The list was loaded again.
+    /// The list was loaded again and the card placed, unless an upload holds it.
     /// </summary>
     public event EventHandler? Changed;
 
@@ -91,8 +91,8 @@ public sealed class FilesCardState
         }
 
         this.Loaded = true;
-        this.Changed?.Invoke(this, EventArgs.Empty);
         this.Place();
+        this.Changed?.Invoke(this, EventArgs.Empty);
     }
 
     public void UploadStarted()

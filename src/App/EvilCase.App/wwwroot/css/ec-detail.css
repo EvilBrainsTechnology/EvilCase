@@ -763,17 +763,6 @@
     color: var(--ec-text);
     text-decoration: none;
 
-    /* A child case's main file stands on the right across both lines. */
-    &:has(> .ec-main-file) {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
-
-    & > .ec-main-file {
-        grid-column: 2;
-        grid-row: 1 / span 2;
-        align-self: center;
-    }
-
     &:hover .ec-child-title {
         color: var(--ec-accent-text);
     }

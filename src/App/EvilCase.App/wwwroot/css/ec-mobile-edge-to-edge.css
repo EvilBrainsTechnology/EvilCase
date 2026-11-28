@@ -544,8 +544,8 @@
         color: var(--ec-text-muted);
     }
 
-    /* The sections stack: a case has the files, the child cases, the acts and the comments; an act the files,
-       the comments, the case's timeline and the case. */
+    /* The sections stack: a case has the child cases, the acts and the comments; an act the files, the comments,
+       the case's timeline and the case. */
     .ec-detail-main,
     .ec-detail-aside {
         display: contents;

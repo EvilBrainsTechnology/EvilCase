@@ -60,6 +60,64 @@ public class ActRenderTests
         }
     }
 
+    [Test]
+    public async Task TheFilesAnchorCountsTheLoadedFiles()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, actId, Detail(actId, status: null));
+
+        ctx.Services.GetRequiredService<IActFilesClient>()
+            .ListActFiles(actId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new FileListResponse { Items = [File()] }));
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(
+                component.FindAll(".ec-anchor[href$='#files'] .ec-anchor-count").Select(static count => count.TextContent),
+                Is.EqualTo(["1"]),
+                "the anchor counts the list loaded outside the page's render"),
+            TimeSpan.FromSeconds(2));
+    }
+
+    [Test]
+    public async Task AFailedFilesLoadLeavesTheFilesAnchorWithoutACount()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var actId = Guid.CreateVersion7();
+
+        Serve(ctx, actId, Detail(actId, status: null));
+
+        ctx.Services.GetRequiredService<IActFilesClient>()
+            .ListActFiles(actId, Arg.Any<CancellationToken>())
+            .Returns(Task.FromException<FileListResponse>(new HttpRequestException()));
+
+        var component = ctx.Render<Act>(parameters => parameters.Add(static page => page.ActId, actId));
+
+        await component.WaitForAssertionAsync(
+            () => Assert.That(component.FindAll("#files [role=alert]"), Has.Count.EqualTo(1)),
+            TimeSpan.FromSeconds(2));
+
+        Assert.That(component.FindAll(".ec-anchor[href$='#files'] .ec-anchor-count"), Is.Empty, "a list that failed to load has no count");
+    }
+
+    private static FileListItem File()
+    {
+        return new FileListItem
+        {
+            FileId = Guid.CreateVersion7(),
+            FileName = "rozhodnuti.pdf",
+            SizeBytes = 1024,
+            Created = DateTime.UtcNow,
+            Version = 1,
+            VersionCount = 1,
+        };
+    }
+
     private static ActDetail Detail(Guid actId, ActStatus? status)
     {
         return new ActDetail
