@@ -5,25 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>detail-spisu – EvilCase</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap">
-  <style>
+<style>
     body { margin: 0; font-family: 'Instrument Sans', 'Segoe UI', sans-serif; background: #ECEEF2; color: #14161B; }
     a { color: #1C3A9F; text-decoration: none; } a:hover { color: #1F3AA8; }
     .navlink:hover { color: #FFFFFF; background: rgba(255,255,255,0.06); }
     .dark-input::placeholder { color: #A0A6B1; }
     .iconbtn:hover { background: #F2F3F6; }
-    .frow { position: relative; cursor: pointer; }
-    .frow:hover { background: #F5F6F9; }
-    .frow:hover .fname { color: #1C3A9F; }
-    .stretch::after { content: ""; position: absolute; inset: 0; }
-    .acts { position: relative; z-index: 1; }
-    .menuitem:hover { background: #F6F7FA; }
     .act:hover { background: #F2F3F6; }
-    .sub:hover .sub-title { color: #1C3A9F; }
-    .quiet:hover { color: #14161B; }
-  </style>
+</style>
 </head>
 <body>
-<div style="width: 1440px; height: 1700px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
+<div style="width: 1440px; box-sizing: border-box; background: #F2F3F6; display: flex; flex-direction: column;">
 
   <header style="height: 60px; flex-shrink: 0; box-sizing: border-box; padding: 0 32px; display: flex; align-items: center; gap: 36px; background: #14161B;">
     <a href="prehled.html" style="display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.01em;">
@@ -51,7 +43,7 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
       <input id="s2-global" placeholder="Hledat spisy, úkony, kontakty…" class="dark-input" style="border: 0; outline: none; font: inherit; font-size: 14px; width: 100%; background: transparent; color: #FFFFFF;">
     </label>
-    <button type="button" aria-label="Uživatelské menu – Martin Volek" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #1F3FAE; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 0 0 2px #14161B, 0 0 0 3px #9DB0F2;">MV</button>
+    <button type="button" aria-label="Uživatelské menu – Jan Příklad" style="width: 38px; height: 38px; border-radius: 50%; border: 0; background: #1F3FAE; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; box-shadow: 0 0 0 2px #14161B, 0 0 0 3px #9DB0F2;">JP</button>
   </header>
 
   <div style="flex-grow: 1; box-sizing: border-box; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
@@ -102,317 +94,246 @@
         </div>
       </div>
     </section>
-
-    <div style="flex-grow: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start;">
-
-      <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
-        <section aria-label="Úkony spisu" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
-          <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px;">
-            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Úkony</h2>
-            <span style="font-size: 13px; color: #5B6270;">23</span>
-            <div style="flex-grow: 1;"></div>
-            <a href="novy-ukon.html" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border-radius: 9px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový úkon</a>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px; padding: 0 20px 14px;">
-            <label for="s2-search" style="display: flex; align-items: center; gap: 6px; flex-grow: 1; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #D5D9E1; border-radius: 9px; color: #5B6270;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
-              <input id="s2-search" placeholder="Hledat v názvu a popisu" style="border: 0; outline: none; font: inherit; font-size: 13px; width: 100%; background: transparent;">
-            </label>
-            <div role="group" aria-label="Směr" style="display: flex; padding: 3px; gap: 2px; background: #F0F2F5; border-radius: 9px;">
-              <button type="button" aria-pressed="true" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: #FFFFFF; color: #14161B; box-shadow: 0 1px 2px rgba(20,22,27,0.08);">Vše</button>
-              <button type="button" aria-pressed="false" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: transparent; color: #454B57;">↙ Příchozí</button>
-              <button type="button" aria-pressed="false" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: transparent; color: #454B57;">↗ Odchozí</button>
-            </div>
-            <button type="button" aria-expanded="false" class="iconbtn" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; font: inherit; font-size: 13px; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 9px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filtry</button>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
-            <span>Datum ↑</span><span>Úkon</span><span>Směr</span><span>Kontakt</span><span>Změněno</span>
-          </div>
-
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">15. 7. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Výzva k úhradě určené částky" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k úhradě určené částky</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">31. 7. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Příkaz o uložení pokuty" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Příkaz o uložení pokuty</span>
-                <span style="flex-shrink:0;font-size:11px;padding:0 6px;line-height:18px;border-radius:5px;background:#FDEFD8;color:#8A5307;">Hlídat lhůtu</span>
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">4. 8. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Odpor proti příkazu" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpor proti příkazu</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">6. 8. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Vyrozumění o pokračování řízení a výzva k vyjádření se k podkladům" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyrozumění o pokračování řízení a výzva k vyjádření se k podkladům</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">18. 8. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Vyjádření k podkladům rozhodnutí" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k podkladům rozhodnutí</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">2. 9. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Rozhodnutí o přestupku v prvním stupni" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o přestupku v prvním stupni</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">15. 9. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Odvolání proti rozhodnutí v plném rozsahu" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odvolání proti rozhodnutí v plném rozsahu</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#5B6270;">Městský úřad Vzorov, odbor vnitřních věcí</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">26. 9. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Rozhodnutí o odvolání" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o odvolání</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský úřad Vzorového kraje</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">1. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Žaloba proti rozhodnutí správního orgánu s návrhem na přiznání odkladného účinku" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žaloba proti rozhodnutí správního orgánu s návrhem na přiznání odkladného účinku</span>
-                <span style="flex-shrink:0;font-size:11px;padding:0 6px;line-height:18px;border-radius:5px;background:#FDE4E1;color:#9B2C1F;">Priorita</span>
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">6. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Poučení o možné podjatosti senátu" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Poučení o možné podjatosti senátu</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">7. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Vyjádření k poučení, souhlas s rozhodnutím bez jednání a vyčíslení nákladů" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k poučení, souhlas s rozhodnutím bez jednání a vyčíslení nákladů</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">9. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Výzva k zaplacení soudního poplatku" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k zaplacení soudního poplatku</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">13. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Doplnění žaloby – materiální stránka přestupku" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doplnění žaloby – materiální stránka přestupku</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">14. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Doplnění žaloby – nezákonnost měření rychlosti" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doplnění žaloby – nezákonnost měření rychlosti</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">15. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Usnesení o nepřiznání odkladného účinku" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Usnesení o nepřiznání odkladného účinku</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">16. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Přípis soudu" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Přípis soudu</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">17. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Vyjádření žalovaného k žalobě" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření žalovaného k žalobě</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙ Příchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský úřad Vzorového kraje</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">18. 10. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Vyčíslení nákladů řízení" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyčíslení nákladů řízení</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">3. 11. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Doplnění žaloby – rozpor mezi rozhodnutími a replika k vyjádření žalovaného" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doplnění žaloby – rozpor mezi rozhodnutími a replika k vyjádření žalovaného</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-            <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 96px 200px 120px; column-gap: 16px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
-              <span style="font-size: 13px; color: #14161B; font-variant-numeric: tabular-nums; font-weight: 600;">10. 11. 2025</span>
-              <span style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <span title="Žádost o prodloužení lhůty k doplnění žaloby" style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žádost o prodloužení lhůty k doplnění žaloby</span>
-              
-              </span>
-              <span style="display:inline-flex;align-items:center;width:fit-content;height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗ Odchozí</span>
-              <span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#14161B;font-weight:500;">Krajský soud ve Vzorově</span>
-              <span title="12. 10. 2026 21:45" style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums;">dnes 21:45</span>
-            </a>
-
-          <div style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 13px; color: #5B6270;">
-            <span>1–20 z 23</span>
-            <div style="flex-grow: 1;"></div>
-            <button type="button" disabled style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 1px solid #E1E4EA; border-radius: 8px; background: #FFFFFF; color: #8A909C;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>Předchozí</button>
-            <button type="button" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 1px solid #D5D9E1; border-radius: 8px; background: #FFFFFF; color: #14161B; cursor: pointer;">Další<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
-          </div>
-        </section>
-      </div>
-
-      <aside aria-label="Obsah spisu" style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
-        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px 12px; display: flex; flex-direction: column; gap: 6px;">
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start;"><div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;"><section aria-label="Úkony spisu" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px;">
+    <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Úkony</h2><span style="font-size: 13px; color: #5B6270;">23</span><div style="flex-grow: 1;"></div>
+    <a href="novy-ukon.html" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border-radius: 9px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový úkon</a>
+  </div>
+  <div style="display: flex; align-items: center; gap: 10px; padding: 0 20px 14px;">
+    <label style="display: flex; align-items: center; gap: 6px; flex-grow: 1; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #D5D9E1; border-radius: 9px; color: #5B6270;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg><input placeholder="Hledat v názvu, popisu a čísle" style="border: 0; outline: none; font: inherit; font-size: 13px; width: 100%; background: transparent;"></label>
+    <div style="display: flex; padding: 3px; gap: 2px; background: #F0F2F5; border-radius: 9px;">
+      <button type="button" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: #FFFFFF; color: #14161B; box-shadow: 0 1px 2px rgba(20,22,27,0.08);">Vše</button>
+      <button type="button" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: transparent; color: #454B57;">↙ Příchozí</button>
+      <button type="button" style="height: 30px; padding: 0 12px; font: inherit; font-size: 13px; border: 0; border-radius: 7px; background: transparent; color: #454B57;">↗ Odchozí</button>
+    </div>
+    <button type="button" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; font: inherit; font-size: 13px; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 9px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>Filtry</button>
+  </div>
+  <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+    <span>Datum ↑</span><span>Úkon a kontakt</span><span>Soubor</span><span>Směr</span><span>Stav</span><span>Změněno</span>
+  </div>
+  <a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">15. 7. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k úhradě určené částky</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">31. 7. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Příkaz o uložení pokuty</span><span style="flex-shrink:0;display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:500;background:#FDEFD8;color:#8A5307;">Hlídat lhůtu</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">4. 8. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odpor proti příkazu</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.docx" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#E6EEFD;border:1px solid #2A48B855;color:#2A48B8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">6. 8. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyrozumění o pokračování řízení a výzva k vyjádření se k podkladům</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.zfo" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#EAE6FB;border:1px solid #5A3FC055;color:#5A3FC0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">18. 8. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k podkladům rozhodnutí</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">2. 9. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o přestupku v prvním stupni</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">15. 9. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Odvolání proti rozhodnutí v plném rozsahu</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #5B6270; font-weight: 400;">Městský úřad Vzorov, odbor vnitřních věcí</span>
+  </span>
+  <span title="soubor.docx" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#E6EEFD;border:1px solid #2A48B855;color:#2A48B8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">26. 9. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Rozhodnutí o odvolání</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský úřad Vzorového kraje</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">1. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žaloba proti rozhodnutí správního orgánu s návrhem na odkladný účinek</span><span style="flex-shrink:0;display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:500;background:#FDE7E4;color:#9B2C1F;">Priorita</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">6. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Poučení o možné podjatosti senátu</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.zfo" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#EAE6FB;border:1px solid #5A3FC055;color:#5A3FC0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">7. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření k poučení, souhlas s rozhodnutím bez jednání</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">9. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Výzva k zaplacení soudního poplatku</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">13. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doplnění žaloby – materiální stránka přestupku</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.docx" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#E6EEFD;border:1px solid #2A48B855;color:#2A48B8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">14. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doplnění žaloby – nezákonnost měření rychlosti</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.docx" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#E6EEFD;border:1px solid #2A48B855;color:#2A48B8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">15. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Usnesení o nepřiznání odkladného účinku</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">16. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Přípis soudu</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">17. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyjádření žalovaného k žalobě</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský úřad Vzorového kraje</span>
+  </span>
+  <span title="soubor.pdf" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#FDE7E4;border:1px solid #C23B2B55;color:#C23B2B;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E6EEFD;color:#2A48B8;">↙</span><span style="color:#A0A6B1;font-size:13px;">—</span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">18. 10. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Vyčíslení nákladů řízení</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.xlsx" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#E3F4E8;border:1px solid #1D6B3655;color:#1D6B36;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Odesláno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#EEF0F4;"><span style="width:6px;height:6px;border-radius:50%;background:#8A909C;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">3. 11. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Doplnění žaloby – rozpor mezi rozhodnutími a replika k vyjádření</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span title="soubor.docx" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;background:#E6EEFD;border:1px solid #2A48B855;color:#2A48B8;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Rozpracováno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#FDF3D0;"><span style="width:6px;height:6px;border-radius:50%;background:#C99A0B;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-ukonu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 44px 32px 28px 72px; column-gap: 12px; align-items: center; min-height: 56px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">10. 11. 2025</span>
+  <span style="display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;"><span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Žádost o prodloužení lhůty k doplnění žaloby</span></span>
+    <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #14161B; font-weight: 500;">Krajský soud ve Vzorově</span>
+  </span>
+  <span></span><span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;font-size:12px;font-weight:500;background:#E3F4E8;color:#1D6B36;">↗</span><span title="Rozpracováno" style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#FDF3D0;"><span style="width:6px;height:6px;border-radius:50%;background:#C99A0B;"></span></span><span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a>
+  <div style="display: flex; align-items: center; gap: 8px; padding: 12px 20px; font-size: 13px; color: #5B6270;">
+    <span>1–20 z 23</span><div style="flex-grow: 1;"></div>
+    <button type="button" disabled style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 1px solid #E1E4EA; border-radius: 8px; background: #FFFFFF; color: #8A909C;">Předchozí</button>
+    <button type="button" style="height: 32px; padding: 0 12px; font: inherit; font-size: 13px; border: 1px solid #D5D9E1; border-radius: 8px; background: #FFFFFF; color: #14161B;">Další</button>
+  </div>
+</section></div><div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;"><section aria-label="Podřízené spisy" style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden;">
+  <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px;">
+    <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Podřízené spisy</h2><span style="font-size: 13px; color: #5B6270;">6</span><div style="flex-grow: 1;"></div>
+    <a href="novy-spis.html" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font-size: 14px; font-weight: 500; color: #14161B; background: #FFFFFF; border: 1px solid #D5D9E1; border-radius: 9px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Nový podřízený spis</a>
+  </div>
+  <div style="display: flex; align-items: center; gap: 10px; padding: 0 20px 14px;">
+    <label style="display: flex; align-items: center; gap: 6px; flex-grow: 1; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #D5D9E1; border-radius: 9px; color: #5B6270;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg><input placeholder="Hledat v názvu, popisu a značce" style="border: 0; outline: none; font: inherit; font-size: 13px; width: 100%; background: transparent;"></label>
+    <label style="display: flex; align-items: center; gap: 6px; height: 36px; box-sizing: border-box; padding: 0 8px 0 12px; border: 1px solid #D5D9E1; border-radius: 9px; background: #FFFFFF;"><span style="font-size: 12px; color: #5B6270;">Stav</span><select aria-label="Stav" style="height: 100%; border: 0; outline: none; font: inherit; font-size: 13px; font-weight: 500; color: #14161B; background: transparent; appearance: none;"><option>Otevřené</option><option>Aktivní</option><option>Čeká na úřad</option><option>Uzavřené</option><option>Vše</option></select><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B6270" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></label>
+  </div>
+  <div style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; height: 34px; padding: 0 20px; font-size: 12px; color: #5B6270; background: #F8F9FB; border-top: 1px solid #EDEFF3; border-bottom: 1px solid #EDEFF3;">
+    <span>Datum ↓</span><span>Spis</span><span>Stav</span><span>Změněno</span>
+  </div><a href="detail-spisu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">2. 10. 2025</span>
+  <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Uplatnění pojištění právní ochrany</span>
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#E3F4E8;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span></span>
+  <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-spisu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">25. 9. 2025</span>
+  <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stížnost k České advokátní komoře</span>
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#E3F4E8;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span></span>
+  <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-spisu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">20. 9. 2025</span>
+  <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Oznámení přestupku starosty</span>
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#FDEFD8;"><span style="width:6px;height:6px;border-radius:50%;background:#D98A1B;"></span></span>
+  <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-spisu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">10. 9. 2025</span>
+  <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Náhrada nemajetkové újmy – Ministerstvo vnitra</span>
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#FDEFD8;"><span style="width:6px;height:6px;border-radius:50%;background:#D98A1B;"></span></span>
+  <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-spisu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">25. 8. 2025</span>
+  <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Otevřený dopis zastupitelstvu</span>
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#E3F4E8;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span></span>
+  <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a><a href="detail-spisu.html" class="act" style="display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px 72px; column-gap: 12px; align-items: center; min-height: 48px; padding: 0 20px; border-bottom: 1px solid #EDEFF3; color: #14161B;">
+  <span style="font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 600;">20. 8. 2025</span>
+  <span style="font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Předžalobní výzva</span>
+  <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:#E3F4E8;"><span style="width:6px;height:6px;border-radius:50%;background:#3B9C5A;"></span></span>
+  <span style="font-size: 13px; color: #454B57; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; line-height: 1.25;"><span>dnes</span><span>21:45</span></span>
+</a>
+</section></div></div>        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Podřízené spisy</h2>
-            <span style="font-size: 13px; color: #5B6270;">15</span>
-            <div style="flex-grow: 1;"></div>
-            <a href="novy-spis.html" aria-label="Založit podřízený spis" class="iconbtn" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: #14161B; border: 1px solid #D5D9E1; border-radius: 8px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg></a>
-          </div>
-          <span style="font-size: 12px; color: #5B6270; padding-bottom: 4px;">6 otevřených<span aria-hidden="true" style="margin: 0 6px; color: #A0A6B1;">·</span>9 uzavřených</span>
-            <a href="detail-spisu.html" class="sub" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 48px; border-top: 1px solid #EDEFF3; color: #14161B;">
-              <span class="sub-title" style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Uplatnění pojištění právní ochrany</span>
-              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#3B9C5A;"></span>Aktivní<span aria-hidden="true" style="color: #A0A6B1;">·</span>2. 10. 2025</span>
-            </a>
-            <a href="detail-spisu.html" class="sub" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 48px; border-top: 1px solid #EDEFF3; color: #14161B;">
-              <span class="sub-title" style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Stížnost k České advokátní komoře</span>
-              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#3B9C5A;"></span>Aktivní<span aria-hidden="true" style="color: #A0A6B1;">·</span>25. 9. 2025</span>
-            </a>
-            <a href="detail-spisu.html" class="sub" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 48px; border-top: 1px solid #EDEFF3; color: #14161B;">
-              <span class="sub-title" style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Oznámení přestupku starosty</span>
-              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#D98A1B;"></span>Čeká na úřad<span aria-hidden="true" style="color: #A0A6B1;">·</span>20. 9. 2025</span>
-            </a>
-            <a href="detail-spisu.html" class="sub" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 48px; border-top: 1px solid #EDEFF3; color: #14161B;">
-              <span class="sub-title" style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Náhrada nemajetkové újmy – Ministerstvo vnitra</span>
-              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#D98A1B;"></span>Čeká na úřad<span aria-hidden="true" style="color: #A0A6B1;">·</span>10. 9. 2025</span>
-            </a>
-            <a href="detail-spisu.html" class="sub" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 48px; border-top: 1px solid #EDEFF3; color: #14161B;">
-              <span class="sub-title" style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Otevřený dopis zastupitelstvu</span>
-              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#3B9C5A;"></span>Aktivní<span aria-hidden="true" style="color: #A0A6B1;">·</span>25. 8. 2025</span>
-            </a>
-            <a href="detail-spisu.html" class="sub" style="display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 48px; border-top: 1px solid #EDEFF3; color: #14161B;">
-              <span class="sub-title" style="font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Předžalobní výzva</span>
-              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #5B6270;"><span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#3B9C5A;"></span>Aktivní<span aria-hidden="true" style="color: #A0A6B1;">·</span>20. 8. 2025</span>
-            </a>
-          <button type="button" aria-expanded="false" style="display: flex; align-items: center; gap: 6px; height: 36px; padding: 0; font: inherit; font-size: 13px; font-weight: 500; color: #1C3A9F; background: none; border: 0; border-top: 1px solid #EDEFF3; cursor: pointer;">Zobrazit i uzavřené (9)</button>
-        </section>
-
-        <section style="background: #FFFFFF; border: 1px solid #E1E4EA; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <h2 style="margin: 0; font-size: 16px; font-weight: 600;">Komentáře spisu</h2>
+            <h2 style="margin: 0; font-size: 18px; font-weight: 600;">Komentáře spisu</h2>
             <span style="font-size: 13px; color: #5B6270;">2</span>
           </div>
-            <div style="display: flex; gap: 10px;">
-              <span style="width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; background: #14161B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">A</span>
-              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
-                <span style="font-size: 12px; color: #5B6270;"><span style="color: #14161B; font-weight: 600;">admin@evilcase.local</span><span aria-hidden="true" style="margin: 0 6px; color: #A0A6B1;">·</span>12. 10. 2026 20:04</span>
-                <p style="margin: 0; font-size: 13px; line-height: 1.5;">Pseudonymizovaná vzorová data z reálného spisu. Nic v nich není skutečné.</p>
-                <div style="display: flex; gap: 14px;">
-                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 12px; color: #1C3A9F; background: none; border: 0; cursor: pointer;">Upravit</button>
-                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 12px; color: #9B2C1F; background: none; border: 0; cursor: pointer;">Smazat</button>
+            <div style="display: flex; gap: 12px;">
+              <span style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; background: #14161B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">A</span>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <span style="font-size: 13px; color: #5B6270;"><span style="color: #14161B; font-weight: 600;">admin@evilcase.local</span><span aria-hidden="true" style="margin: 0 6px; color: #A0A6B1;">·</span>12. 10. 2026 20:04</span>
+                <p style="margin: 0; font-size: 14px; line-height: 1.55;">Pseudonymizovaná vzorová data z reálného spisu. Nic v nich není skutečné.</p>
+                <div style="display: flex; gap: 12px;">
+                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 13px; color: #1C3A9F; background: none; border: 0; cursor: pointer;">Upravit</button>
+                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 13px; color: #9B2C1F; background: none; border: 0; cursor: pointer;">Smazat</button>
                 </div>
               </div>
             </div>
-            <div style="display: flex; gap: 10px;">
-              <span style="width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; background: #14161B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600;">A</span>
-              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
-                <span style="font-size: 12px; color: #5B6270;"><span style="color: #14161B; font-weight: 600;">admin@evilcase.local</span><span aria-hidden="true" style="margin: 0 6px; color: #A0A6B1;">·</span>12. 10. 2026 20:04</span>
-                <p style="margin: 0; font-size: 13px; line-height: 1.5;">Podřízené spisy jsou převážně žádosti o informace, kterými se sbírají podklady pro hlavní linii.</p>
-                <div style="display: flex; gap: 14px;">
-                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 12px; color: #1C3A9F; background: none; border: 0; cursor: pointer;">Upravit</button>
-                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 12px; color: #9B2C1F; background: none; border: 0; cursor: pointer;">Smazat</button>
+            <div style="display: flex; gap: 12px;">
+              <span style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; background: #14161B; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">A</span>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <span style="font-size: 13px; color: #5B6270;"><span style="color: #14161B; font-weight: 600;">admin@evilcase.local</span><span aria-hidden="true" style="margin: 0 6px; color: #A0A6B1;">·</span>12. 10. 2026 20:04</span>
+                <p style="margin: 0; font-size: 14px; line-height: 1.55;">Podřízené spisy jsou převážně žádosti o informace, kterými se sbírají podklady pro hlavní linii.</p>
+                <div style="display: flex; gap: 12px;">
+                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 13px; color: #1C3A9F; background: none; border: 0; cursor: pointer;">Upravit</button>
+                  <button type="button" style="height: 24px; padding: 0; font: inherit; font-size: 13px; color: #9B2C1F; background: none; border: 0; cursor: pointer;">Smazat</button>
                 </div>
               </div>
             </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid #EDEFF3;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
             <label for="s2-comment" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Nový komentář ke spisu</label>
-            <textarea id="s2-comment" rows="2" placeholder="Poznámka ke spisu…" style="font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid #D5D9E1; border-radius: 9px; resize: none;"></textarea>
+            <textarea id="s2-comment" rows="3" placeholder="Poznámka ke spisu…" style="font: inherit; font-size: 14px; line-height: 1.55; padding: 8px 12px; border: 1px solid #D5D9E1; border-radius: 10px; resize: vertical;"></textarea>
             <div style="display: flex; justify-content: flex-end;">
-              <button type="button" style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; font: inherit; font-size: 13px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 9px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>Přidat komentář</button>
+              <button type="button" style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; font: inherit; font-size: 14px; font-weight: 600; color: #FFFFFF; background: #1F3FAE; border: 0; border-radius: 10px; cursor: pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg>Přidat komentář</button>
             </div>
           </div>
         </section>
-      </aside>
-    </div>
   </div>
 </div>
 </body>

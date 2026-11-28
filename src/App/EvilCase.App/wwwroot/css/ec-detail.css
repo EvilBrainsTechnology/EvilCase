@@ -523,13 +523,13 @@
     min-width: 0;
 }
 
-/* A card in the 380 px side column has a smaller title (docs/design/detail-spisu.html). */
+/* A card in the 380 px side column has a smaller title (docs/design/detail-ukonu.html). */
 .ec-detail-aside .ec-card-title,
 .ec-form-aside .ec-card-title {
     font-size: var(--ec-text-lg);
 }
 
-.ec-contact-occurrences {
+.ec-detail-halves {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--ec-space-6);
@@ -735,88 +735,8 @@
     color: var(--ec-accent-text);
 }
 
-/* The case detail (docs/design/detail-spisu.html): the child cases in the side column. */
-.ec-child-card {
-    display: flex;
-    flex-direction: column;
-}
-
-.ec-child-counts {
-    padding-bottom: var(--ec-space-1);
-    font-size: var(--ec-text-xs);
-    color: var(--ec-text-muted);
-}
-
-.ec-child-list {
-    display: flex;
-    flex-direction: column;
-}
-
-.ec-child-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    align-content: center;
-    column-gap: var(--ec-space-4);
-    row-gap: var(--ec-space-1);
-    min-height: var(--ec-list-row-height);
-    border-top: 1px solid var(--ec-border-subtle);
-    color: var(--ec-text);
-    text-decoration: none;
-
-    &:hover .ec-child-title {
-        color: var(--ec-accent-text);
-    }
-
-    &:focus-visible {
-        outline: none;
-        box-shadow: var(--ec-focus-ring);
-    }
-}
-
-.ec-child-title {
-    overflow: hidden;
-    font-size: var(--ec-text-sm);
-    font-weight: var(--ec-weight-medium);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-.ec-child-status {
-    display: flex;
-    align-items: center;
-    gap: var(--ec-space-2);
-    font-size: var(--ec-text-xs);
-    color: var(--ec-text-muted);
-    font-variant-numeric: tabular-nums;
-}
-
-.ec-child-toggle {
-    display: flex;
-    align-items: center;
-    height: var(--ec-control-md);
-    padding: 0;
-    border: 0;
-    border-top: 1px solid var(--ec-border-subtle);
-    background: transparent;
-    font-family: var(--ec-font);
-    font-size: var(--ec-text-sm);
-    font-weight: var(--ec-weight-medium);
-    color: var(--ec-accent-text);
-    cursor: pointer;
-}
-
-.ec-child-toggle:hover {
-    text-decoration: underline;
-}
-
-/* Only below lg: the section anchors, the button showing all child cases and the label edit button. */
+/* Only below lg: the section anchors and the label edit button. */
 .ec-anchors,
-.ec-child-all,
 .ec-label-edit {
     display: none;
-}
-
-.ec-child-toggle:focus-visible {
-    outline: none;
-    box-shadow: var(--ec-focus-ring);
 }

@@ -2,11 +2,19 @@ namespace EvilBrains.EvilCase.App.Components.Lists;
 
 public enum CaseColumn
 {
-    Changed = 0,
+    Date = 0,
 
-    Date = 1,
+    /// <summary>
+    /// The title with its labels and no parent line.
+    /// </summary>
+    Case = 1,
 
-    Case = 2,
+    /// <summary>
+    /// The title with its labels and the parent case's title below it.
+    /// </summary>
+    CaseWithParent = 2,
 
     Status = 3,
+
+    Changed = 4,
 }

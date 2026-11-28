@@ -90,7 +90,7 @@
     .ec-form-row,
     .ec-form-group-row,
     .ec-detail-layout,
-    .ec-contact-occurrences {
+    .ec-detail-halves {
         grid-template-columns: minmax(0, 1fr);
     }
 
@@ -296,7 +296,6 @@
     }
 
     .ec-timeline-all,
-    .ec-child-toggle,
     .ec-comment-action {
         min-height: var(--ec-touch-min);
     }

@@ -658,8 +658,8 @@
     }
 }
 
-/* The contact detail (docs/design/detail-kontaktu.html): two lists of occurrences at half width. */
-.ec-contact-occurrences {
+/* The contact and case details (docs/design/detail-kontaktu.html, detail-spisu.html): two lists at half width. */
+.ec-detail-halves {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
 
@@ -667,8 +667,11 @@
     & .ec-table .ec-empty {
         min-height: 0;
     }
+}
 
-    & .ec-table-bar {
+/* From lg up the search and the switches share one row; below it the list toolbar of SDD-016 applies. */
+@media (min-width: 992px) {
+    .ec-detail-halves .ec-table-bar {
         padding: 0 var(--ec-space-6) var(--ec-space-4);
 
         & .ec-search {
@@ -681,16 +684,6 @@
             height: var(--ec-control-md);
         }
     }
-}
-
-/* The case detail (docs/design/detail-spisu.html): the case's acts, their bar and filters. */
-.ec-case-acts {
-    --ec-list-badge-height: var(--ec-case-act-badge-height);
-    --ec-list-badge-pad: var(--ec-space-3);
-}
-
-.ec-case-acts .ec-card-header + .ec-table-bar {
-    padding-top: 0;
 }
 
 .ec-table-bar .ec-button-compact {

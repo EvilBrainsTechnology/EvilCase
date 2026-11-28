@@ -48,18 +48,16 @@
             </div>
         }
 
-        <div class="ec-recent-cases">
-            <CaseList Columns="CaseColumns" Filter="CaseTile" Title="Naposledy změněné spisy" HideSorting="true"
-                      EmptyText="Zatím tu není žádný spis.">
-                <Actions>
-                    <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
-                              Href="/cases" AriaLabel="Všechny spisy"><span class="ec-text-wide">Všechny spisy</span></EcButton>
-                </Actions>
-                <EmptyAction>
-                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
-                </EmptyAction>
-            </CaseList>
-        </div>
+        <CaseList Columns="CaseColumns" Filter="CaseTile" Title="Naposledy změněné spisy" HideSorting="true"
+                  EmptyText="Zatím tu není žádný spis.">
+            <Actions>
+                <EcButton Variant="EcButtonVariant.Ghost" Size="EcButtonSize.Compact" IconEnd="@AppIcons.ChevronRight"
+                          Href="/cases" AriaLabel="Všechny spisy"><span class="ec-text-wide">Všechny spisy</span></EcButton>
+            </Actions>
+            <EmptyAction>
+                <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus" Href="/cases/new">Založit spis</EcButton>
+            </EmptyAction>
+        </CaseList>
 
         <div class="ec-recent-acts">
             <ActList Columns="ActColumns" DateHeader="Datum úkonu" Filter="ActTile" Title="Naposledy změněné úkony" HideSorting="true"
@@ -74,7 +72,7 @@
     private static readonly CaseColumn[] CaseColumns =
     [
         CaseColumn.Date,
-        CaseColumn.Case,
+        CaseColumn.CaseWithParent,
         CaseColumn.Status,
         CaseColumn.Changed,
     ];
@@ -82,7 +80,7 @@
     private static readonly ActColumn[] ActColumns =
     [
         ActColumn.Date,
-        ActColumn.ActAndCase,
+        ActColumn.ActWithCase,
         ActColumn.MainFile,
         ActColumn.Direction,
         ActColumn.Status,

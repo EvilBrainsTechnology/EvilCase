@@ -96,10 +96,51 @@ public class ActListRenderTests
             "the main-file preview names a file found gone as the files card does"));
     }
 
+    [Test]
+    public async Task TheContactUnderTheTitleIsMutedOnlyWhenItIsTheCaseCounterparty()
+    {
+        await using var ctx = FrontendContext.Create();
+
+        var counterpartyId = Guid.NewGuid();
+        var acts = new ActListResponse
+        {
+            Items =
+            [
+                Act(Guid.NewGuid(), "Výzva") with { ContactId = counterpartyId, ContactName = "Městský úřad" },
+                Act(Guid.NewGuid(), "Rozhodnutí") with { ContactId = Guid.NewGuid(), ContactName = "Krajský úřad" },
+                Act(Guid.NewGuid(), "Poznámka"),
+            ],
+            TotalCount = 3,
+        };
+
+        var actsClient = Substitute.For<IActsClient>();
+        actsClient.ListActs(Arg.Any<ActListRequest>(), Arg.Any<CancellationToken>()).Returns(Task.FromResult(acts));
+        ctx.Services.AddSingleton(actsClient);
+
+        var component = ctx.Render<ActList>(parameters => parameters
+            .Add(static list => list.Columns, [ActColumn.ActWithContact])
+            .Add(static list => list.Filter, new ActListRequest { Take = 20 })
+            .Add(static list => list.CaseContactId, counterpartyId));
+
+        await component.WaitForAssertionAsync(() => Assert.That(component.FindAll(".ec-table-row"), Has.Count.EqualTo(3)));
+
+        var rows = component.FindAll(".ec-table-row");
+        var counterparty = rows[0].QuerySelector(".ec-cell-act-contact")!;
+        var other = rows[1].QuerySelector(".ec-cell-act-contact")!;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(counterparty.TextContent, Is.EqualTo("Městský úřad"), "the contact stands below the title");
+            Assert.That(counterparty.ClassList, Does.Not.Contain("ec-cell-strong"), "the case's counterparty stays muted");
+            Assert.That(other.ClassList, Does.Contain("ec-cell-strong"), "another contact than the case's counterparty stands out");
+            Assert.That(rows[2].QuerySelector(".ec-cell-act-contact"), Is.Null, "an act without a contact has no second line");
+        }
+    }
+
     private static IRenderedComponent<ActList> Render(BunitContext ctx)
     {
         return ctx.Render<ActList>(static parameters => parameters
-            .Add(static list => list.Columns, [ActColumn.ActWithLabels, ActColumn.Changed, ActColumn.MainFile])
+            .Add(static list => list.Columns, [ActColumn.ActWithContact, ActColumn.Changed, ActColumn.MainFile])
             .Add(static list => list.Filter, new ActListRequest { Take = 20 }));
     }
 

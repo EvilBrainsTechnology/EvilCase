@@ -102,47 +102,59 @@
 
         <DetailAnchors Path="@this.LinkPath" Anchors="this.Anchors" />
 
-        <div class="ec-detail-layout">
-            <div class="ec-detail-main ec-case-acts">
-                <ActList @key="(nameof(ActList), this.CaseId)"
-                         Id="acts"
-                         TotalChanged="count => this.actCount = count"
-                         Columns="ActColumns"
-                         Filter="this.ActFilter"
-                         Title="Úkony"
-                         CaseContactId="this.Detail.Contact?.ContactId"
-                         ShowSearch="true"
-                         ShowDates="true"
-                         ShowLabelFilter="true"
-                         ShowDirectionFilter="true"
-                         ShowPaging="true"
-                         EmptyText="Zatím tu není žádný úkon.">
-                    <Actions>
-                        <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus"
-                                  Href="@($"/acts/new?case={this.CaseId}")">Nový úkon</EcButton>
-                    </Actions>
-                    <EmptyAction>
-                        <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus"
-                                  Href="@($"/acts/new?case={this.CaseId}")">Založit úkon</EcButton>
-                    </EmptyAction>
-                </ActList>
-            </div>
+        <div class="ec-detail-halves">
+            <ActList @key="(nameof(ActList), this.CaseId)"
+                     Id="acts"
+                     TotalChanged="count => this.actCount = count"
+                     Columns="ActColumns"
+                     Filter="this.ActFilter"
+                     Title="Úkony"
+                     CaseContactId="this.Detail.Contact?.ContactId"
+                     ShowSearch="true"
+                     ShowDates="true"
+                     ShowLabelFilter="true"
+                     ShowDirectionFilter="true"
+                     ShowPaging="true"
+                     EmptyText="Zatím tu není žádný úkon.">
+                <Actions>
+                    <EcButton Variant="EcButtonVariant.Primary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus"
+                              Href="@($"/acts/new?case={this.CaseId}")">Nový úkon</EcButton>
+                </Actions>
+                <EmptyAction>
+                    <EcButton Variant="EcButtonVariant.Primary" Icon="@AppIcons.Plus"
+                              Href="@($"/acts/new?case={this.CaseId}")">Založit úkon</EcButton>
+                </EmptyAction>
+            </ActList>
 
-            <aside class="ec-detail-aside">
-                <CaseChildrenCard ParentCaseId="this.CaseId" Id="children" CountChanged="count => this.childCount = count" />
-
-                <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
-                              Id="comments"
-                              CountChanged="count => this.commentCount = count"
-                              Title="Komentáře spisu"
-                              Placeholder="Poznámka ke spisu…"
-                              LoadComments="this.LoadComments"
-                              AddComment="this.AddComment"
-                              SaveComment="this.SaveComment"
-                              DeleteComment="this.DeleteComment"
-                              Compact="true" />
-            </aside>
+            <CaseList @key="(nameof(CaseList), this.CaseId)"
+                      Id="children"
+                      TotalChanged="count => this.childCount = count"
+                      Columns="ChildColumns"
+                      Filter="this.ChildFilter"
+                      Title="Podřízené spisy"
+                      DateHeader="Datum"
+                      InputPrefix="children"
+                      ShowSearch="true"
+                      ShowStatusFilter="true"
+                      HideToolbarWhenEmpty="true"
+                      ShowPaging="true"
+                      EmptyText="Zatím tu není žádný podřízený spis.">
+                <Actions>
+                    <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Plus"
+                              Href="@($"/cases/new?parent={this.CaseId}")" AriaLabel="Nový podřízený spis"><span class="ec-text-wide">Nový podřízený spis</span></EcButton>
+                </Actions>
+            </CaseList>
         </div>
+
+        <CommentsCard @key="(nameof(CommentsCard), this.CaseId)"
+                      Id="comments"
+                      CountChanged="count => this.commentCount = count"
+                      Title="Komentáře spisu"
+                      Placeholder="Poznámka ke spisu…"
+                      LoadComments="this.LoadComments"
+                      AddComment="this.AddComment"
+                      SaveComment="this.SaveComment"
+                      DeleteComment="this.DeleteComment" />
     }
 </div>
 
@@ -159,17 +171,24 @@
 }
 
 @code {
-    private const int ActItems = 20;
+    private const int PageItems = 20;
 
     private static readonly ActColumn[] ActColumns =
     [
         ActColumn.Date,
-        ActColumn.ActWithLabels,
+        ActColumn.ActWithContact,
         ActColumn.MainFile,
         ActColumn.Direction,
         ActColumn.Status,
-        ActColumn.Contact,
         ActColumn.Changed,
+    ];
+
+    private static readonly CaseColumn[] ChildColumns =
+    [
+        CaseColumn.Date,
+        CaseColumn.Case,
+        CaseColumn.Status,
+        CaseColumn.Changed,
     ];
 
     [Parameter]
@@ -187,8 +206,8 @@
 
     private IReadOnlyList<DetailAnchor> Anchors =>
     [
-        new DetailAnchor("Podřízené spisy", "children", () => this.childCount),
         new DetailAnchor("Úkony", "acts", () => this.actCount),
+        new DetailAnchor("Podřízené spisy", "children", () => this.childCount),
         new DetailAnchor("Komentáře", "comments", () => this.commentCount),
     ];
 
@@ -200,7 +219,9 @@
 
     protected override string LinkPath => $"/cases/{this.CaseId}";
 
-    private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = ActItems };
+    private ActListRequest ActFilter => new() { CaseId = this.CaseId, Take = PageItems };
+
+    private CaseListRequest ChildFilter => new() { ParentCaseId = this.CaseId, Take = PageItems };
 
     private IReadOnlyList<EcCrumb> Crumbs => this.Detail is null
         ? [new EcCrumb("Spisy", "/cases")]

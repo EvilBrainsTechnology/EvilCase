@@ -79,7 +79,7 @@
             </div>
         </EcCard>
 
-        <div class="ec-contact-occurrences">
+        <div class="ec-detail-halves">
             <CaseList @key="(nameof(CaseList), this.ContactId)"
                       Columns="CaseColumns"
                       Filter="this.CaseFilter"
@@ -128,7 +128,7 @@
     private static readonly CaseColumn[] CaseColumns =
     [
         CaseColumn.Date,
-        CaseColumn.Case,
+        CaseColumn.CaseWithParent,
         CaseColumn.Status,
         CaseColumn.Changed,
     ];
@@ -136,7 +136,7 @@
     private static readonly ActColumn[] ActColumns =
     [
         ActColumn.Date,
-        ActColumn.ActAndCase,
+        ActColumn.ActWithCase,
         ActColumn.MainFile,
         ActColumn.Direction,
         ActColumn.Status,

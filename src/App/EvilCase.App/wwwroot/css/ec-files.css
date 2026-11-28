@@ -123,7 +123,7 @@
     color: var(--ec-text-faint);
 }
 
-:is(.ec-case-meta, .ec-timeline-meta, .ec-child-status) > .ec-sep {
+:is(.ec-case-meta, .ec-timeline-meta) > .ec-sep {
     margin-inline: 0;
 }
 
@@ -297,7 +297,7 @@
     color: var(--ec-text-soft);
 }
 
-/* The files in the side column of the case detail (docs/design/detail-spisu.html). */
+/* The files card in a side column. */
 .ec-file-card-compact {
     & .ec-file-row {
         gap: var(--ec-space-3);

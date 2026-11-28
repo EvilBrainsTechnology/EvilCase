@@ -17,7 +17,7 @@
     .ec-form-layout,
     .ec-form-aside,
     .ec-settings-layout,
-    .ec-contact-occurrences {
+    .ec-detail-halves {
         gap: 0;
     }
 
@@ -55,8 +55,7 @@
         padding: var(--ec-space-3) var(--ec-space-5);
     }
 
-    .ec-table-bar,
-    .ec-contact-occurrences .ec-table-bar {
+    .ec-table-bar {
         padding: 0 var(--ec-space-5) var(--ec-space-4);
     }
 
@@ -373,9 +372,21 @@
         & > .ec-chips,
         & > .ec-cell-line > .ec-chips {
             flex: 1 0 100%;
-            order: 1;
+            order: 2;
             padding-top: var(--ec-space-1);
         }
+
+        /* The act's contact stands in the line of details before the changed stamp, as the contact column does. */
+        & > .ec-cell-act-contact {
+            flex: 1 1 0;
+            order: 1;
+            min-width: 0;
+            font-size: inherit;
+        }
+    }
+
+    .ec-table-row:has(.ec-cell-act-contact) > .ec-cell-changed {
+        order: 1;
     }
 
     .ec-table-row .ec-chip-sm {
@@ -387,7 +398,8 @@
         flex: 1 1 0;
     }
 
-    .ec-recent-cases .ec-card-header-actions .ec-button {
+    /* A header button whose text drops below lg is a square icon button. */
+    .ec-card-header-actions .ec-button:has(> .ec-text-wide) {
         justify-content: center;
         width: var(--ec-touch-min);
         height: var(--ec-touch-min);
@@ -544,8 +556,7 @@
         color: var(--ec-text-muted);
     }
 
-    /* The sections stack: a case has the child cases, the acts and the comments; an act the files, the comments,
-       the case's timeline and the case. */
+    /* The sections of an act stack: the files, the comments, the case's timeline and the case. */
     .ec-detail-main,
     .ec-detail-aside {
         display: contents;
@@ -561,40 +572,12 @@
         order: -1;
     }
 
-    .ec-case-acts > .ec-table,
     .ec-detail-layout .ec-card:has(.ec-timeline) {
         order: 1;
     }
 
-    .ec-detail-layout:has(.ec-case-acts) .ec-card:has(.ec-card-stack),
     .ec-detail-layout .ec-card:has(> .ec-card-body > .ec-case-link) {
         order: 2;
-    }
-
-    /* The child cases show three rows; the button below them shows the rest. */
-    .ec-child-list-capped > .ec-child-row:nth-child(n + 4) {
-        display: none;
-    }
-
-    .ec-child-all {
-        display: flex;
-        align-items: center;
-        gap: var(--ec-space-1);
-        min-height: var(--ec-touch-min);
-        padding: 0;
-        border: 0;
-        border-top: 1px solid var(--ec-border-subtle);
-        background: transparent;
-        font-family: var(--ec-font);
-        font-size: var(--ec-text-md);
-        font-weight: var(--ec-weight-medium);
-        color: var(--ec-accent-text);
-        cursor: pointer;
-    }
-
-    .ec-child-all:focus-visible {
-        outline: none;
-        box-shadow: var(--ec-focus-ring);
     }
 }
 

@@ -14,14 +14,6 @@
     {
         columns.Add(column switch
         {
-            ActColumn.Changed => new EcColumn<ActListItem>
-            {
-                Header = "Změněno",
-                Width = "var(--ec-list-col-moment)",
-                SortKey = nameof(ActSortKey.Changed),
-                CellClass = "ec-cell-num",
-                Cell = item =>@<ChangedMoment Moment="item.Changed" />,
-            },
             ActColumn.Date => new EcColumn<ActListItem>
             {
                 Header = this.DateHeader,
@@ -29,6 +21,55 @@
                 SortKey = nameof(ActSortKey.Date),
                 CellClass = "ec-cell-num ec-cell-date",
                 Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
+            },
+            ActColumn.ActWithCase => new EcColumn<ActListItem>
+            {
+                Header = "Úkon a spis",
+                Width = "minmax(0, 1fr)",
+                SortKey = nameof(ActSortKey.Title),
+                Primary = true,
+                CellClass = "ec-cell-stack",
+                Cell = item =>@<text>
+                    <span class="ec-cell-line">
+                        <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
+                        <LabelChips Labels="item.Labels" />
+                    </span>
+                    <span class="ec-cell-text ec-cell-sub" data-tooltip-overflow>@item.CaseTitle</span>
+                </text>,
+            },
+            ActColumn.ActWithContact => new EcColumn<ActListItem>
+            {
+                Header = "Úkon a kontakt",
+                Width = "minmax(0, 1fr)",
+                SortKey = nameof(ActSortKey.Title),
+                Primary = true,
+                CellClass = "ec-cell-stack",
+                Cell = item =>@<text>
+                    <span class="ec-cell-line">
+                        <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
+                        <LabelChips Labels="item.Labels" />
+                    </span>
+                    @if (!string.IsNullOrEmpty(item.ContactName))
+                    {
+                        <span class="@($"{this.ContactClass(item)} ec-cell-sub ec-cell-act-contact")" data-tooltip-overflow>@item.ContactName</span>
+                    }
+                </text>,
+            },
+            ActColumn.MainFile => new EcColumn<ActListItem>
+            {
+                Header = "Soubor",
+                Width = "var(--ec-list-col-main-file)",
+                CellClass = "ec-cell-main-file",
+                Cell = item =>@<text>
+                    @if (item.MainFile is { } main)
+                    {
+                        @* Inside the row's link: the click opens the preview and never follows the row. *@
+                        <button type="button" class="ec-main-file" aria-label="@main.FileName" data-tooltip="@main.FileName"
+                                @onclick="() => this.OpenMainFile(item.ActId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
+                            <EcFileIcon FileName="@main.FileName" Size="EcFileIconSize.Compact" />
+                        </button>
+                    }
+                </text>,
             },
             ActColumn.Direction => new EcColumn<ActListItem>
             {
@@ -78,47 +119,13 @@
                     }
                 </text>,
             },
-            ActColumn.ActWithLabels => new EcColumn<ActListItem>
+            ActColumn.Changed => new EcColumn<ActListItem>
             {
-                Header = "Úkon",
-                Width = "minmax(0, 1fr)",
-                SortKey = nameof(ActSortKey.Title),
-                Primary = true,
-                Cell = item =>@<text>
-                    <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
-                    <LabelChips Labels="item.Labels" />
-                </text>,
-            },
-            ActColumn.ActAndCase => new EcColumn<ActListItem>
-            {
-                Header = "Úkon a spis",
-                Width = "minmax(0, 1fr)",
-                SortKey = nameof(ActSortKey.Title),
-                Primary = true,
-                CellClass = "ec-cell-stack",
-                Cell = item =>@<text>
-                    <span class="ec-cell-line">
-                        <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
-                        <LabelChips Labels="item.Labels" />
-                    </span>
-                    <span class="ec-cell-text ec-cell-sub" data-tooltip-overflow>@item.CaseTitle</span>
-                </text>,
-            },
-            ActColumn.MainFile => new EcColumn<ActListItem>
-            {
-                Header = "Soubor",
-                Width = "var(--ec-list-col-main-file)",
-                CellClass = "ec-cell-main-file",
-                Cell = item =>@<text>
-                    @if (item.MainFile is { } main)
-                    {
-                        @* Inside the row's link: the click opens the preview and never follows the row. *@
-                        <button type="button" class="ec-main-file" aria-label="@main.FileName" data-tooltip="@main.FileName"
-                                @onclick="() => this.OpenMainFile(item.ActId, main.FileId)" @onclick:preventDefault @onclick:stopPropagation>
-                            <EcFileIcon FileName="@main.FileName" Size="EcFileIconSize.Compact" />
-                        </button>
-                    }
-                </text>,
+                Header = "Změněno",
+                Width = "var(--ec-list-col-moment)",
+                SortKey = nameof(ActSortKey.Changed),
+                CellClass = "ec-cell-num ec-cell-changed",
+                Cell = item =>@<ChangedMoment Moment="item.Changed" />,
             },
             _ => throw new UnreachableException(),
         });
