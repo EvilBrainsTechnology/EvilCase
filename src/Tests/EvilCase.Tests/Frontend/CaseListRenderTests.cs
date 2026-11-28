@@ -141,6 +141,40 @@ public class CaseListRenderTests
         }
     }
 
+    [Test]
+    public async Task AListOnlyItsDefaultStatusEmptiesKeepsItsToolbar()
+    {
+        await using var ctx = new BunitContext();
+        ServeByStatus(ctx, openCount: 0, allCount: 2);
+
+        var component = RenderChildren(ctx);
+
+        await component.WaitForElementAsync(".ec-empty");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("#children-status"), Has.Count.EqualTo(1), "the closed cases stay reachable through the status select");
+            Assert.That(component.Find(".ec-empty").TextContent, Does.Contain("Filtru neodpovídá žádný spis."), "the list says the filter hides its cases");
+        }
+    }
+
+    [Test]
+    public async Task AListWithNoCaseInAnyStatusHidesItsToolbar()
+    {
+        await using var ctx = new BunitContext();
+        ServeByStatus(ctx, openCount: 0, allCount: 0);
+
+        var component = RenderChildren(ctx);
+
+        await component.WaitForElementAsync(".ec-empty");
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(component.FindAll("#children-status"), Is.Empty, "an empty list offers no filter");
+            Assert.That(component.Find(".ec-empty").TextContent, Does.Contain("Zatím tu není žádný podřízený spis."));
+        }
+    }
+
     private static readonly CaseListItem Row = new()
     {
         CaseId = Guid.CreateVersion7(),
@@ -173,6 +207,33 @@ public class CaseListRenderTests
         ctx.Services.AddSingleton(casesClient);
 
         requests = captured;
+    }
+
+    private static void ServeByStatus(BunitContext ctx, int openCount, int allCount)
+    {
+        var casesClient = Substitute.For<ICasesClient>();
+        casesClient
+            .ListCases(Arg.Any<CaseListRequest>(), Arg.Any<CancellationToken>())
+            .Returns(call =>
+            {
+                var total = call.Arg<CaseListRequest>().Status == CaseStatusFilter.All ? allCount : openCount;
+
+                return Task.FromResult(new CaseListResponse { Items = [.. Enumerable.Repeat(Row, total)], TotalCount = total });
+            });
+
+        ctx.Services.AddSingleton(casesClient);
+    }
+
+    private static IRenderedComponent<CaseList> RenderChildren(BunitContext ctx)
+    {
+        return ctx.Render<CaseList>(static parameters => parameters
+            .Add(static list => list.Columns, [CaseColumn.Case])
+            .Add(static list => list.Filter, new CaseListRequest { ParentCaseId = Guid.CreateVersion7(), Take = 20 })
+            .Add(static list => list.InputPrefix, "children")
+            .Add(static list => list.ShowSearch, value: true)
+            .Add(static list => list.ShowStatusFilter, value: true)
+            .Add(static list => list.HideToolbarWhenEmpty, value: true)
+            .Add(static list => list.EmptyText, "Zatím tu není žádný podřízený spis."));
     }
 
     private static IRenderedComponent<CaseList> Render(

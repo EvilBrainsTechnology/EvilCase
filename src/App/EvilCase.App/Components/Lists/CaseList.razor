@@ -12,23 +12,26 @@
     {
         columns.Add(column switch
         {
-            CaseColumn.Changed => new EcColumn<CaseListItem>
-            {
-                Header = "Změněno",
-                Width = "var(--ec-list-col-moment)",
-                SortKey = nameof(CaseSortKey.Changed),
-                CellClass = "ec-cell-num",
-                Cell = item =>@<ChangedMoment Moment="item.Changed" />,
-            },
             CaseColumn.Date => new EcColumn<CaseListItem>
             {
-                Header = "Datum spisu",
+                Header = this.DateHeader,
                 Width = "var(--ec-list-col-date)",
                 SortKey = nameof(CaseSortKey.Date),
                 CellClass = "ec-cell-num ec-cell-date",
                 Cell = item =>@<text>@DateDisplay.Text(item.Date)</text>,
             },
             CaseColumn.Case => new EcColumn<CaseListItem>
+            {
+                Header = "Spis",
+                Width = "minmax(0, 1fr)",
+                SortKey = nameof(CaseSortKey.Title),
+                Primary = true,
+                Cell = item =>@<text>
+                    <span class="ec-cell-text" data-tooltip-overflow>@item.Title</span>
+                    <LabelChips Labels="item.Labels" />
+                </text>,
+            },
+            CaseColumn.CaseWithParent => new EcColumn<CaseListItem>
             {
                 Header = "Spis",
                 Width = "minmax(0, 1fr)",
@@ -53,12 +56,20 @@
                 CellClass = "ec-cell-glyph",
                 Cell = item =>@<EcBadge Tone="CaseStatusDisplay.Tone(item.Status)" Text="@CaseStatusDisplay.Text(item.Status)" ShowDot="true" Compact="true" />,
             },
+            CaseColumn.Changed => new EcColumn<CaseListItem>
+            {
+                Header = "Změněno",
+                Width = "var(--ec-list-col-moment)",
+                SortKey = nameof(CaseSortKey.Changed),
+                CellClass = "ec-cell-num",
+                Cell = item =>@<ChangedMoment Moment="item.Changed" />,
+            },
             _ => throw new UnreachableException(),
         });
     }
 }
 
-<EcTable TItem="CaseListItem"
+<EcTable TItem="CaseListItem" Id="@this.Id"
          Title="@this.Title" Actions="this.Actions"
          ShowToolbar="this.ToolbarShown"
          Columns="columns" Items="this.items" RowHref="RowHref"
@@ -173,8 +184,18 @@
     [Parameter, EditorRequired]
     public required CaseListRequest Filter { get; set; }
 
+    /// <summary>
+    /// Heads the date column; a list of one case's children names no case.
+    /// </summary>
+    [Parameter]
+    public string DateHeader { get; set; } = "Datum spisu";
+
     [Parameter]
     public string? Title { get; set; }
+
+    /// <summary>The target of a section anchor.</summary>
+    [Parameter]
+    public string? Id { get; set; }
 
     [Parameter]
     public RenderFragment? Actions { get; set; }
@@ -234,6 +255,8 @@
 
     private CaseListRequest? seeded;
 
+    private bool hiddenByStatus;
+
     protected override int PageSize => this.Filter.Take;
 
     protected override string FailureText => "Seznam spisů se nepodařilo načíst. Zkuste to za chvíli znovu.";
@@ -244,7 +267,7 @@
 
     private bool IsEmptyUnfiltered => !this.Loading && this.Failure is null && this.Total == 0 && !this.IsFiltered;
 
-    private bool IsFiltered => this.Search is not null || this.status != this.Filter.Status || this.scope != this.Filter.Scope
+    private bool IsFiltered => this.hiddenByStatus || this.Search is not null || this.status != this.Filter.Status || this.scope != this.Filter.Scope
         || this.ActiveFilterCount > 0;
 
     protected override void OnInitialized()
@@ -285,6 +308,10 @@
         var response = await this.CasesClient.ListCases(request, token);
 
         this.items = response.Items;
+
+        // A list the status alone empties keeps its toolbar, so the cases of the other states stay reachable.
+        this.hiddenByStatus = this.HideToolbarWhenEmpty && response.TotalCount == 0 && this.status != CaseStatusFilter.All
+            && (await this.CasesClient.ListCases(request with { Status = CaseStatusFilter.All, Skip = 0, Take = 1 }, token)).TotalCount > 0;
 
         await this.TotalChanged.InvokeAsync(response.TotalCount);
 
