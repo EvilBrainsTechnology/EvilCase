@@ -45,7 +45,7 @@ public class ActListRenderTests
         {
             Assert.That(preview.Instance.FileId, Is.EqualTo(Main.FileId));
             Assert.That(preview.Instance.Files.Select(static file => file.FileId), Is.EqualTo([Main.FileId]), "the preview pages over no other file of the act");
-            Assert.That(component.FindComponent<MainFilePreview>().Instance.OwnerId, Is.EqualTo(withMain));
+            Assert.That(component.FindComponent<MainFilePreview>().Instance.ActId, Is.EqualTo(withMain));
         }
     }
 
@@ -120,7 +120,6 @@ public class ActListRenderTests
 
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(actFilesClient);
-        ctx.Services.AddSingleton(Substitute.For<ICaseFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
         ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
 

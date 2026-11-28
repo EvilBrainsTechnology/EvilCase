@@ -5,7 +5,7 @@
 
 @* The card is itself the drop zone (files.js). *@
 <div class="@(this.Compact ? "ec-file-card ec-file-card-compact" : "ec-file-card")" id="@this.Id" @ref="this.card">
-    <EcCard Title="@this.Title">
+    <EcCard Title="Soubory úkonu">
         <Header>
             @if (!this.Compact && this.State.Loaded && this.State.ListFailure is null)
             {
@@ -97,7 +97,7 @@
                                 <EcFileIcon FileName="@file.FileName" Size="@this.IconSize" />
                                 @if (renaming)
                                 {
-                                    <FileRenameField FileName="@file.FileName" Rename="(name, token) => this.State.Owner.RenameFile(file, name, token)"
+                                    <FileRenameField FileName="@file.FileName" Rename="(name, token) => this.State.RenameFile(file, name, token)"
                                                      OnRenamed="this.FileRenamed" OnCancel="this.CancelRename" />
                                 }
                                 else
@@ -128,7 +128,7 @@
 
     <div class="ec-file-drop-overlay" aria-hidden="true">
         <span class="ec-file-drop-badge"><EcIcon Paths="@AppIcons.Upload" Size="EcIconSize.Large" /></span>
-        <span class="ec-file-drop-title">Pusťte soubory a nahrají se @this.UploadTarget</span>
+        <span class="ec-file-drop-title">Pusťte soubory a nahrají se k úkonu</span>
         <span class="ec-file-drop-limits">Nejvýše @FileBatchUploader.MaxBatchFiles souborů, každý do @FileSizeDisplay.Text(FileLimits.MaxUploadBytes)</span>
     </div>
 </div>
@@ -140,7 +140,7 @@
 {
     <FilePreviewModal Files="this.State.Items" FileId="previewId" FileIdChanged="this.PreviewFile"
                       Version="this.previewVersion" VersionChanged="this.PreviewVersion"
-                      LoadContent="this.State.LoadFileContent" Rename="this.State.Owner.RenameFile"
+                      LoadContent="this.State.LoadFileContent" Rename="this.State.RenameFile"
                       LoadVersions="this.State.ListFileVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion"
                       OnManageVersions="this.ManageVersions" OnDownload="this.Download" OnRenamed="this.FileRenamed" ChangeMain="this.ChangeMain"
                       OnDelete="this.ConfirmDelete" EditOnOpen="this.previewEdits" CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
@@ -156,36 +156,15 @@
 
 @if (this.deleting is { } file)
 {
-    <FileDeleteConfirm File="file" Delete="this.State.Owner.DeleteFile" OpenChanged="this.CloseDelete" OnDone="this.FileDeleted" />
+    <FileDeleteConfirm File="file" Delete="this.State.DeleteFile" OpenChanged="this.CloseDelete" OnDone="this.FileDeleted" />
 }
 
 @code {
-    [Parameter, EditorRequired]
-    public required string Title { get; set; }
-
     /// <summary>
     /// The list, its highlights, notices and errors, which outlive the card when it moves, and the operations on its files.
     /// </summary>
     [Parameter, EditorRequired]
     public required FilesCardState State { get; set; }
-
-    /// <summary>
-    /// Lower case: it follows the file name and a colon.
-    /// </summary>
-    [Parameter, EditorRequired]
-    public required string OwnerGoneError { get; set; }
-
-    /// <summary>
-    /// Follows "nahrají se": "k úkonu", "ke spisu".
-    /// </summary>
-    [Parameter, EditorRequired]
-    public required string UploadTarget { get; set; }
-
-    /// <summary>
-    /// The archive of the card's files, current versions only (<see cref="FileUrl"/>).
-    /// </summary>
-    [Parameter, EditorRequired]
-    public required string ArchiveUrl { get; set; }
 
     /// <summary>
     /// The 380 px side column: a short upload label and icon-only file actions.
@@ -220,6 +199,9 @@
     private Guid? versionsFileId;
 
     private string UploadLabel => this.Compact ? "Nahrát" : "Nahrát soubory";
+
+    // The archive of the act's files, current versions only.
+    private string ArchiveUrl => FileUrl.ActArchive(this.State.ActId);
 
     private EcFileIconSize IconSize => this.Compact ? EcFileIconSize.Compact : EcFileIconSize.Standard;
 

@@ -44,7 +44,7 @@ public class NewActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var component = RenderForCase(ctx);
+        var component = RenderInCase(ctx);
 
         await component.Find("#act-direction-outgoing").ClickAsync(new MouseEventArgs());
 
@@ -56,7 +56,7 @@ public class NewActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var component = RenderForCase(ctx);
+        var component = RenderInCase(ctx);
 
         await component.Find("#act-status-sent").ClickAsync(new MouseEventArgs());
         await component.Find("#act-direction-outgoing").ClickAsync(new MouseEventArgs());
@@ -69,14 +69,14 @@ public class NewActRenderTests
     {
         await using var ctx = new BunitContext();
 
-        var component = RenderForCase(ctx);
+        var component = RenderInCase(ctx);
 
         await component.Find("#act-direction-incoming").ClickAsync(new MouseEventArgs());
 
         Assert.That(Pressed(component), Is.Empty, "only an outgoing act gets a status prefilled");
     }
 
-    private static IRenderedComponent<NewAct> RenderForCase(BunitContext ctx)
+    private static IRenderedComponent<NewAct> RenderInCase(BunitContext ctx)
     {
         var caseId = Guid.CreateVersion7();
 

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net;
 using Bunit;
 using EvilBrains.ApiClient;
@@ -616,13 +615,7 @@ public class FilesCardRenderTests
 
     private sealed class Card
     {
-        public string Title { get; init; } = "Soubory spisu";
-
-        public string UploadTarget { get; init; } = "ke spisu";
-
         public bool Compact { get; init; }
-
-        public string ArchiveUrl { get; init; } = "/api/cases/1/files/archive";
 
         public IReadOnlyList<FileListItem> Files { get; init; } = [];
 
@@ -650,8 +643,8 @@ public class FilesCardRenderTests
         {
             var files = this.Files;
             var loadFiles = this.LoadFiles ?? (_ => Task.FromResult(files));
-            var caseId = Guid.NewGuid();
-            var caseFiles = Substitute.For<ICaseFilesClient>();
+            var actId = Guid.NewGuid();
+            var actFiles = Substitute.For<IActFilesClient>();
             var fileVersions = Substitute.For<IFileVersionsClient>();
             var mainFiles = Substitute.For<IMainFileClient>();
             FilesCardState? state = null;
@@ -662,11 +655,11 @@ public class FilesCardRenderTests
                 return state!.Items.Single(file => file.FileId == fileId);
             }
 
-            caseFiles.ListCaseFiles(caseId, Arg.Any<CancellationToken>())
+            actFiles.ListActFiles(actId, Arg.Any<CancellationToken>())
                 .Returns(async call => new FileListResponse { Items = await loadFiles(call.Arg<CancellationToken>()) });
-            caseFiles.RenameCaseFile(caseId, Arg.Any<Guid>(), Arg.Any<FileRenameRequest>(), Arg.Any<CancellationToken>())
+            actFiles.RenameActFile(actId, Arg.Any<Guid>(), Arg.Any<FileRenameRequest>(), Arg.Any<CancellationToken>())
                 .Returns(async call => await this.RenameFile(Listed(call.ArgAt<Guid>(1)), call.Arg<FileRenameRequest>().FileName, call.Arg<CancellationToken>()));
-            caseFiles.DeleteCaseFile(caseId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            actFiles.DeleteActFile(actId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                 .Returns(async call => await this.DeleteFile(Listed(call.ArgAt<Guid>(1)), call.Arg<CancellationToken>()));
             fileVersions.ListFileVersions(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                 .Returns(async call => new FileVersionListResponse { Items = await this.LoadFileVersions(Listed(call.Arg<Guid>()), call.Arg<CancellationToken>()) });
@@ -681,28 +674,19 @@ public class FilesCardRenderTests
 
             var fileTransfer = new Transfer(this, Listed);
 
-            state = new FilesCardState(new CaseFileOwner(caseId, caseFiles, fileTransfer), fileTransfer, fileVersions, mainFiles);
+            state = new FilesCardState(actId, actFiles, fileTransfer, fileVersions, mainFiles);
 
             return ctx.Render<FilesCard>(parameters => parameters
-                .Add(static card => card.Title, this.Title)
                 .Add(static card => card.State, state)
-                .Add(static card => card.OwnerGoneError, "spis už neexistuje.")
-                .Add(static card => card.UploadTarget, this.UploadTarget)
-                .Add(static card => card.ArchiveUrl, this.ArchiveUrl)
                 .Add(static card => card.Compact, this.Compact));
         }
     }
 
     private sealed class Transfer(Card card, Func<Guid, FileListItem> listed) : IFileTransferClient
     {
-        public async Task<FileUploadResult> UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
+        public async Task<FileUploadResult> UploadActFile(Guid actId, IBrowserFile file, CancellationToken token)
         {
             return await card.UploadFile(file, token);
-        }
-
-        public Task<FileUploadResult> UploadActFile(Guid actId, IBrowserFile file, CancellationToken token)
-        {
-            throw new UnreachableException();
         }
 
         public async Task<FileUploadResult> UploadFileVersion(Guid fileId, IBrowserFile file, CancellationToken token)

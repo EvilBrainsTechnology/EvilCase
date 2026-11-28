@@ -55,8 +55,7 @@ public partial class FilesCard
         {
             await FileBatchUploader.Run(
                 args,
-                this.State.Owner.UploadFile,
-                this.OwnerGoneError,
+                this.State.UploadFile,
                 this.State.Failures,
                 (index, name) =>
                 {

@@ -1,14 +1,13 @@
-@using System.Diagnostics
 @using EvilBrains.EvilCase.Api.Contract.Files
 @inject IFilesStates FilesStates
 @inject IBrowserFiles BrowserFiles
 @inject ILogger<MainFilePreview> Logger
 
-@* One file of a case or an act, previewed outside its files card: no paging over the owner's other files,
-   and the operations of the card's preview on the owner's own files. *@
+@* One file of an act, previewed outside its files card: no paging over the act's other files,
+   and the operations of the card's preview on the act's own files. *@
 @if (this.state.ListFailure is { } failure)
 {
-    <EcModal Title="@(this.Owner == FileOwnerKind.Case ? "Soubor spisu" : "Soubor úkonu")" Open OpenChanged="this.Close">
+    <EcModal Title="Soubor úkonu" Open OpenChanged="this.Close">
         <div class="ec-card-error">
             <div class="ec-alert" role="alert"><EcIcon Paths="@AppIcons.AlertTriangle" />@failure</div>
             <EcButton Variant="EcButtonVariant.Secondary" Size="EcButtonSize.Compact" Icon="@AppIcons.Refresh" OnClick="this.Reload">Zkusit znovu</EcButton>
@@ -20,7 +19,7 @@ else if (this.File is { } file)
     if (this.previewing)
     {
         <FilePreviewModal Files="[file]" FileId="file.FileId" Version="this.previewVersion" VersionChanged="this.PreviewVersion"
-                          LoadContent="this.state.LoadFileContent" Rename="this.state.Owner.RenameFile"
+                          LoadContent="this.state.LoadFileContent" Rename="this.state.RenameFile"
                           LoadVersions="this.state.ListFileVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion" OnManageVersions="this.ManageVersions"
                           OnDownload="this.Download" OnRenamed="this.Changed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
                           CompareOnOpen="this.previewCompares" Open OpenChanged="this.ClosePreview" />
@@ -36,22 +35,19 @@ else if (this.File is { } file)
 
     if (this.deleting)
     {
-        <FileDeleteConfirm File="file" Delete="this.state.Owner.DeleteFile" OpenChanged="this.CloseDelete" OnDone="this.Deleted" />
+        <FileDeleteConfirm File="file" Delete="this.state.DeleteFile" OpenChanged="this.CloseDelete" OnDone="this.Deleted" />
     }
 }
 
 @code {
     [Parameter, EditorRequired]
-    public FileOwnerKind Owner { get; set; }
-
-    [Parameter, EditorRequired]
-    public Guid OwnerId { get; set; }
+    public Guid ActId { get; set; }
 
     [Parameter, EditorRequired]
     public Guid FileId { get; set; }
 
     /// <summary>
-    /// A change the owner's list shows: a rename, a new version, the main mark or a delete.
+    /// A change the act's list shows: a rename, a new version, the main mark or a delete.
     /// </summary>
     [Parameter]
     public EventCallback OnChanged { get; set; }
@@ -76,12 +72,7 @@ else if (this.File is { } file)
 
     protected override async Task OnInitializedAsync()
     {
-        this.state = this.Owner switch
-        {
-            FileOwnerKind.Case => this.FilesStates.ForCase(this.OwnerId),
-            FileOwnerKind.Act => this.FilesStates.ForAct(this.OwnerId),
-            _ => throw new UnreachableException(),
-        };
+        this.state = this.FilesStates.ForAct(this.ActId);
 
         await this.Reload();
     }

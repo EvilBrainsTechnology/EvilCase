@@ -138,15 +138,13 @@ public class FilesCardStateTests
 
     private static FilesCardState State(Func<CancellationToken, Task<IReadOnlyList<FileListItem>>> loadFiles)
     {
-        var caseId = Guid.CreateVersion7();
-        var caseFiles = Substitute.For<ICaseFilesClient>();
+        var actId = Guid.CreateVersion7();
+        var actFiles = Substitute.For<IActFilesClient>();
 
-        caseFiles.ListCaseFiles(caseId, Arg.Any<CancellationToken>())
+        actFiles.ListActFiles(actId, Arg.Any<CancellationToken>())
             .Returns(async call => new FileListResponse { Items = await loadFiles(call.Arg<CancellationToken>()) });
 
-        var fileTransfer = new StubFileTransferClient();
-
-        return new FilesCardState(new CaseFileOwner(caseId, caseFiles, fileTransfer), fileTransfer, Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
+        return new FilesCardState(actId, actFiles, new StubFileTransferClient(), Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
     }
 
     private static FileListItem File()

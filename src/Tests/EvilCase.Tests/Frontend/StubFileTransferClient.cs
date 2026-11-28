@@ -11,11 +11,6 @@ namespace EvilBrains.EvilCase.Tests.Frontend;
 /// </summary>
 internal sealed class StubFileTransferClient : IFileTransferClient
 {
-    public Task<FileUploadResult> UploadCaseFile(Guid caseId, IBrowserFile file, CancellationToken token)
-    {
-        return Task.FromResult(Stored(file, FileUploadOutcome.NewFile, 1));
-    }
-
     public Task<FileUploadResult> UploadActFile(Guid actId, IBrowserFile file, CancellationToken token)
     {
         return Task.FromResult(Stored(file, FileUploadOutcome.NewFile, 1));

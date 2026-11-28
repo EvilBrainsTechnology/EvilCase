@@ -13,14 +13,6 @@ internal static class FileUrl
     }
 
     /// <summary>
-    /// The archive of the case's own files, current versions only.
-    /// </summary>
-    public static string CaseArchive(Guid caseId)
-    {
-        return $"/api/cases/{caseId}/files/archive";
-    }
-
-    /// <summary>
     /// The archive of the act's files, current versions only.
     /// </summary>
     public static string ActArchive(Guid actId)
