@@ -2,22 +2,25 @@ namespace EvilBrains.EvilCase.App.Components.Lists;
 
 public enum ActColumn
 {
-    Changed = 0,
+    Date = 0,
 
-    Date = 1,
+    ActWithCase = 1,
 
-    Direction = 4,
-
-    Contact = 5,
-
-    ActWithLabels = 9,
-
-    ActAndCase = 11,
-
-    Status = 12,
+    /// <summary>
+    /// The title with its labels and the act's contact below it, measured against the case's counterparty.
+    /// </summary>
+    ActWithContact = 2,
 
     /// <summary>
     /// The act's main file, opened in a preview from the row.
     /// </summary>
-    MainFile = 13,
+    MainFile = 3,
+
+    Direction = 4,
+
+    Status = 5,
+
+    Contact = 6,
+
+    Changed = 7,
 }

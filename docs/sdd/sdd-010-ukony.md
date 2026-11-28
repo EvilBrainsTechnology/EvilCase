@@ -59,8 +59,8 @@ kontakt. Zadává se na editaci úkonu.
   zruší.
 - Seznam úkonů jde napříč spisy a zužuje se spisem, stavem spisu, kontaktem, štítkem, směrem,
   stavem a rozsahem dat; v detailu spisu je zúžený tímto spisem. Ukazuje datum, název, štítky (SDD-019), hlavní
-  soubor, směr, stav, kontakt a okamžik poslední změny; podobu v detailu
-  spisu řídí SDD-009.
+  soubor, směr, stav, kontakt a okamžik poslední změny. V detailu spisu stojí kontakt na druhém
+  řádku pod názvem místo vlastního sloupce; podobu tam řídí SDD-009.
 - Každý seznam úkonů nese hned za názvem úzký sloupec Soubor s hlavním souborem úkonu (SDD-012):
   tlačítko v podobě barevné dlaždice typu souboru jako v kartě souborů, orámované barvou typu,
   které najetí myší ztmaví; jeho popisek a tooltip jmenují soubor; tooltip je bublina jako u porovnání verzí. Klik otevře náhled

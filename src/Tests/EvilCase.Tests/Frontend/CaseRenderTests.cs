@@ -217,7 +217,7 @@ public class CaseRenderTests
 
         var component = ctx.Render<Case>(parameters => parameters.Add(static page => page.CaseId, caseId));
 
-        string[] expected = ["Podřízené spisy 4", "Úkony 25", "Komentáře 2"];
+        string[] expected = ["Úkony 25", "Podřízené spisy 4", "Komentáře 2"];
 
         await component.WaitForAssertionAsync(
             () => Assert.That(component.FindAll(".ec-anchor").Select(AnchorText), Is.EqualTo(expected)),
@@ -234,8 +234,6 @@ public class CaseRenderTests
                 Assert.That(component.FindAll($"#{target}"), Has.Count.EqualTo(1), "an anchor leads to its section");
             }
         }
-
-        Assert.That(Normalized(component.Find(".ec-child-all").TextContent), Is.EqualTo("Všechny 4 podřízené spisy"));
     }
 
     private static string AnchorText(IElement anchor)

@@ -46,8 +46,8 @@ Aplikace má vlastní sadu komponent s prefixem `Ec`. Obrazovka skládá jen je,
 - `EcButton` — varianty `primary`, `secondary`, `ghost`, `danger`; každé tlačítko nese ikonu
   vlevo od textu. `danger` je plné tmavě červené tlačítko s bílým textem a potvrzuje smazání.
   Tlačítko jen s ikonou má `aria-label`. Tichá textová akce u položky nebo v liště (Upravit
-  a Smazat u komentáře, Zrušit filtry, Zobrazit i uzavřené) je výjimka: text bez ikony a bez
-  plochy; mazání nese barvu chyby.
+  a Smazat u komentáře, Zrušit filtry) je výjimka: text bez ikony a bez plochy; mazání nese
+  barvu chyby.
 - `EcBadge` — pilulka pro stav spisu, směr a stav úkonu, typ kontaktu, stav podpisu datové zprávy
   a podepsaného souboru a samostatný podpis, číslo verze souboru, nově nahraný soubor či verzi a aktuální verzi; stav spisu i úkonu nese barevnou tečku (Rozpracováno žlutou, Odesláno šedou), směr šipku, stav podpisu ikonu štítu.
   Neplatný podpis nese barvu chyby, samostatný podpis barvu podpisového souboru.
@@ -97,15 +97,16 @@ jeho záhlaví.
 Detail spisu i úkonu začíná kartou se jménem, stavem, popisem a řádkem údajů. Popis je hned pod
 názvem, ne v postranním sloupci; bez popisu jde pod název rovnou řádek údajů. Chybějící údaj je
 světlá pomlčka jako v seznamu. Adresa začínající http:// nebo https:// je v popisu i v komentáři
-odkaz, který se otevře na nové kartě. Obsah, který patří spisu, je v pravém sloupci. Karta
+odkaz, který se otevře na nové kartě. Detail spisu nese pod kartou dva stejně široké sloupce
+jako detail kontaktu: vlevo úkony, vpravo podřízené spisy; pod nimi přes celou šířku komentáře
+spisu v plné podobě. Na detailu úkonu je obsah, který patří spisu, v pravém sloupci. Karta
 souborů je jen v detailu úkonu a se soubory leží v hlavním sloupci (SDD-012); obsah, který patří
 úkonu, je uvnitř úkonu. Dvakrát proto existují jen komentáře a název to vždycky říká: „Komentáře
 spisu" a „Komentáře úkonu".
 
 Další akce detailu jsou v nabídce `EcMenu` vedle hlavní akce; smazání je v ní poslední
 a oddělené. Spisovou značku, číslo jednací i externí značky v řádku údajů jde zkopírovat
-tlačítkem vedle hodnoty. Soubory a komentáře v bočním sloupci jsou kompaktní: pole pro nový
-komentář má dva řádky.
+tlačítkem vedle hodnoty. Soubory v bočním sloupci jsou kompaktní.
 
 Karta souborů nese v záhlaví počet, výzvu „Přetáhněte soubory sem nebo", tlačítko Nahrát soubory
 a dělené tlačítko Stáhnout vše se šipkou nabídky, v bočním sloupci jen název a Nahrát; záhlaví
@@ -168,8 +169,9 @@ v řádku názvu vpravo. Na detailu má název celý řádek, pod ním stav vlev
 vpravo. Štítky jsou chipy jen pro čtení; tužka v řádku Štítky a pole Štítky ve formuláři otevřou
 spodní panel se všemi štítky, kde klepnutí štítek přidá nebo odebere a Hotovo panel zavře. Pod
 hlavičkou detailu je řádek kotev se sekcemi a jejich počty, který se posouvá vodorovně; klepnutí
-doscrolluje na sekci. Sekce jdou jednou pod druhou: na spisu Podřízené spisy (tři řádky
-a tlačítko na zbytek), Úkony, Komentáře; na úkonu Soubory, Komentáře, Průběh spisu, Spis.
+doscrolluje na sekci. Sekce i kotvy jdou jednou pod druhou: na spisu Úkony, Podřízené spisy
+(hledání, výběr Stav a Řazení, řádky jako v seznamu spisů, Nový podřízený spis jako tlačítko
+jen s ikonou), Komentáře; na úkonu Soubory, Komentáře, Průběh spisu, Spis.
 Dlaždice počtů na přehledu tvoří jeden řádek tří stejných buněk jen s počtem a popiskem; každá
 buňka vede na svůj seznam. Řádek souboru nese ikonu, název na až dva řádky, metadata na jednom
 řádku a tichou nabídku ⋯ (SDD-012). Nabídka akcí a výběr verze jsou spodní panel od okraje

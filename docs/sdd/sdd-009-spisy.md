@@ -54,18 +54,21 @@ kontakt. Zadává se na editaci spisu.
   dělají dlaždice přehledu (SDD-015). Příchod na adresu seznamu nastaví všechny filtry podle
   adresy; co adresa nezmiňuje, má výchozí hodnotu.
 - `/cases/new` — založení, včetně kontaktu a štítků; `?parent={id}` zakládá podřízený spis.
-- `/cases/{id}` — detail: údaje, štítky, podřízené spisy, úkony (SDD-010) a komentáře (SDD-013);
+- `/cases/{id}` — detail: údaje, štítky, úkony (SDD-010), podřízené spisy a komentáře (SDD-013);
   soubory nenese. Řádek údajů nese spisovou značku i externí značku a obě jde zkopírovat.
   Nabídka vedle Upravit spis nese Nový úkon, Nový podřízený spis, Zkopírovat odkaz na spis
   a Smazat spis.
 - `/cases/{id}/edit` — editace, včetně kontaktu, štítků a rodiče.
-- Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem, hlavní
-  soubor, směr, stav, kontakt a okamžik poslední změny (SDD-010). Kontakt, který je protistranou
-  spisu, je potlačený; jiný kontakt je zvýrazněný. Lišta nese hledání a směr; rozsah dat
+- Úkony v detailu spisu ukazují datum, název se štítky jako drobnými značkami s názvem a pod ním
+  kontakt, hlavní soubor, směr, stav a okamžik poslední změny (SDD-010). Kontakt, který je
+  protistranou spisu, je šedý; jiný kontakt je tmavý. Lišta nese hledání a směr; rozsah dat
   a štítky jsou pod tlačítkem Filtry, které je ve výchozím stavu sbalené a nese počet
-  aktivních filtrů.
-- Podřízené spisy v detailu spisu ukazují počet otevřených a uzavřených a ve výchozím stavu jen
-  otevřené (vše kromě uzavřených); přepínač ukáže i uzavřené.
+  aktivních filtrů. Seznam je stránkovaný po 20 a nese Nový úkon.
+- Podřízené spisy v detailu spisu jsou seznam spisů zúžený tímto spisem: datum, název se štítky
+  bez názvu rodiče, stav a okamžik poslední změny. Lišta nese hledání a výběr Stav s volbami
+  seznamu `/cases`; výchozí je Otevřené. Seznam je stránkovaný po 20 a nese Nový podřízený spis.
+  Spis bez podřízených spisů ukazuje místo lišty a seznamu jednu větu; spis, jehož podřízené
+  spisy skryje jen výchozí stav, lištu nechává.
 - Žádný seznam spisů nenese sloupec Soubor.
 
 ### Mazání
@@ -85,8 +88,9 @@ Mazání řídí matice v SDD-007. Potvrzení jednou větou jmenuje, co kaskáda
 - Externí značka: N řádků s kontaktem / jeden sloupec. Platí jeden sloupec bez kontaktu.
 - Kontakt spisu: povinný / nepovinný. Platí nepovinný.
 - Zadání kontaktu: jen editace / založení i editace. Platí obojí.
-- Podřízené spisy v detailu spisu: všechny / jen otevřené s přepínačem. Platí jen otevřené
-  s přepínačem.
+- Podřízené spisy v detailu spisu: karta / seznam spisů. Platí seznam spisů s výběrem stavu,
+  výchozí Otevřené.
+- Kontakt úkonu v detailu spisu: sloupec / řádek pod názvem. Platí řádek pod názvem.
 - Číslo jednací a spisová značka v seznamech: ukázat / vynechat. Platí vynechat; ukazuje je
   detail.
 

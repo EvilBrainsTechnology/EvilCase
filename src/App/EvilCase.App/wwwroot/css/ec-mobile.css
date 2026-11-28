@@ -296,7 +296,6 @@
     }
 
     .ec-timeline-all,
-    .ec-child-toggle,
     .ec-comment-action {
         min-height: var(--ec-touch-min);
     }
