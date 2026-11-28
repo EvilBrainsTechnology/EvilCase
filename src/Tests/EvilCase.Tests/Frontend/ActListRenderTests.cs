@@ -121,6 +121,7 @@ public class ActListRenderTests
         ctx.Services.AddSingleton(actsClient);
         ctx.Services.AddSingleton(actFilesClient);
         ctx.Services.AddSingleton(Substitute.For<IFileVersionsClient>());
+        ctx.Services.AddSingleton(Substitute.For<IFilesClient>());
         ctx.Services.AddSingleton(Substitute.For<IMainFileClient>());
 
         return (actsClient, withMain);

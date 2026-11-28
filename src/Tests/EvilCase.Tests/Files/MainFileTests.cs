@@ -105,13 +105,28 @@ public class MainFileTests : TenantFixture
         var oldest = await this.Tenant.AddActFile(act, "b.pdf", fileId: fileIds[2]);
         await this.Tenant.AddActFile(act, "c.pdf", fileId: fileIds[1]);
 
-        var outcome = await this.writer.DeleteActFile(act.Id, main.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(main.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome, Is.EqualTo(DeleteOutcome.Deleted));
             Assert.That(await this.MainFileIds(), Is.EqualTo([oldest.Id]), "the oldest remaining file, in upload order, takes the mark");
         }
+    }
+
+    [Test]
+    public async Task DeletingTheMainFileHandsTheMarkOnWithinItsAct()
+    {
+        var @case = await this.Tenant.AddCase(Day);
+        var unmarked = await this.Tenant.AddAct(@case, Day, "Výzva");
+        await this.Tenant.AddActFile(unmarked, "a.pdf");
+        var act = await this.Tenant.AddAct(@case, Day, "Rozhodnutí");
+        var main = await this.Tenant.AddActFile(act, "b.pdf", isMain: true);
+        var remaining = await this.Tenant.AddActFile(act, "c.pdf");
+
+        await this.writer.DeleteFile(main.Id, CancellationToken.None);
+
+        Assert.That(await this.MainFileIds(), Is.EqualTo([remaining.Id]), "the mark passes to a file of the deleted file's act, never to an older file of another act");
     }
 
     [Test]
@@ -125,8 +140,8 @@ public class MainFileTests : TenantFixture
         var first = await this.Tenant.AddActFile(unmarked, "c.pdf");
         await this.Tenant.AddActFile(unmarked, "d.pdf");
 
-        await this.writer.DeleteActFile(act.Id, other.Id, CancellationToken.None);
-        await this.writer.DeleteActFile(unmarked.Id, first.Id, CancellationToken.None);
+        await this.writer.DeleteFile(other.Id, CancellationToken.None);
+        await this.writer.DeleteFile(first.Id, CancellationToken.None);
 
         Assert.That(await this.MainFileIds(), Is.EqualTo([main.Id]), "a deleted file that was not main neither moves the mark nor gives one to an act without it");
     }
@@ -137,7 +152,7 @@ public class MainFileTests : TenantFixture
         var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
         var main = await this.Tenant.AddActFile(act, "a.pdf", isMain: true);
 
-        var outcome = await this.writer.DeleteActFile(act.Id, main.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(main.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {

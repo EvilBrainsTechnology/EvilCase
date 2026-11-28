@@ -58,20 +58,16 @@ internal static class FileTools
         };
     }
 
-    [McpServerTool(Name = "rename_act_file", Destructive = false, OpenWorld = false)]
+    [McpServerTool(Name = "rename_file", Destructive = false, OpenWorld = false)]
     [Description(
-        "Renames a file of an act. Only the last path segment of fileName is kept; it must not be empty, must not exceed 256 "
-            + "characters and must be unique among the files of the act.")]
-    public static async Task<string> RenameActFile(
-        IFileWriter writer,
-        [Description("The act.")] Guid actId,
-        [Description("The file.")] Guid fileId,
-        [Description("The new name.")] FileRenameRequest request,
-        CancellationToken token)
+        "Renames a file. Only the last path segment of fileName is kept; it must not be empty, must not exceed 256 "
+            + "characters and must be unique among the files of the file's act.")]
+    public static async Task<string> RenameFile(
+        IFileWriter writer, [Description("The file.")] Guid fileId, [Description("The new name.")] FileRenameRequest request, CancellationToken token)
     {
         McpProblem.Validate(request);
 
-        var outcome = await writer.RenameActFile(actId, fileId, ValidFileName(request.FileName), token);
+        var outcome = await writer.RenameFile(fileId, ValidFileName(request.FileName), token);
 
         return Answer(outcome);
     }
@@ -90,11 +86,11 @@ internal static class FileTools
         return Answer(await writer.UnsetMainFile(fileId, token), "The file is not the main file.");
     }
 
-    [McpServerTool(Name = "delete_act_file", Destructive = true, OpenWorld = false)]
-    [Description("Deletes a file of an act with every version. Cannot be undone.")]
-    public static async Task<string> DeleteActFile(IFileWriter writer, [Description("The act.")] Guid actId, [Description("The file.")] Guid fileId, CancellationToken token)
+    [McpServerTool(Name = "delete_file", Destructive = true, OpenWorld = false)]
+    [Description("Deletes a file with every version. Cannot be undone.")]
+    public static async Task<string> DeleteFile(IFileWriter writer, [Description("The file.")] Guid fileId, CancellationToken token)
     {
-        return Answer(await writer.DeleteActFile(actId, fileId, token));
+        return Answer(await writer.DeleteFile(fileId, token));
     }
 
     [McpServerTool(Name = "restore_file_version", Destructive = false, OpenWorld = false)]
@@ -117,7 +113,7 @@ internal static class FileTools
     }
 
     [McpServerTool(Name = "delete_file_version", Destructive = true, OpenWorld = false)]
-    [Description("Deletes one version of a file. The only version is deleted only with the file (delete_act_file). Cannot be undone.")]
+    [Description("Deletes one version of a file. The only version is deleted only with the file (delete_file). Cannot be undone.")]
     public static async Task<string> DeleteFileVersion(
         IFileWriter writer, [Description("The file.")] Guid fileId, [Description("The version number.")] int number, CancellationToken token)
     {

@@ -18,7 +18,7 @@ public interface IFileWriter
 
     public Task<FileVersionDeleteOutcome> DeleteFileVersion(Guid fileId, int number, CancellationToken token);
 
-    public Task<FileRenameOutcome> RenameActFile(Guid actId, Guid fileId, string fileName, CancellationToken token);
+    public Task<FileRenameOutcome> RenameFile(Guid fileId, string fileName, CancellationToken token);
 
     /// <summary>
     /// Moves the main file mark of the file's act to the file.
@@ -33,5 +33,5 @@ public interface IFileWriter
     /// <summary>
     /// A deleted main file hands the mark to the oldest remaining file, unless another file took it meanwhile.
     /// </summary>
-    public Task<DeleteOutcome> DeleteActFile(Guid actId, Guid fileId, CancellationToken token);
+    public Task<DeleteOutcome> DeleteFile(Guid fileId, CancellationToken token);
 }

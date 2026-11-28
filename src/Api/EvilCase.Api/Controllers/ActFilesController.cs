@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using EvilBrains.ApiClient;
 using EvilBrains.EvilCase.Api.Contract.Acts;
 using EvilBrains.EvilCase.Api.Contract.Files;
-using EvilBrains.EvilCase.Business.Entities;
 using EvilBrains.EvilCase.Business.Files;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,36 +22,5 @@ public class ActFilesController : ControllerBase
         return items is null
             ? this.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound)
             : this.Ok(new FileListResponse { Items = items });
-    }
-
-    [HttpPut("{fileId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult> RenameActFile(
-        [FromServices] IFileWriter writer, [FromRoute] Guid actId, [FromRoute] Guid fileId, [FromBody] FileRenameRequest request, CancellationToken token)
-    {
-        var fileName = FileNameRules.LastSegment(request.FileName);
-
-        if (this.FileNameProblem(fileName) is { } problem)
-            return problem;
-
-        return this.RenameAnswer(await writer.RenameActFile(actId, fileId, fileName, token));
-    }
-
-    [HttpDelete("{fileId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteActFile([FromServices] IFileWriter writer, [FromRoute] Guid actId, [FromRoute] Guid fileId, CancellationToken token)
-    {
-        var outcome = await writer.DeleteActFile(actId, fileId, token);
-
-        return outcome switch
-        {
-            DeleteOutcome.Deleted => this.NoContent(),
-            DeleteOutcome.NotFound => this.Problem(statusCode: StatusCodes.Status404NotFound, title: FileProblems.NotFound),
-            _ => throw new UnreachableException(),
-        };
     }
 }

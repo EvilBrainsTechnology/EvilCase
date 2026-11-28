@@ -85,7 +85,7 @@ public class FileWriterTests : TenantFixture
         var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None));
         var storagePath = (await this.CurrentVersion(uploaded.File.FileId)).StoragePath;
 
-        var outcome = await this.writer.DeleteActFile(act.Id, uploaded.File.FileId, CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(uploaded.File.FileId, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -98,9 +98,7 @@ public class FileWriterTests : TenantFixture
     [Test]
     public async Task DeletingAMissingFileIsNotFound()
     {
-        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
-
-        var outcome = await this.writer.DeleteActFile(act.Id, Guid.CreateVersion7(), CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(Guid.CreateVersion7(), CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound));
     }
@@ -123,36 +121,19 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task AFileOfAnotherTenantsActIsNotDeleted()
+    public async Task AFileOfAnotherTenantIsNotDeleted()
     {
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
         var otherAct = await other.AddAct(otherCase, Day);
         var otherFile = await other.AddActFile(otherAct);
 
-        var outcome = await this.writer.DeleteActFile(otherAct.Id, otherFile.Id, CancellationToken.None);
+        var outcome = await this.writer.DeleteFile(otherFile.Id, CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound), "the act id alone never reaches another tenant's file");
+            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound), "the file id alone never reaches another tenant's file");
             Assert.That(await other.Context.FileAssets.AsNoTracking().AnyAsync(file => file.Id == otherFile.Id), Is.True);
-        }
-    }
-
-    [Test]
-    public async Task AFileOfAnotherActIsNotDeleted()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var actA = await this.Tenant.AddAct(@case, Day);
-        var actB = await this.Tenant.AddAct(@case, Day);
-        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None));
-
-        var outcome = await this.writer.DeleteActFile(actB.Id, uploaded.File.FileId, CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(outcome, Is.EqualTo(DeleteOutcome.NotFound), "a file of another act must not be found for delete");
-            Assert.That(await this.Tenant.Context.FileAssets.AnyAsync(file => file.Id == uploaded.File.FileId), Is.True, "the file must survive a delete naming the wrong act");
         }
     }
 
@@ -163,7 +144,7 @@ public class FileWriterTests : TenantFixture
         var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("stary.txt", content: "abc"), CancellationToken.None));
         var before = await this.CurrentVersion(uploaded.File.FileId);
 
-        var outcome = await this.writer.RenameActFile(act.Id, uploaded.File.FileId, "novy.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameFile(uploaded.File.FileId, "novy.txt", CancellationToken.None);
 
         var after = await this.Tenant.Context.FileAssets.AsNoTracking().SingleAsync(file => file.Id == uploaded.File.FileId);
         var versionAfter = await this.CurrentVersion(uploaded.File.FileId);
@@ -178,24 +159,7 @@ public class FileWriterTests : TenantFixture
     }
 
     [Test]
-    public async Task AFileOfAnotherActIsNotRenamed()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var actA = await this.Tenant.AddAct(@case, Day);
-        var actB = await this.Tenant.AddAct(@case, Day);
-        var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None));
-
-        var outcome = await this.writer.RenameActFile(actB.Id, uploaded.File.FileId, "b.txt", CancellationToken.None);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound), "a file of another act must not be found for a rename");
-            Assert.That((await this.Reload(uploaded.File.FileId)).FileName, Is.EqualTo("a.txt"));
-        }
-    }
-
-    [Test]
-    public async Task AFileOfAnotherTenantsActIsNotRenamed()
+    public async Task AFileOfAnotherTenantIsNotRenamed()
     {
         await using var other = await TestTenant.Create();
         var otherCase = await other.AddCase(Day);
@@ -203,11 +167,11 @@ public class FileWriterTests : TenantFixture
         var otherFile = await other.AddActFile(otherAct);
         var name = otherFile.FileName;
 
-        var outcome = await this.writer.RenameActFile(otherAct.Id, otherFile.Id, "b.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameFile(otherFile.Id, "b.txt", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound), "the act id alone never reaches another tenant's file");
+            Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound), "the file id alone never reaches another tenant's file");
             Assert.That((await other.Context.FileAssets.AsNoTracking().SingleAsync(file => file.Id == otherFile.Id)).FileName, Is.EqualTo(name));
         }
     }
@@ -215,9 +179,7 @@ public class FileWriterTests : TenantFixture
     [Test]
     public async Task RenamingAMissingFileIsNotFound()
     {
-        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
-
-        var outcome = await this.writer.RenameActFile(act.Id, Guid.CreateVersion7(), "a.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameFile(Guid.CreateVersion7(), "a.txt", CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(FileRenameOutcome.NotFound));
     }
@@ -384,9 +346,9 @@ public class FileWriterTests : TenantFixture
         {
             var added = UnionAssert.Holds<UploadedFile>(await this.writer.UploadFileVersion(fileId, Upload("smlouva.pdf", content: "abd"), CancellationToken.None));
             var uploader = (await this.CurrentVersion(fileId)).UserId;
-            var renamed = await this.writer.RenameActFile(act.Id, fileId, "nove.pdf", CancellationToken.None);
+            var renamed = await this.writer.RenameFile(fileId, "nove.pdf", CancellationToken.None);
             var versionDeleted = await this.writer.DeleteFileVersion(fileId, 1, CancellationToken.None);
-            var fileDeleted = await this.writer.DeleteActFile(act.Id, fileId, CancellationToken.None);
+            var fileDeleted = await this.writer.DeleteFile(fileId, CancellationToken.None);
 
             using (Assert.EnterMultipleScope())
             {
@@ -589,7 +551,7 @@ public class FileWriterTests : TenantFixture
         var fileId = uploaded.File.FileId;
         await this.writer.UploadFileVersion(fileId, Upload("a.txt", content: "b"), CancellationToken.None);
 
-        await this.writer.DeleteActFile(act.Id, fileId, CancellationToken.None);
+        await this.writer.DeleteFile(fileId, CancellationToken.None);
 
         Assert.That(await this.Tenant.Context.FileVersions.AnyAsync(version => version.FileAssetId == fileId), Is.False, "the versions go with the file");
     }
@@ -601,7 +563,7 @@ public class FileWriterTests : TenantFixture
         await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None);
         var second = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("b.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameActFile(act.Id, second.File.FileId, "A.TXT", CancellationToken.None);
+        var outcome = await this.writer.RenameFile(second.File.FileId, "A.TXT", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -616,7 +578,7 @@ public class FileWriterTests : TenantFixture
         var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
         var uploaded = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(act.Id, Upload("a.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameActFile(act.Id, uploaded.File.FileId, "A.TXT", CancellationToken.None);
+        var outcome = await this.writer.RenameFile(uploaded.File.FileId, "A.TXT", CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
         {
@@ -634,7 +596,7 @@ public class FileWriterTests : TenantFixture
         await this.writer.UploadActFile(actA.Id, Upload("a.txt"), CancellationToken.None);
         var other = UnionAssert.Holds<UploadedFile>(await this.writer.UploadActFile(actB.Id, Upload("b.txt"), CancellationToken.None));
 
-        var outcome = await this.writer.RenameActFile(actB.Id, other.File.FileId, "a.txt", CancellationToken.None);
+        var outcome = await this.writer.RenameFile(other.File.FileId, "a.txt", CancellationToken.None);
 
         Assert.That(outcome, Is.EqualTo(FileRenameOutcome.Renamed), "a name is unique within one act only");
     }

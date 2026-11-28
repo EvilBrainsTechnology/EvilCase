@@ -16,6 +16,8 @@ public sealed class FilesCardState
 {
     private readonly IActFilesClient actFiles;
 
+    private readonly IFilesClient files;
+
     private readonly IFileTransferClient fileTransfer;
 
     private readonly IFileVersionsClient fileVersions;
@@ -26,10 +28,12 @@ public sealed class FilesCardState
 
     private int uploads;
 
-    internal FilesCardState(Guid actId, IActFilesClient actFiles, IFileTransferClient fileTransfer, IFileVersionsClient fileVersions, IMainFileClient mainFiles)
+    internal FilesCardState(
+        Guid actId, IActFilesClient actFiles, IFilesClient files, IFileTransferClient fileTransfer, IFileVersionsClient fileVersions, IMainFileClient mainFiles)
     {
         this.ActId = actId;
         this.actFiles = actFiles;
+        this.files = files;
         this.fileTransfer = fileTransfer;
         this.fileVersions = fileVersions;
         this.mainFiles = mainFiles;
@@ -126,12 +130,12 @@ public sealed class FilesCardState
 
     internal async Task RenameFile(FileListItem file, string fileName, CancellationToken token)
     {
-        await this.actFiles.RenameActFile(this.ActId, file.FileId, new FileRenameRequest { FileName = fileName }, token);
+        await this.files.RenameFile(file.FileId, new FileRenameRequest { FileName = fileName }, token);
     }
 
     internal async Task DeleteFile(FileListItem file, CancellationToken token)
     {
-        await this.actFiles.DeleteActFile(this.ActId, file.FileId, token);
+        await this.files.DeleteFile(file.FileId, token);
     }
 
     /// <summary>

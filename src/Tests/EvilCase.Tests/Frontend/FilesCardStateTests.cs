@@ -144,7 +144,7 @@ public class FilesCardStateTests
         actFiles.ListActFiles(actId, Arg.Any<CancellationToken>())
             .Returns(async call => new FileListResponse { Items = await loadFiles(call.Arg<CancellationToken>()) });
 
-        return new FilesCardState(actId, actFiles, new StubFileTransferClient(), Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
+        return new FilesCardState(actId, actFiles, Substitute.For<IFilesClient>(), new StubFileTransferClient(), Substitute.For<IFileVersionsClient>(), Substitute.For<IMainFileClient>());
     }
 
     private static FileListItem File()

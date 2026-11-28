@@ -5,12 +5,13 @@ namespace EvilBrains.EvilCase.App.Components;
 
 internal sealed class FilesStates(
     IActFilesClient actFiles,
+    IFilesClient files,
     IFileTransferClient fileTransfer,
     IFileVersionsClient fileVersions,
     IMainFileClient mainFiles) : IFilesStates
 {
     public FilesCardState ForAct(Guid actId)
     {
-        return new FilesCardState(actId, actFiles, fileTransfer, fileVersions, mainFiles);
+        return new FilesCardState(actId, actFiles, files, fileTransfer, fileVersions, mainFiles);
     }
 }

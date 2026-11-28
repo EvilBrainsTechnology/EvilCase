@@ -645,6 +645,7 @@ public class FilesCardRenderTests
             var loadFiles = this.LoadFiles ?? (_ => Task.FromResult(files));
             var actId = Guid.NewGuid();
             var actFiles = Substitute.For<IActFilesClient>();
+            var filesClient = Substitute.For<IFilesClient>();
             var fileVersions = Substitute.For<IFileVersionsClient>();
             var mainFiles = Substitute.For<IMainFileClient>();
             FilesCardState? state = null;
@@ -657,10 +658,10 @@ public class FilesCardRenderTests
 
             actFiles.ListActFiles(actId, Arg.Any<CancellationToken>())
                 .Returns(async call => new FileListResponse { Items = await loadFiles(call.Arg<CancellationToken>()) });
-            actFiles.RenameActFile(actId, Arg.Any<Guid>(), Arg.Any<FileRenameRequest>(), Arg.Any<CancellationToken>())
-                .Returns(async call => await this.RenameFile(Listed(call.ArgAt<Guid>(1)), call.Arg<FileRenameRequest>().FileName, call.Arg<CancellationToken>()));
-            actFiles.DeleteActFile(actId, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-                .Returns(async call => await this.DeleteFile(Listed(call.ArgAt<Guid>(1)), call.Arg<CancellationToken>()));
+            filesClient.RenameFile(Arg.Any<Guid>(), Arg.Any<FileRenameRequest>(), Arg.Any<CancellationToken>())
+                .Returns(async call => await this.RenameFile(Listed(call.Arg<Guid>()), call.Arg<FileRenameRequest>().FileName, call.Arg<CancellationToken>()));
+            filesClient.DeleteFile(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+                .Returns(async call => await this.DeleteFile(Listed(call.Arg<Guid>()), call.Arg<CancellationToken>()));
             fileVersions.ListFileVersions(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
                 .Returns(async call => new FileVersionListResponse { Items = await this.LoadFileVersions(Listed(call.Arg<Guid>()), call.Arg<CancellationToken>()) });
             fileVersions.DeleteFileVersion(Arg.Any<Guid>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
@@ -674,7 +675,7 @@ public class FilesCardRenderTests
 
             var fileTransfer = new Transfer(this, Listed);
 
-            state = new FilesCardState(actId, actFiles, fileTransfer, fileVersions, mainFiles);
+            state = new FilesCardState(actId, actFiles, filesClient, fileTransfer, fileVersions, mainFiles);
 
             return ctx.Render<FilesCard>(parameters => parameters
                 .Add(static card => card.State, state)

@@ -137,14 +137,20 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return FileVersionDeleteOutcome.Deleted;
     }
 
-    public async Task<FileRenameOutcome> RenameActFile(Guid actId, Guid fileId, string fileName, CancellationToken token)
+    public async Task<FileRenameOutcome> RenameFile(Guid fileId, string fileName, CancellationToken token)
     {
-        var actFiles = dbSession.Current.FileAssets.OfAct(actId);
+        var files = dbSession.Current.FileAssets;
 
-        if (!await actFiles.Exists(fileId, token))
+        var actId = await files
+            .WithId(fileId)
+            .Select(static file => (Guid?)file.ActId)
+            .SingleOrDefaultAsync(token);
+
+        if (actId is null)
             return FileRenameOutcome.NotFound;
 
-        var taken = await actFiles
+        var taken = await files
+            .OfAct(actId.Value)
             .Named(fileName)
             .Where(file => file.Id != fileId)
             .AnyAsync(token);
@@ -156,7 +162,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         try
         {
-            rows = await actFiles
+            rows = await files
                 .WithId(fileId)
                 .ExecuteUpdateAsync(setters => setters.SetProperty(static file => file.FileName, fileName), token);
         }
@@ -169,7 +175,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         if (rows == 0)
             return FileRenameOutcome.NotFound;
 
-        logger.LogInformation("File {FileAssetId} was renamed on act {ActId}", fileId, actId);
+        logger.LogInformation("File {FileAssetId} was renamed on act {ActId}", fileId, actId.Value);
 
         return FileRenameOutcome.Renamed;
     }
@@ -234,11 +240,21 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return MainFileOutcome.Changed;
     }
 
-    public async Task<DeleteOutcome> DeleteActFile(Guid actId, Guid fileId, CancellationToken token)
+    public async Task<DeleteOutcome> DeleteFile(Guid fileId, CancellationToken token)
     {
-        var actFiles = dbSession.Current.FileAssets.OfAct(actId);
+        var files = dbSession.Current.FileAssets;
 
         await using var transaction = await dbSession.BeginTransaction(token);
+
+        var actId = await files
+            .WithId(fileId)
+            .Select(static file => (Guid?)file.ActId)
+            .SingleOrDefaultAsync(token);
+
+        if (actId is null)
+            return DeleteOutcome.NotFound;
+
+        var actFiles = files.OfAct(actId.Value);
 
         // Each delete checks the mark on the row it deletes, so the promotion follows the mark the file had.
         var wasMain = await actFiles
@@ -266,7 +282,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
 
         await transaction.CommitAsync(token);
 
-        logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
+        logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId.Value);
 
         return DeleteOutcome.Deleted;
     }
