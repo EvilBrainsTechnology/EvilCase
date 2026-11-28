@@ -21,6 +21,14 @@ internal static class FileUrl
     }
 
     /// <summary>
+    /// The archive of the files of the case and of every case below it, current versions only.
+    /// </summary>
+    public static string CaseArchive(Guid caseId)
+    {
+        return $"/api/cases/{caseId}/files/archive";
+    }
+
+    /// <summary>
     /// The same archive with every version of each file.
     /// </summary>
     public static string WithAllVersions(string archiveUrl)

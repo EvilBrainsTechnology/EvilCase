@@ -1,0 +1,474 @@
+/* The files of a case: the tree window and the buttons that open it (docs/design/soubory-spisu.html). */
+
+/* The files glyph on a pale accent tile: the list button and the window's heading. */
+.ec-case-files-tile {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--ec-case-files-tile);
+    height: var(--ec-case-files-tile);
+    border: var(--ec-hairline) solid var(--ec-accent-border-soft);
+    border-radius: var(--ec-case-files-tile-radius);
+    background: var(--ec-accent-soft);
+    color: var(--ec-accent);
+
+    & .ec-icon {
+        width: var(--ec-case-files-tile-glyph);
+        height: var(--ec-case-files-tile-glyph);
+    }
+}
+
+.ec-case-files-heading-tile {
+    width: var(--ec-file-icon-size);
+    height: var(--ec-file-icon-size);
+    border-radius: var(--ec-radius-lg);
+
+    & .ec-icon {
+        width: var(--ec-file-icon-glyph);
+        height: var(--ec-file-icon-glyph);
+    }
+}
+
+/* In a case list the tile is a button inside the row's link, as the act's main file is. */
+.ec-cell-case-files {
+    justify-content: center;
+}
+
+.ec-case-files {
+    position: relative;
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-case-files-tile-radius);
+    background: none;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+
+    &:hover .ec-case-files-tile {
+        background-image: linear-gradient(var(--ec-main-file-hover-shade), var(--ec-main-file-hover-shade));
+    }
+}
+
+/* The case detail carries the button in its header from lg up and a fact row below it. */
+.ec-case-files-fact {
+    display: none;
+}
+
+.ec-case-files-fact-button {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-3);
+    width: 100%;
+    min-height: var(--ec-touch-min);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    text-align: left;
+    cursor: pointer;
+
+    & .ec-case-files-fact-text {
+        flex: 1 1 auto;
+    }
+
+    & .ec-icon:last-child {
+        color: var(--ec-text-muted);
+    }
+}
+
+/* The window's heading: the case as a plain link and the count of its files. */
+.ec-case-files-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-2);
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.ec-case-files-case {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-accent-text);
+    text-decoration: none;
+    text-overflow: ellipsis;
+}
+
+.ec-case-files-total {
+    flex: none;
+}
+
+.ec-case-files-actions {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--ec-space-4);
+}
+
+.ec-case-files-expand {
+    display: contents;
+}
+
+/* Below lg one menu takes both archives. */
+.ec-case-files-download-narrow {
+    display: none;
+}
+
+.ec-case-files-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--ec-space-6);
+    overflow: auto;
+    background: var(--ec-surface);
+}
+
+/* The tree: one row per case, act and file, indented by level. */
+.ec-tree {
+    display: flex;
+    flex-direction: column;
+    border: var(--ec-hairline) solid var(--ec-border);
+    border-radius: var(--ec-radius-xl);
+    overflow: hidden;
+}
+
+.ec-tree-row {
+    --ec-tree-step: var(--ec-tree-indent);
+
+    display: flex;
+    align-items: center;
+    gap: var(--ec-space-4);
+    box-sizing: border-box;
+    min-height: var(--ec-tree-row-height);
+    padding: var(--ec-space-3) var(--ec-space-5) var(--ec-space-3) calc(var(--ec-space-5) + var(--ec-tree-depth, 0) * var(--ec-tree-step));
+    border-bottom: var(--ec-hairline) solid var(--ec-border-subtle);
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    &:hover {
+        background: var(--ec-surface-sunken);
+    }
+}
+
+.ec-tree-row-case,
+.ec-tree-row-act:has(> button.ec-tree-toggle) {
+    cursor: pointer;
+}
+
+.ec-tree-level-2 {
+    --ec-tree-depth: 1;
+}
+
+.ec-tree-level-3 {
+    --ec-tree-depth: 2;
+}
+
+.ec-tree-level-4 {
+    --ec-tree-depth: 3;
+}
+
+.ec-tree-level-5 {
+    --ec-tree-depth: 4;
+}
+
+.ec-tree-level-6 {
+    --ec-tree-depth: 5;
+}
+
+.ec-tree-level-7 {
+    --ec-tree-depth: 6;
+}
+
+.ec-tree-level-8 {
+    --ec-tree-depth: 7;
+}
+
+.ec-tree-toggle {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: var(--ec-tree-toggle);
+    height: var(--ec-tree-toggle);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ec-tree-toggle-radius);
+    background: transparent;
+    color: var(--ec-text-muted);
+    cursor: pointer;
+
+    &:hover {
+        background: var(--ec-surface-track);
+        color: var(--ec-text);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--ec-focus-ring);
+    }
+}
+
+/* A case is a solid accent tile, an act an accent outline on white: the top bar's Spisy and Úkony glyphs. */
+.ec-tree-tile {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--ec-tree-tile);
+    height: var(--ec-tree-tile);
+    border-radius: var(--ec-radius-md);
+
+    & .ec-icon {
+        width: var(--ec-tree-tile-glyph);
+        height: var(--ec-tree-tile-glyph);
+    }
+}
+
+.ec-tree-tile-case {
+    background: var(--ec-accent);
+    color: var(--ec-on-accent);
+}
+
+.ec-tree-tile-act {
+    background: var(--ec-surface);
+    color: var(--ec-accent);
+    box-shadow: inset 0 0 0 var(--ec-tree-tile-ring) var(--ec-accent);
+}
+
+.ec-tree-main {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    gap: calc(var(--ec-space-1) / 2);
+    min-width: 0;
+}
+
+.ec-tree-row-file .ec-tree-main {
+    flex: 1 1 auto;
+}
+
+.ec-tree-name {
+    align-self: flex-start;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    color: var(--ec-text);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ec-tree-name-case {
+    font-weight: var(--ec-weight-semibold);
+}
+
+.ec-tree-file-name {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: var(--ec-text-md);
+    font-weight: var(--ec-weight-medium);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        color: var(--ec-accent-text);
+    }
+
+    &:focus-visible {
+        outline: none;
+        border-radius: var(--ec-radius-sm);
+        box-shadow: var(--ec-focus-ring);
+    }
+}
+
+.ec-tree-meta {
+    overflow: hidden;
+    font-size: var(--ec-text-xs);
+    color: var(--ec-text-muted);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    & .ec-badge {
+        margin-right: var(--ec-space-3);
+        vertical-align: middle;
+    }
+}
+
+.ec-tree-date {
+    font-weight: var(--ec-weight-semibold);
+    color: var(--ec-text);
+}
+
+.ec-tree-row .ec-chips {
+    flex: none;
+}
+
+.ec-tree-spacer {
+    flex: 1 1 auto;
+}
+
+.ec-tree-status .ec-badge,
+.ec-tree-direction .ec-badge {
+    box-sizing: border-box;
+    height: var(--ec-list-badge-height);
+    padding: 0 var(--ec-list-badge-pad);
+    font-size: var(--ec-text-xs);
+}
+
+/* A direction shows as its icon chip; the tooltip names it. */
+.ec-tree-direction .ec-badge {
+    justify-content: center;
+    width: var(--ec-list-badge-height);
+    padding: 0;
+}
+
+.ec-tree-direction .ec-badge-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.ec-tree-detail {
+    display: contents;
+}
+
+/* The main file's star only marks it; it sets nothing. */
+.ec-tree-main-file {
+    display: flex;
+    flex: none;
+    color: var(--ec-text);
+
+    & .ec-icon {
+        fill: currentColor;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .ec-case-files-button {
+        display: none;
+    }
+
+    .ec-case-files-fact {
+        display: grid;
+    }
+
+    /* In a mobile list row the tile stands at the right, centred on the row, and takes its room from the title. */
+    .ec-table-row:has(> .ec-cell-case-files .ec-case-files) {
+        position: relative;
+
+        & .ec-table-cell-primary .ec-cell-text:not(.ec-cell-sub) {
+            box-sizing: border-box;
+            padding-right: calc(var(--ec-case-files-tile) + var(--ec-space-4));
+        }
+
+        & > .ec-cell-case-files {
+            position: absolute;
+            top: 50%;
+            right: var(--ec-space-5);
+            transform: translateY(-50%);
+        }
+    }
+
+    .ec-table-row > .ec-cell-case-files:not(:has(.ec-case-files)) {
+        display: none;
+    }
+
+    /* The touch area has the full size, the visible tile does not. */
+    .ec-case-files::before {
+        content: "";
+        position: absolute;
+        inset: calc((var(--ec-case-files-tile) - var(--ec-touch-min)) / 2);
+    }
+
+    .ec-case-files-heading-tile,
+    .ec-case-files-total,
+    .ec-case-files-expand,
+    .ec-case-files-label,
+    .ec-case-files-download-wide,
+    .ec-case-files-actions .ec-preview-divider {
+        display: none;
+    }
+
+    .ec-case-files-download-narrow {
+        display: contents;
+    }
+
+    .ec-modal-large .ec-modal-header > .ec-preview-title:has(.ec-case-files-meta) {
+        flex: 1 1 0;
+    }
+
+    .ec-case-files-actions {
+        gap: 0;
+
+        & .ec-button {
+            width: var(--ec-touch-min);
+            height: var(--ec-touch-min);
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+    }
+
+    .ec-case-files-stage {
+        padding: 0;
+    }
+
+    .ec-tree {
+        border: 0;
+        border-radius: 0;
+    }
+
+    .ec-tree-row {
+        --ec-tree-step: var(--ec-tree-indent-mobile);
+
+        gap: var(--ec-space-3);
+        padding-right: var(--ec-space-4);
+        padding-left: calc(var(--ec-space-4) + var(--ec-tree-depth, 0) * var(--ec-tree-step));
+    }
+
+    .ec-tree-tile,
+    .ec-tree-row .ec-file-icon-compact {
+        width: var(--ec-tree-tile-mobile);
+        height: var(--ec-tree-tile-mobile);
+
+        & .ec-icon {
+            width: var(--ec-tree-tile-glyph-mobile);
+            height: var(--ec-tree-tile-glyph-mobile);
+        }
+    }
+
+    /* Below lg a row carries no labels, and a status shows as its dot. */
+    .ec-tree-row .ec-chips {
+        display: none;
+    }
+
+    .ec-tree-status .ec-badge-text {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+    }
+
+    .ec-tree-status .ec-badge {
+        padding: 0;
+        background: none;
+    }
+}

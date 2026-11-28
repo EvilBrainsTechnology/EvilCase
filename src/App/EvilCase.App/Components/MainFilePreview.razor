@@ -3,8 +3,8 @@
 @inject IBrowserFiles BrowserFiles
 @inject ILogger<MainFilePreview> Logger
 
-@* One file of an act, previewed outside its files card: no paging over the act's other files,
-   and the operations of the card's preview on the act's own files. *@
+@* One file of an act, previewed outside its files card with the operations of the card's preview on the act's
+   own files; it pages over the act's other files only where asked to. *@
 @if (this.state.ListFailure is { } failure)
 {
     <EcModal Title="Soubor úkonu" Open OpenChanged="this.Close">
@@ -18,7 +18,8 @@ else if (this.File is { } file)
 {
     if (this.previewing)
     {
-        <FilePreviewModal Files="[file]" FileId="file.FileId" Version="this.previewVersion" VersionChanged="this.PreviewVersion"
+        <FilePreviewModal Files="@(this.PageActFiles ? this.state.Items : [file])" FileId="file.FileId" FileIdChanged="this.PreviewFile"
+                          Version="this.previewVersion" VersionChanged="this.PreviewVersion" StartMaximized="this.StartMaximized"
                           LoadContent="this.state.LoadFileContent" Rename="this.state.RenameFile"
                           LoadVersions="this.state.ListFileVersions" UploadVersion="this.UploadVersion" RestoreVersion="this.RestoreVersion" OnManageVersions="this.ManageVersions"
                           OnDownload="this.Download" OnRenamed="this.Changed" ChangeMain="this.ChangeMain" OnDelete="this.ConfirmDelete"
@@ -55,6 +56,18 @@ else if (this.File is { } file)
     [Parameter]
     public EventCallback OnClosed { get; set; }
 
+    /// <summary>
+    /// Pages over the act's files, as the preview of its files card does.
+    /// </summary>
+    [Parameter]
+    public bool PageActFiles { get; set; }
+
+    [Parameter]
+    public bool StartMaximized { get; set; }
+
+    // The file shown; paging moves it off the one the preview opened with.
+    private Guid shownFileId;
+
     private FilesCardState state = null!;
 
     private bool previewing = true;
@@ -68,10 +81,11 @@ else if (this.File is { } file)
 
     private bool deleting;
 
-    private FileListItem? File => this.state.Items.FirstOrDefault(item => item.FileId == this.FileId);
+    private FileListItem? File => this.state.Items.FirstOrDefault(item => item.FileId == this.shownFileId);
 
     protected override async Task OnInitializedAsync()
     {
+        this.shownFileId = this.FileId;
         this.state = this.FilesStates.ForAct(this.ActId);
 
         await this.Reload();
@@ -135,6 +149,12 @@ else if (this.File is { } file)
         this.StateHasChanged();
 
         return failure;
+    }
+
+    private void PreviewFile(Guid fileId)
+    {
+        this.shownFileId = fileId;
+        this.previewVersion = null;
     }
 
     private void PreviewVersion(int? version)

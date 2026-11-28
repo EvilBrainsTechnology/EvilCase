@@ -58,10 +58,20 @@
     public bool Sheet { get; set; }
 
     /// <summary>
-    /// A <see cref="Large"/> dialog offers on desktop to fill the whole window; every opening starts at the normal size.
+    /// A <see cref="Large"/> dialog offers on desktop to fill the whole window; every opening starts at the normal size,
+    /// unless <see cref="StartMaximized"/>.
     /// </summary>
     [Parameter]
     public bool Maximizable { get; set; }
+
+    /// <summary>
+    /// Opens a <see cref="Maximizable"/> dialog filling the whole window; read when the dialog opens.
+    /// </summary>
+    [Parameter]
+    public bool StartMaximized { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> MaximizedChanged { get; set; }
 
     [Parameter]
     public bool Open { get; set; }
@@ -98,6 +108,8 @@
 
     private bool maximized;
 
+    private bool opened;
+
     private string CssClass
     {
         get
@@ -110,9 +122,11 @@
 
     // A double-click on the header outside its controls toggles too.
     [JSInvokable]
-    public void ToggleMaximized()
+    public async Task ToggleMaximized()
     {
         this.maximized = !this.maximized;
+
+        await this.MaximizedChanged.InvokeAsync(this.maximized);
 
         // A call from JS renders nothing on its own.
 #pragma warning disable BL0012
@@ -165,8 +179,13 @@
 
     protected override void OnParametersSet()
     {
+        if (this.Open && !this.opened)
+            this.maximized = this.StartMaximized;
+
         if (!this.Open)
             this.maximized = false;
+
+        this.opened = this.Open;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

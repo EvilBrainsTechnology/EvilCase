@@ -17,5 +17,6 @@
 @import "ec-shell.css" layer(components);
 @import "ec-topbar.css" layer(components);
 @import "ec-lists.css" layer(components);
+@import "ec-case-files.css" layer(components);
 @import "ec-mobile.css" layer(mobile);
 @import "ec-mobile-edge-to-edge.css" layer(mobile);

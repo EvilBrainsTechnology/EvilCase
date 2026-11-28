@@ -334,7 +334,7 @@
 
     .ec-modal-large {
         box-sizing: border-box;
-        width: 100vw;
+        width: 100%;
         max-width: none;
         height: var(--ec-viewport-height);
         margin: 0;

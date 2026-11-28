@@ -18,7 +18,7 @@
     var preview = FileTypeDisplay.Preview(stagedName);
     var shownVersion = this.ShownVersionItem;
 
-    <EcModal Title="@shownName" Large Maximizable Open="this.Open" OpenChanged="this.OpenChanged" OnCloseRequest="this.CloseRequest">
+    <EcModal Title="@shownName" Large Maximizable StartMaximized="this.StartMaximized" Open="this.Open" OpenChanged="this.OpenChanged" OnCloseRequest="this.CloseRequest">
         <Heading>
             @if (attachment is not null)
             {
@@ -302,6 +302,12 @@
     /// </summary>
     [Parameter]
     public bool CompareOnOpen { get; set; }
+
+    /// <summary>
+    /// Opens the preview filling the whole window; read when the preview opens.
+    /// </summary>
+    [Parameter]
+    public bool StartMaximized { get; set; }
 
     [Parameter]
     public bool Open { get; set; }
