@@ -529,7 +529,7 @@
     font-size: var(--ec-text-lg);
 }
 
-.ec-contact-occurrences {
+.ec-detail-halves {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--ec-space-6);

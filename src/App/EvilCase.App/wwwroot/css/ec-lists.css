@@ -659,7 +659,7 @@
 }
 
 /* The contact detail (docs/design/detail-kontaktu.html): two lists of occurrences at half width. */
-.ec-contact-occurrences {
+.ec-detail-halves {
     --ec-list-badge-height: var(--ec-case-act-badge-height);
     --ec-list-badge-pad: var(--ec-space-3);
 

@@ -17,7 +17,7 @@
     .ec-form-layout,
     .ec-form-aside,
     .ec-settings-layout,
-    .ec-contact-occurrences {
+    .ec-detail-halves {
         gap: 0;
     }
 
@@ -56,7 +56,7 @@
     }
 
     .ec-table-bar,
-    .ec-contact-occurrences .ec-table-bar {
+    .ec-detail-halves .ec-table-bar {
         padding: 0 var(--ec-space-5) var(--ec-space-4);
     }
 
