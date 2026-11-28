@@ -87,7 +87,7 @@ public class FileTransferController : ControllerBase
         await this.SendZip(
             archive.FileName,
             async target => await archives.WriteFileArchive(archive, target, token),
-            exception => logger.LogError(exception, "File archive of {ActId} was cut short", archive.OwnerId),
+            exception => logger.LogError(exception, "File archive of {ActId} was cut short", archive.ActId),
             token);
 
         return new EmptyResult();

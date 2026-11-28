@@ -82,10 +82,10 @@ public class FileArchiveLayoutTests
     [TestCase("Přestupek Novák", true, "Přestupek Novák (with versions).zip")]
     [TestCase("Odvolání: 1/2026?", false, "Odvolání_ 1_2026_.zip")]
     [TestCase(" ?. ", false, "_.zip")]
-    [TestCase(" . ", true, "case files (with versions).zip")]
-    public void TheArchiveIsNamedAfterItsOwner(string title, bool includeVersions, string expected)
+    [TestCase(" . ", true, "act files (with versions).zip")]
+    public void TheArchiveIsNamedAfterItsAct(string title, bool includeVersions, string expected)
     {
-        Assert.That(FileArchiveLayout.ArchiveName(title, "case files", includeVersions), Is.EqualTo(expected));
+        Assert.That(FileArchiveLayout.ArchiveName(title, includeVersions), Is.EqualTo(expected));
     }
 
     [Test]

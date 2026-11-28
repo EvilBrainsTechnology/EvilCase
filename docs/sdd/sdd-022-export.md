@@ -32,9 +32,6 @@ export.json
 cases/
   2026-08-21 Přestupek/
     case.json
-    files/
-      Smlouva (version 1).pdf
-      Smlouva.pdf
     cases/
       2026-09-01 Odvolání/
         case.json
@@ -42,6 +39,7 @@ cases/
       2026-09-02 Podání/
         act.json
         files/
+          Podání (version 1).pdf
           Podání.pdf
 contacts/
   Krajský úřad.json
@@ -50,9 +48,8 @@ labels/
 ```
 
 - Jména složek a dokumentů jsou anglicky.
-- `cases/` nese kořenové spisy. Složka spisu nese `case.json`, ve složce `files/` soubory spisu
-  s verzemi, ve složce `cases/` jednu složku za každý podspis a ve složce `acts/` jednu složku za
-  každý úkon. Podspisy se zanořují do libovolné hloubky. Složka úkonu nese `act.json` a ve složce
+- `cases/` nese kořenové spisy. Složka spisu nese `case.json`, ve složce `cases/` jednu složku za
+  každý podspis a ve složce `acts/` jednu složku za každý úkon; soubory nenese. Podspisy se zanořují do libovolné hloubky. Složka úkonu nese `act.json` a ve složce
   `files/` soubory úkonu s verzemi. Složka `files/`, `cases/` nebo `acts/` je v archivu, jen když
   něco nese.
 - Složka spisu i úkonu se jmenuje `<datum> <název>`, datum `yyyy-MM-dd`. Název ztratí znaky,
@@ -85,7 +82,7 @@ a společné definice `common.schema.json`.
 - Každý dokument nese `type`: `export`, `case`, `act`, `contact` nebo `labels`.
 - `export.json`: verze formátu, okamžik exportu, verze aplikace, id a název tenanta.
 - `case.json`: všechna pole spisu, id nadřízeného spisu, protistrana jako id a jméno, štítky
-  jako id a název, komentáře, soubory, okamžik založení a poslední změny, cesta složky.
+  jako id a název, komentáře, okamžik založení a poslední změny, cesta složky; soubory nenese.
 - `act.json`: všechna pole úkonu včetně stavu, id spisu, kontakt jako id a jméno, štítky jako id a název,
   komentáře, soubory, okamžik založení a poslední změny, cesta složky.
 - Komentář: id, text, e-mail autora, okamžik založení a poslední změny.

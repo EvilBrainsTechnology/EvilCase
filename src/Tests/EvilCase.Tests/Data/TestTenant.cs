@@ -242,9 +242,9 @@ internal sealed class TestTenant : IAsyncDisposable
         return await this.AddFile(@case.Id, actId: null, fileName, sizeBytes, isMain, fileId);
     }
 
-    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf", bool isMain = false)
+    public async Task<FileAsset> AddActFile(Act act, string fileName = "dokument.pdf", long sizeBytes = 1, bool isMain = false, Guid? fileId = null)
     {
-        return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes: 1, isMain, fileId: null);
+        return await this.AddFile(caseId: null, act.Id, fileName, sizeBytes, isMain, fileId);
     }
 
     /// <summary>

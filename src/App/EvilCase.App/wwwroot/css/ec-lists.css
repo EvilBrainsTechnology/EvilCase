@@ -204,7 +204,7 @@
     color: var(--ec-text-subtle);
 }
 
-/* The main file of a case or an act: the files card's coloured type tile as a button, framed in the type's colour, opening the preview inside the row's link. */
+/* The main file of an act: the files card's coloured type tile as a button, framed in the type's colour, opening the preview inside the row's link. */
 .ec-cell-main-file {
     justify-content: center;
 }

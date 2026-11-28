@@ -2,5 +2,5 @@ namespace EvilBrains.EvilCase.Business.Files;
 
 public enum UploadFileFailure
 {
-    OwnerNotFound = 0,
+    ActNotFound = 0,
 }

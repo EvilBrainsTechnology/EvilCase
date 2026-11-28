@@ -7,7 +7,7 @@ public sealed record FileListItem
     public required string FileName { get; init; }
 
     /// <summary>
-    /// The main file of its case or act; at most one file there is.
+    /// The main file of its act; an act has at most one.
     /// </summary>
     public bool IsMain { get; init; }
 
@@ -26,7 +26,7 @@ public sealed record FileListItem
     public required int VersionCount { get; init; }
 
     /// <summary>
-    /// The signature (p7s) that by name signs this file: the only file of the same case or act named this file's name
+    /// The signature (p7s) that by name signs this file: the only file of the same act named this file's name
     /// and .p7s, where no other file there carries this name. Set in a file list; the signers say whether it is
     /// detached.
     /// </summary>

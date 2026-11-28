@@ -5,7 +5,7 @@ using Org.BouncyCastle.Cms;
 namespace EvilBrains.EvilCase.Business.Files.Signatures;
 
 /// <summary>
-/// Pairs a detached signature (p7s) with the file of its name among the files of one case or act; a p7m carries its
+/// Pairs a detached signature (p7s) with the file of its name among the files of one act; a p7m carries its
 /// document inside and pairs with none.
 /// </summary>
 internal static class DetachedSignatures
@@ -36,11 +36,11 @@ internal static class DetachedSignatures
     }
 
     /// <summary>
-    /// The file the signature signs among the files of its case or act, or why there is none.
+    /// The file the signature signs among the files of its act, or why there is none.
     /// </summary>
-    public static (FileListItem? SignedFile, DetachedSignatureProblem? Problem) Pair(Guid signatureFileId, IReadOnlyList<FileListItem> ownerFiles)
+    public static (FileListItem? SignedFile, DetachedSignatureProblem? Problem) Pair(Guid signatureFileId, IReadOnlyList<FileListItem> actFiles)
     {
-        var signedFile = WithSignatureFiles(ownerFiles).SingleOrDefault(file => file.SignatureFileId == signatureFileId);
+        var signedFile = WithSignatureFiles(actFiles).SingleOrDefault(file => file.SignatureFileId == signatureFileId);
 
         return signedFile is not null ? (signedFile, null) : (null, DetachedSignatureProblem.Missing);
     }
@@ -68,7 +68,7 @@ internal static class DetachedSignatures
     }
 
     /// <summary>
-    /// The signed file id to its signature file id; file names are unique within one case or act.
+    /// The signed file id to its signature file id; file names are unique within one act.
     /// </summary>
     private static Dictionary<Guid, Guid> SignatureFiles(IReadOnlyList<FileListItem> files)
     {

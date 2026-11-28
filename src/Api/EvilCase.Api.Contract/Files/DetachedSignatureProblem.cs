@@ -7,7 +7,7 @@ namespace EvilBrains.EvilCase.Api.Contract.Files;
 public enum DetachedSignatureProblem
 {
     /// <summary>
-    /// No file of the case or act carries the signed name.
+    /// No file of the act carries the signed name.
     /// </summary>
     Missing = 0,
 }

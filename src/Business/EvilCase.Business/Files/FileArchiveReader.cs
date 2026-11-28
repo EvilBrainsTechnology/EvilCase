@@ -9,32 +9,6 @@ namespace EvilBrains.EvilCase.Business.Files;
 
 internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blobStore, ILogger<FileArchiveReader> logger) : IFileArchiveReader
 {
-    public async Task<FileArchive?> ReadCaseFileArchive(Guid caseId, bool includeVersions, CancellationToken token)
-    {
-        var context = dbSession.Current;
-
-        var title = await context.Cases
-            .WithId(caseId)
-            .Select(static @case => @case.Title)
-            .SingleOrDefaultAsync(token);
-
-        if (title is null)
-            return null;
-
-        var versions = await context.FileVersions
-            .OfCaseFiles(caseId)
-            .InFileOrder()
-            .AsArchivedVersions()
-            .ToListAsync(token);
-
-        return new FileArchive
-        {
-            OwnerId = caseId,
-            FileName = FileArchiveLayout.ArchiveName(title, "case files", includeVersions),
-            Entries = FileArchiveLayout.Entries(versions, includeVersions),
-        };
-    }
-
     public async Task<FileArchive?> ReadActFileArchive(Guid actId, bool includeVersions, CancellationToken token)
     {
         var context = dbSession.Current;
@@ -55,8 +29,8 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
 
         return new FileArchive
         {
-            OwnerId = actId,
-            FileName = FileArchiveLayout.ArchiveName(title, "act files", includeVersions),
+            ActId = actId,
+            FileName = FileArchiveLayout.ArchiveName(title, includeVersions),
             Entries = FileArchiveLayout.Entries(versions, includeVersions),
         };
     }
@@ -76,6 +50,6 @@ internal sealed class FileArchiveReader(IDbSession dbSession, IFileBlobStore blo
 
         await zip.Complete(token);
 
-        logger.LogInformation("File archive of {OwnerId} was written, {EntryCount} entries", archive.OwnerId, archive.Entries.Count);
+        logger.LogInformation("File archive of {ActId} was written, {EntryCount} entries", archive.ActId, archive.Entries.Count);
     }
 }

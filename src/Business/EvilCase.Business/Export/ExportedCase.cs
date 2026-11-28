@@ -31,8 +31,6 @@ internal sealed record ExportedCase
 
     public IReadOnlyList<ExportedComment> Comments { get; init; } = [];
 
-    public IReadOnlyList<ExportedFile> Files { get; init; } = [];
-
     public required DateTime Created { get; init; }
 
     public required DateTime? Updated { get; init; }

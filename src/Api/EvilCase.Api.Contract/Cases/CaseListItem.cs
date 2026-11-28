@@ -1,4 +1,3 @@
-using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Api.Contract.Labels;
 using EvilBrains.EvilCase.Domain.Cases;
 
@@ -30,6 +29,4 @@ public sealed record CaseListItem
     public required DateTime Changed { get; init; }
 
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
-
-    public MainFile? MainFile { get; init; }
 }

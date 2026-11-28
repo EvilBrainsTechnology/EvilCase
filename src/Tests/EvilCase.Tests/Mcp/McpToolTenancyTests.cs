@@ -34,8 +34,7 @@ public class McpToolTenancyTests : TenantFixture
     public async Task TheTextOfAFileOfAnotherTenantIsNotFoundThroughATool()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherFile = await other.AddCaseFile(otherCase, "zapis.txt");
+        var otherFile = await other.AddActFile(await other.AddAct(await other.AddCase(Day), Day), "zapis.txt");
         var blobs = new FakeFileBlobStore();
         blobs.WrittenByPath[otherFile.Versions.Single().StoragePath] = "cizí obsah";
         var reader = new FileTextReader(this.Tenant.Session, blobs, NullLogger<FileTextReader>.Instance);
@@ -49,8 +48,8 @@ public class McpToolTenancyTests : TenantFixture
     [Test]
     public async Task TheTextOfAFileOfTheTenantIsRead()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        var file = await this.Tenant.AddCaseFile(@case, "zapis.txt");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        var file = await this.Tenant.AddActFile(act, "zapis.txt");
         var blobs = new FakeFileBlobStore();
         blobs.WrittenByPath[file.Versions.Single().StoragePath] = "vlastní obsah";
         var reader = new FileTextReader(this.Tenant.Session, blobs, NullLogger<FileTextReader>.Instance);

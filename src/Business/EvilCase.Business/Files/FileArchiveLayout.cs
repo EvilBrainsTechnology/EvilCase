@@ -11,6 +11,8 @@ internal static partial class FileArchiveLayout
 {
     private const string EntryFallback = "file";
 
+    private const string ArchiveFallback = "act files";
+
     /// <summary>
     /// The zone an entry's time is written in: a zip entry's time carries no zone, and an archive is unpacked in Czechia.
     /// </summary>
@@ -24,9 +26,9 @@ internal static partial class FileArchiveLayout
         return TimeZoneInfo.ConvertTime(new DateTimeOffset(utc.Ticks, TimeSpan.Zero), Prague);
     }
 
-    public static string ArchiveName(string title, string fallback, bool includeVersions)
+    public static string ArchiveName(string title, bool includeVersions)
     {
-        var name = FileNameRules.SafeFileName(title, fallback);
+        var name = FileNameRules.SafeFileName(title, ArchiveFallback);
 
         return includeVersions ? $"{name} (with versions).zip" : $"{name}.zip";
     }

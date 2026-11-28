@@ -18,34 +18,55 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
     /// </summary>
     private const int Attempts = 5;
 
-    public async Task<UploadFileResult> UploadCaseFile(Guid caseId, FileUpload upload, CancellationToken token)
-    {
-        var context = dbSession.Current;
-
-        var caseExists = await context.Cases.Exists(caseId, token);
-        if (!caseExists)
-            return UploadFileFailure.OwnerNotFound;
-
-        var result = await this.StoreUpload(context.FileAssets.OfCase(caseId), caseId, actId: null, upload, token);
-        if (result.Kind == UploadKind.Uploaded)
-            logger.LogInformation("File {FileAssetId} was stored on case {CaseId}, {SizeBytes} bytes", result.File.FileId, caseId, result.File.SizeBytes);
-
-        return result;
-    }
-
     public async Task<UploadFileResult> UploadActFile(Guid actId, FileUpload upload, CancellationToken token)
     {
         var context = dbSession.Current;
 
         var actExists = await context.Acts.Exists(actId, token);
         if (!actExists)
-            return UploadFileFailure.OwnerNotFound;
+            return UploadFileFailure.ActNotFound;
 
-        var result = await this.StoreUpload(context.FileAssets.OfAct(actId), caseId: null, actId, upload, token);
-        if (result.Kind == UploadKind.Uploaded)
-            logger.LogInformation("File {FileAssetId} was stored on act {ActId}, {SizeBytes} bytes", result.File.FileId, actId, result.File.SizeBytes);
+        var actFiles = context.FileAssets.OfAct(actId);
+        var fileVersionId = Guid.CreateVersion7();
 
-        return result;
+        // The blob is written before the row it backs; a blob orphaned by a failed write or an unchanged upload is tolerated (SDD-012).
+        var blob = await blobStore.WriteFileBlob(userContext.TenantId, fileVersionId, upload.Content, token);
+
+        for (var attempt = 1; attempt <= Attempts; attempt++)
+        {
+            var existingFileId = await actFiles
+                .Named(upload.FileName)
+                .Select(static file => (Guid?)file.Id)
+                .SingleOrDefaultAsync(token);
+
+            try
+            {
+                if (existingFileId is null)
+                {
+                    // The first file of an empty act is its main file.
+                    var file = new FileAsset { ActId = actId, FileName = upload.FileName, IsMain = !await actFiles.AnyAsync(token) };
+
+                    context.FileAssets.Add(file);
+                    context.FileVersions.Add(NewVersion(file.Id, 1, fileVersionId, upload.MediaType, blob));
+                    await context.SaveChangesAsync(token);
+
+                    logger.LogInformation("File {FileAssetId} was stored on act {ActId}, {SizeBytes} bytes", file.Id, actId, blob.SizeBytes);
+
+                    return new UploadedFile { Kind = UploadKind.Uploaded, File = await this.ReadListItem(file.Id, token) };
+                }
+
+                if (await this.SaveNextVersion(existingFileId.Value, fileVersionId, upload.MediaType, blob, token) is not { } kind)
+                    continue; // deleted since it was found; the next attempt stores a new file
+
+                return new UploadedFile { Kind = kind, File = await this.ReadListItem(existingFileId.Value, token) };
+            }
+            catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
+            {
+                this.ForgetLostRace();
+            }
+        }
+
+        throw new InvalidOperationException("The upload lost every race for its file name.");
     }
 
     public async Task<FileVersionUploadResult> UploadFileVersion(Guid fileId, FileUpload upload, CancellationToken token)
@@ -116,26 +137,41 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return FileVersionDeleteOutcome.Deleted;
     }
 
-    public async Task<FileRenameOutcome> RenameCaseFile(Guid caseId, Guid fileId, string fileName, CancellationToken token)
-    {
-        var files = dbSession.Current.FileAssets.OfCase(caseId);
-
-        var outcome = await RenameFile(files, fileId, fileName, token);
-        if (outcome == FileRenameOutcome.Renamed)
-            logger.LogInformation("File {FileAssetId} was renamed on case {CaseId}", fileId, caseId);
-
-        return outcome;
-    }
-
     public async Task<FileRenameOutcome> RenameActFile(Guid actId, Guid fileId, string fileName, CancellationToken token)
     {
-        var files = dbSession.Current.FileAssets.OfAct(actId);
+        var actFiles = dbSession.Current.FileAssets.OfAct(actId);
 
-        var outcome = await RenameFile(files, fileId, fileName, token);
-        if (outcome == FileRenameOutcome.Renamed)
-            logger.LogInformation("File {FileAssetId} was renamed on act {ActId}", fileId, actId);
+        if (!await actFiles.Exists(fileId, token))
+            return FileRenameOutcome.NotFound;
 
-        return outcome;
+        var taken = await actFiles
+            .Named(fileName)
+            .Where(file => file.Id != fileId)
+            .AnyAsync(token);
+
+        if (taken)
+            return FileRenameOutcome.NameTaken;
+
+        int rows;
+
+        try
+        {
+            rows = await actFiles
+                .WithId(fileId)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(static file => file.FileName, fileName), token);
+        }
+        catch (DbException exception) when (exception.IsUniqueViolation())
+        {
+            // The name was taken between the check above and this update.
+            return FileRenameOutcome.NameTaken;
+        }
+
+        if (rows == 0)
+            return FileRenameOutcome.NotFound;
+
+        logger.LogInformation("File {FileAssetId} was renamed on act {ActId}", fileId, actId);
+
+        return FileRenameOutcome.Renamed;
     }
 
     public async Task<MainFileOutcome> SetMainFile(Guid fileId, CancellationToken token)
@@ -157,7 +193,7 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
             try
             {
                 await files
-                    .OfSameOwner(file)
+                    .OfAct(file.ActId!.Value)
                     .Where(static other => other.IsMain)
                     .Where(other => other.Id != fileId)
                     .ExecuteUpdateAsync(static setters => setters.SetProperty(static other => other.IsMain, valueExpression: false), token);
@@ -198,22 +234,41 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
         return MainFileOutcome.Changed;
     }
 
-    public async Task<DeleteOutcome> DeleteCaseFile(Guid caseId, Guid fileId, CancellationToken token)
-    {
-        var outcome = await this.DeleteFile(dbSession.Current.FileAssets.OfCase(caseId), fileId, token);
-        if (outcome == DeleteOutcome.Deleted)
-            logger.LogInformation("File {FileAssetId} was removed from case {CaseId}", fileId, caseId);
-
-        return outcome;
-    }
-
     public async Task<DeleteOutcome> DeleteActFile(Guid actId, Guid fileId, CancellationToken token)
     {
-        var outcome = await this.DeleteFile(dbSession.Current.FileAssets.OfAct(actId), fileId, token);
-        if (outcome == DeleteOutcome.Deleted)
-            logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
+        var actFiles = dbSession.Current.FileAssets.OfAct(actId);
 
-        return outcome;
+        await using var transaction = await dbSession.BeginTransaction(token);
+
+        // Each delete checks the mark on the row it deletes, so the promotion follows the mark the file had.
+        var wasMain = await actFiles
+            .WithId(fileId)
+            .Where(static file => file.IsMain)
+            .ExecuteDeleteAsync(token) > 0;
+
+        if (wasMain)
+        {
+            await actFiles
+                .Where(_ => !actFiles.Any(static other => other.IsMain))
+                .InUploadOrder()
+                .Take(1)
+                .ExecuteUpdateAsync(static setters => setters.SetProperty(static file => file.IsMain, valueExpression: true), token);
+        }
+        else
+        {
+            var rows = await actFiles
+                .WithId(fileId)
+                .ExecuteDeleteAsync(token);
+
+            if (rows == 0)
+                return DeleteOutcome.NotFound;
+        }
+
+        await transaction.CommitAsync(token);
+
+        logger.LogInformation("File {FileAssetId} was removed from act {ActId}", fileId, actId);
+
+        return DeleteOutcome.Deleted;
     }
 
     // TenantId and UserId are stamped by UserWriteInterceptor.
@@ -229,119 +284,6 @@ internal sealed class FileWriter(IDbSession dbSession, IFileBlobStore blobStore,
             MediaType = mediaType,
             StoragePath = blob.StoragePath,
         };
-    }
-
-    private static async Task<FileRenameOutcome> RenameFile(IQueryable<FileAsset> ownerFiles, Guid fileId, string fileName, CancellationToken token)
-    {
-        if (!await ownerFiles.Exists(fileId, token))
-            return FileRenameOutcome.NotFound;
-
-        var taken = await ownerFiles
-            .Named(fileName)
-            .Where(file => file.Id != fileId)
-            .AnyAsync(token);
-
-        if (taken)
-            return FileRenameOutcome.NameTaken;
-
-        int rows;
-
-        try
-        {
-            rows = await ownerFiles
-                .WithId(fileId)
-                .ExecuteUpdateAsync(setters => setters.SetProperty(static file => file.FileName, fileName), token);
-        }
-        catch (DbException exception) when (exception.IsUniqueViolation())
-        {
-            // The name was taken between the check above and this update.
-            return FileRenameOutcome.NameTaken;
-        }
-
-        return rows == 0 ? FileRenameOutcome.NotFound : FileRenameOutcome.Renamed;
-    }
-
-    /// <summary>
-    /// A deleted main file hands the mark to the oldest remaining file, unless another file took it meanwhile.
-    /// </summary>
-    private async Task<DeleteOutcome> DeleteFile(IQueryable<FileAsset> ownerFiles, Guid fileId, CancellationToken token)
-    {
-        await using var transaction = await dbSession.BeginTransaction(token);
-
-        // Each delete checks the mark on the row it deletes, so the promotion follows the mark the file had.
-        var wasMain = await ownerFiles
-            .WithId(fileId)
-            .Where(static file => file.IsMain)
-            .ExecuteDeleteAsync(token) > 0;
-
-        if (wasMain)
-        {
-            await ownerFiles
-                .Where(_ => !ownerFiles.Any(static other => other.IsMain))
-                .InUploadOrder()
-                .Take(1)
-                .ExecuteUpdateAsync(static setters => setters.SetProperty(static file => file.IsMain, valueExpression: true), token);
-        }
-        else
-        {
-            var rows = await ownerFiles
-                .WithId(fileId)
-                .ExecuteDeleteAsync(token);
-
-            if (rows == 0)
-                return DeleteOutcome.NotFound;
-        }
-
-        await transaction.CommitAsync(token);
-
-        return DeleteOutcome.Deleted;
-    }
-
-    /// <summary>
-    /// A name the case or act already has, ignoring case, makes the upload that file's next version.
-    /// </summary>
-    private async Task<UploadedFile> StoreUpload(IQueryable<FileAsset> ownerFiles, Guid? caseId, Guid? actId, FileUpload upload, CancellationToken token)
-    {
-        var context = dbSession.Current;
-
-        var fileVersionId = Guid.CreateVersion7();
-
-        // The blob is written before the row it backs; a blob orphaned by a failed write or an unchanged upload is tolerated (SDD-012).
-        var blob = await blobStore.WriteFileBlob(userContext.TenantId, fileVersionId, upload.Content, token);
-
-        for (var attempt = 1; attempt <= Attempts; attempt++)
-        {
-            var existingFileId = await ownerFiles
-                .Named(upload.FileName)
-                .Select(static file => (Guid?)file.Id)
-                .SingleOrDefaultAsync(token);
-
-            try
-            {
-                if (existingFileId is null)
-                {
-                    // The first file of an empty case or act is its main file.
-                    var file = new FileAsset { CaseId = caseId, ActId = actId, FileName = upload.FileName, IsMain = !await ownerFiles.AnyAsync(token) };
-
-                    context.FileAssets.Add(file);
-                    context.FileVersions.Add(NewVersion(file.Id, 1, fileVersionId, upload.MediaType, blob));
-                    await context.SaveChangesAsync(token);
-
-                    return new UploadedFile { Kind = UploadKind.Uploaded, File = await this.ReadListItem(file.Id, token) };
-                }
-
-                if (await this.SaveNextVersion(existingFileId.Value, fileVersionId, upload.MediaType, blob, token) is not { } kind)
-                    continue; // deleted since it was found; the next attempt stores a new file
-
-                return new UploadedFile { Kind = kind, File = await this.ReadListItem(existingFileId.Value, token) };
-            }
-            catch (DbUpdateException exception) when (attempt < Attempts && exception.IsUniqueViolation())
-            {
-                this.ForgetLostRace();
-            }
-        }
-
-        throw new InvalidOperationException("The upload lost every race for its file name.");
     }
 
     private async Task<FileVersionUploadResult> StoreNextVersion(Guid fileId, string? mediaType, Stream content, CancellationToken token)

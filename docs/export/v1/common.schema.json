@@ -56,7 +56,7 @@
       "properties": {
         "fileId": { "$ref": "#/definitions/id" },
         "fileName": { "description": "The name the file carries in the application.", "type": "string" },
-        "isMain": { "description": "The main file of its case or act; at most one file there is.", "type": "boolean" },
+        "isMain": { "description": "The main file of its act; an act has at most one.", "type": "boolean" },
         "versions": {
           "description": "By number; the last is the current version.",
           "type": "array",

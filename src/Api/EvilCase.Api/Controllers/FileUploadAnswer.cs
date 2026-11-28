@@ -21,7 +21,7 @@ internal static class FileUploadAnswer
             UploadedFile { Kind: UploadKind.Unchanged } unchanged => controller.Ok(unchanged.File),
             UploadedFile uploaded => controller.CreatedAtAction(
                 nameof(Controllers.FileTransferController.DownloadFileContent), FileTransferController, new { fileId = uploaded.File.FileId }, uploaded.File),
-            UploadFileFailure.OwnerNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
+            UploadFileFailure.ActNotFound => controller.Problem(statusCode: StatusCodes.Status404NotFound, title: ActProblems.NotFound),
             _ => throw new UnreachableException(),
         };
     }

@@ -26,24 +26,23 @@ public class FileArchiveReaderTests : TenantFixture
     }
 
     [Test]
-    public async Task ACaseArchiveHoldsTheCurrentVersionsOfTheCaseOwnFilesOnly()
+    public async Task AnActArchiveHoldsTheCurrentVersionsOfTheActOwnFilesOnly()
     {
-        var @case = await this.Tenant.AddCase(Day, title: "Přestupek");
-        var subCase = await this.Tenant.AddCase(Day, parentCaseId: @case.Id);
-        var act = await this.Tenant.AddAct(@case, Day);
-        var smlouva = this.Stored(await this.Tenant.AddCaseFile(@case, "Smlouva.pdf"), "smlouva 1");
+        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(@case, Day, title: "Přestupek");
+        var otherAct = await this.Tenant.AddAct(@case, Day);
+        var smlouva = this.Stored(await this.Tenant.AddActFile(act, "Smlouva.pdf"), "smlouva 1");
         this.Stored(await this.Tenant.AddFileVersion(smlouva), "smlouva 2");
-        this.Stored(await this.Tenant.AddCaseFile(@case, "Plná moc.pdf"), "plna moc");
-        this.Stored(await this.Tenant.AddCaseFile(subCase, "Podřízený.pdf"), "podrizeny");
-        this.Stored(await this.Tenant.AddActFile(act, "Úkon.pdf"), "ukon");
+        this.Stored(await this.Tenant.AddActFile(act, "Plná moc.pdf"), "plna moc");
+        this.Stored(await this.Tenant.AddActFile(otherAct, "Jiný úkon.pdf"), "jiny ukon");
 
-        var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: false, CancellationToken.None);
+        var archive = await this.reader.ReadActFileArchive(act.Id, includeVersions: false, CancellationToken.None);
         var entries = await this.Unpack(archive!);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(archive!.FileName, Is.EqualTo("Přestupek.zip"));
-            Assert.That(entries.Keys, Is.EqualTo(["Smlouva.pdf", "Plná moc.pdf"]), "never the files of a sub-case or of the case's acts");
+            Assert.That(entries.Keys, Is.EqualTo(["Smlouva.pdf", "Plná moc.pdf"]), "never the files of another act");
             Assert.That(entries["Smlouva.pdf"], Is.EqualTo("smlouva 2"), "the current version");
         }
     }
@@ -51,11 +50,11 @@ public class FileArchiveReaderTests : TenantFixture
     [Test]
     public async Task AnArchiveWithVersionsHoldsEveryVersionStampedWithItsUpload()
     {
-        var @case = await this.Tenant.AddCase(Day, title: "Přestupek");
-        var smlouva = this.Stored(await this.Tenant.AddCaseFile(@case, "Smlouva.pdf"), "smlouva 1");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day, title: "Přestupek");
+        var smlouva = this.Stored(await this.Tenant.AddActFile(act, "Smlouva.pdf"), "smlouva 1");
         this.Stored(await this.Tenant.AddFileVersion(smlouva), "smlouva 2");
 
-        var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: true, CancellationToken.None);
+        var archive = await this.reader.ReadActFileArchive(act.Id, includeVersions: true, CancellationToken.None);
         var target = new AsyncOnlyStream();
         await this.reader.WriteFileArchive(archive!, target, CancellationToken.None);
 
@@ -77,47 +76,25 @@ public class FileArchiveReaderTests : TenantFixture
     }
 
     [Test]
-    public async Task AnActArchiveHoldsTheActFilesAndNotItsCase()
-    {
-        var @case = await this.Tenant.AddCase(Day);
-        var act = await this.Tenant.AddAct(@case, Day, title: "Odvolání");
-        this.Stored(await this.Tenant.AddCaseFile(@case, "Spis.pdf"), "spis");
-        this.Stored(await this.Tenant.AddActFile(act, "Odvolání.pdf"), "odvolani");
-
-        var archive = await this.reader.ReadActFileArchive(act.Id, includeVersions: false, CancellationToken.None);
-        var entries = await this.Unpack(archive!);
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(archive!.FileName, Is.EqualTo("Odvolání.zip"));
-            Assert.That(entries, Is.EqualTo(new Dictionary<string, string> { ["Odvolání.pdf"] = "odvolani" }));
-        }
-    }
-
-    [Test]
-    public async Task AnUnknownOrForeignOwnerHasNoArchive()
+    public async Task AnUnknownOrForeignActHasNoArchive()
     {
         await using var other = await TestTenant.Create();
-        var otherCase = await other.AddCase(Day);
-        var otherAct = await other.AddAct(otherCase, Day);
-        await other.AddCaseFile(otherCase);
+        var otherAct = await other.AddAct(await other.AddCase(Day), Day);
         await other.AddActFile(otherAct);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(await this.reader.ReadCaseFileArchive(otherCase.Id, includeVersions: true, CancellationToken.None), Is.Null, "the case id alone never reaches another tenant's case");
             Assert.That(await this.reader.ReadActFileArchive(otherAct.Id, includeVersions: true, CancellationToken.None), Is.Null, "the act id alone never reaches another tenant's act");
-            Assert.That(await this.reader.ReadCaseFileArchive(Guid.CreateVersion7(), includeVersions: false, CancellationToken.None), Is.Null);
             Assert.That(await this.reader.ReadActFileArchive(Guid.CreateVersion7(), includeVersions: false, CancellationToken.None), Is.Null);
         }
     }
 
     [Test]
-    public async Task AnOwnerWithoutFilesGetsAnEmptyArchive()
+    public async Task AnActWithoutFilesGetsAnEmptyArchive()
     {
-        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
 
-        var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: false, CancellationToken.None);
+        var archive = await this.reader.ReadActFileArchive(act.Id, includeVersions: false, CancellationToken.None);
 
         Assert.That(await this.Unpack(archive!), Is.Empty);
     }
@@ -125,11 +102,11 @@ public class FileArchiveReaderTests : TenantFixture
     [Test]
     public async Task ALargeFileStreamsThroughWithoutBeingHeldWhole()
     {
-        var @case = await this.Tenant.AddCase(Day);
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
         var content = RandomNumberGenerator.GetString("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 4 * 1024 * 1024);
-        this.Stored(await this.Tenant.AddCaseFile(@case, "velký.txt"), content);
+        this.Stored(await this.Tenant.AddActFile(act, "velký.txt"), content);
 
-        var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: false, CancellationToken.None);
+        var archive = await this.reader.ReadActFileArchive(act.Id, includeVersions: false, CancellationToken.None);
         var target = new AsyncOnlyStream();
         await this.reader.WriteFileArchive(archive!, target, CancellationToken.None);
 
@@ -147,11 +124,11 @@ public class FileArchiveReaderTests : TenantFixture
     [Test]
     public async Task AMissingBlobFailsTheWriteAndLeavesTheArchiveWithoutItsEnd()
     {
-        var @case = await this.Tenant.AddCase(Day);
-        this.Stored(await this.Tenant.AddCaseFile(@case, "a.pdf"), "a");
-        await this.Tenant.AddCaseFile(@case, "b.pdf");
+        var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);
+        this.Stored(await this.Tenant.AddActFile(act, "a.pdf"), "a");
+        await this.Tenant.AddActFile(act, "b.pdf");
 
-        var archive = await this.reader.ReadCaseFileArchive(@case.Id, includeVersions: false, CancellationToken.None);
+        var archive = await this.reader.ReadActFileArchive(act.Id, includeVersions: false, CancellationToken.None);
         var target = new AsyncOnlyStream();
 
         await Assert.ThrowsAsync<IOException>(async () => await this.reader.WriteFileArchive(archive!, target, CancellationToken.None));
