@@ -26,6 +26,8 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
             .AsListItems()
             .ToListAsync(token);
 
+        items = await dbSession.Current.WithFileFlags(items, token);
+
         return new CaseListResponse { Items = items, TotalCount = total };
     }
 
@@ -47,5 +49,10 @@ internal sealed class CaseReader(IDbSession dbSession) : ICaseReader
     public async Task<CaseDetail?> GetCaseDetail(Guid caseId, CancellationToken token)
     {
         return await dbSession.Current.Cases.DetailOf(caseId, token);
+    }
+
+    public async Task<CaseFileTree?> GetCaseFileTree(Guid caseId, CancellationToken token)
+    {
+        return await dbSession.Current.ReadCaseFileTree(caseId, token);
     }
 }

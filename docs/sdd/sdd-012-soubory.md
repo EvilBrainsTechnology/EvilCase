@@ -122,6 +122,14 @@ ikonu. Stažení je obyčejné stažení prohlížečem.
 - Archiv se posílá průběžně, bez sestavení předem, i nad 4 GB. Soubor, který se nepodaří
   přečíst, stažení přeruší; prohlížeč nikdy neuloží useknutý archiv jako celý.
 
+Archiv spisu nese soubory úkonů spisu a všech spisů pod ním, aktuální verze, s verzemi všechny
+verze. Složky kopírují strom souborů spisu (SDD-009): v kořeni archivu leží složka každého
+podspisu a každého úkonu spisu, ve složce podspisu totéž o úroveň níž a ve složce úkonu jeho
+soubory pojmenované jako v archivu úkonu. Složka se jmenuje `<datum> <název>` jako v exportu
+(SDD-022); jméno, které už ve složce je, dostane „ (2)“ a další volné číslo. Složka bez souboru
+v archivu není. Archiv se jmenuje podle názvu spisu, prázdný nahradí `case files`; posílá se
+jako archiv úkonu. Neznámý nebo cizí spis je 404.
+
 Klik na řádek souboru otevře náhled aktuální verze; u typu bez náhledu ten řekne, že není
 k dispozici, a nabídne stažení. Stažení je obyčejné stažení prohlížečem a uloží soubor vždy,
 i starší verzi pod jménem souboru. Vedle toho nese řádek hvězdu hlavního souboru, stažení

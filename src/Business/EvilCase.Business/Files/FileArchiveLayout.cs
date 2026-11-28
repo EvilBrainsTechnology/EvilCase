@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
+using EvilBrains.EvilCase.Api.Contract.Cases;
 using EvilBrains.EvilCase.Api.Contract.Files;
+using EvilBrains.EvilCase.Business.Export;
 
 namespace EvilBrains.EvilCase.Business.Files;
 
@@ -9,9 +11,11 @@ namespace EvilBrains.EvilCase.Business.Files;
 /// </summary>
 internal static partial class FileArchiveLayout
 {
-    private const string EntryFallback = "file";
+    public const string ActArchiveFallback = "act files";
 
-    private const string ArchiveFallback = "act files";
+    public const string CaseArchiveFallback = "case files";
+
+    private const string EntryFallback = "file";
 
     /// <summary>
     /// The zone an entry's time is written in: a zip entry's time carries no zone, and an archive is unpacked in Czechia.
@@ -26,9 +30,9 @@ internal static partial class FileArchiveLayout
         return TimeZoneInfo.ConvertTime(new DateTimeOffset(utc.Ticks, TimeSpan.Zero), Prague);
     }
 
-    public static string ArchiveName(string title, bool includeVersions)
+    public static string ArchiveName(string title, string fallback, bool includeVersions)
     {
-        var name = FileNameRules.SafeFileName(title, ArchiveFallback);
+        var name = FileNameRules.SafeFileName(title, fallback);
 
         return includeVersions ? $"{name} (with versions).zip" : $"{name}.zip";
     }
@@ -66,6 +70,48 @@ internal static partial class FileArchiveLayout
         }
 
         return entries;
+    }
+
+    /// <summary>
+    /// The files of a case tree in folders that follow the tree: a folder per sub-case and per act, named as in the
+    /// tenant export, the act's files in its folder as <see cref="Entries"/> names them. The case's own sub-cases and
+    /// acts stand at the archive's root; a folder without a file is left out and claims no name.
+    /// </summary>
+    public static List<FileArchiveEntry> CaseEntries(CaseFileTree tree, IReadOnlyList<ArchivedVersion> versions, bool includeVersions)
+    {
+        var fileVersions = versions.ToLookup(static version => version.FileId);
+
+        List<FileArchiveEntry> CaseFolder(CaseFileTree node)
+        {
+            var claimed = ClaimedNames();
+            var entries = new List<FileArchiveEntry>();
+
+            void AddFolder(string folder, List<FileArchiveEntry> folderEntries)
+            {
+                if (folderEntries.Count == 0)
+                    return;
+
+                var path = ClaimFolderName(claimed, folder) + "/";
+
+                entries.AddRange(folderEntries.Select(entry => entry with { EntryName = path + entry.EntryName }));
+            }
+
+            foreach (var subCase in node.SubCases)
+                AddFolder(TenantExportLayout.FolderName(subCase.Case.Date, subCase.Case.Title, TenantExportLayout.CaseFallback), CaseFolder(subCase));
+
+            foreach (var act in node.Acts)
+            {
+                var actVersions = act.Files
+                    .SelectMany(file => fileVersions[file.FileId])
+                    .ToList();
+
+                AddFolder(TenantExportLayout.FolderName(act.Act.Date, act.Act.Title, TenantExportLayout.ActFallback), Entries(actVersions, includeVersions));
+            }
+
+            return entries;
+        }
+
+        return CaseFolder(tree);
     }
 
     /// <summary>

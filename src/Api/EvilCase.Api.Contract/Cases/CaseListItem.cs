@@ -13,6 +13,8 @@ public sealed record CaseListItem
 
     public required string Title { get; init; }
 
+    public Guid? ParentCaseId { get; init; }
+
     /// <summary>
     /// The title of the parent case; null for a root case.
     /// </summary>
@@ -29,4 +31,9 @@ public sealed record CaseListItem
     public required DateTime Changed { get; init; }
 
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
+
+    /// <summary>
+    /// Whether an act of this case or of a case below it holds a file.
+    /// </summary>
+    public bool HasFiles { get; init; }
 }

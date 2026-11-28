@@ -90,6 +90,49 @@ public class FileArchiveReaderTests : TenantFixture
     }
 
     [Test]
+    public async Task ACaseArchiveHoldsTheFilesOfItsTreeInFoldersThatFollowIt()
+    {
+        var root = await this.Tenant.AddCase(Day, "Přestupek");
+        var appeal = await this.Tenant.AddCase(new DateOnly(2026, 9, 1), "Odvolání", parentCaseId: root.Id);
+        var objection = await this.Tenant.AddCase(new DateOnly(2026, 9, 3), "Námitka", parentCaseId: appeal.Id);
+        var filing = await this.Tenant.AddAct(root, new DateOnly(2026, 9, 2), "Podání");
+        var smlouva = this.Stored(await this.Tenant.AddActFile(filing, "Smlouva.pdf"), "smlouva 1");
+        this.Stored(await this.Tenant.AddFileVersion(smlouva), "smlouva 2");
+        this.Stored(await this.Tenant.AddActFile(await this.Tenant.AddAct(objection, Day, "Námitka"), "Námitka.pdf"), "namitka");
+        await this.Tenant.AddAct(appeal, Day, "Bez souborů");
+
+        var current = await this.reader.ReadCaseFileArchive(root.Id, includeVersions: false, CancellationToken.None);
+        var all = await this.reader.ReadCaseFileArchive(root.Id, includeVersions: true, CancellationToken.None);
+        var entries = await this.Unpack(current!);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(current!.FileName, Is.EqualTo("Přestupek.zip"));
+            Assert.That(
+                entries.Keys,
+                Is.EqualTo(["2026-09-01 Odvolání/2026-09-03 Námitka/2026-08-21 Námitka/Námitka.pdf", "2026-09-02 Podání/Smlouva.pdf"]),
+                "sub-case folders first, then act folders; a folder without a file is left out");
+            Assert.That(entries["2026-09-02 Podání/Smlouva.pdf"], Is.EqualTo("smlouva 2"), "the current version");
+            Assert.That(all!.FileName, Is.EqualTo("Přestupek (with versions).zip"));
+            Assert.That(all.Entries.Select(static entry => entry.EntryName), Does.Contain("2026-09-02 Podání/Smlouva (version 1).pdf"));
+        }
+    }
+
+    [Test]
+    public async Task AnUnknownOrForeignCaseHasNoArchive()
+    {
+        await using var other = await TestTenant.Create();
+        var otherCase = await other.AddCase(Day);
+        await other.AddActFile(await other.AddAct(otherCase, Day));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(await this.reader.ReadCaseFileArchive(otherCase.Id, includeVersions: false, CancellationToken.None), Is.Null, "the case id alone never reaches another tenant's files");
+            Assert.That(await this.reader.ReadCaseFileArchive(Guid.CreateVersion7(), includeVersions: false, CancellationToken.None), Is.Null);
+        }
+    }
+
+    [Test]
     public async Task AnActWithoutFilesGetsAnEmptyArchive()
     {
         var act = await this.Tenant.AddAct(await this.Tenant.AddCase(Day), Day);

@@ -1,4 +1,8 @@
+using EvilBrains.EvilCase.Api.Contract.Acts;
+using EvilBrains.EvilCase.Api.Contract.Cases;
+using EvilBrains.EvilCase.Api.Contract.Files;
 using EvilBrains.EvilCase.Business.Files;
+using EvilBrains.EvilCase.Domain.Cases;
 
 namespace EvilBrains.EvilCase.Tests.Files;
 
@@ -85,7 +89,7 @@ public class FileArchiveLayoutTests
     [TestCase(" . ", true, "act files (with versions).zip")]
     public void TheArchiveIsNamedAfterItsAct(string title, bool includeVersions, string expected)
     {
-        Assert.That(FileArchiveLayout.ArchiveName(title, includeVersions), Is.EqualTo(expected));
+        Assert.That(FileArchiveLayout.ArchiveName(title, FileArchiveLayout.ActArchiveFallback, includeVersions), Is.EqualTo(expected));
     }
 
     [Test]
@@ -110,6 +114,74 @@ public class FileArchiveLayoutTests
     public void AnOwnerWithoutFilesHasNoEntries()
     {
         Assert.That(FileArchiveLayout.Entries([], includeVersions: true), Is.Empty);
+    }
+
+    [Test]
+    public void ACaseFolderWithoutFilesClaimsNoNameBesideItsNamesakes()
+    {
+        var day = new DateOnly(2026, 9, 2);
+        var smlouva = Guid.NewGuid();
+        var navrh = Guid.NewGuid();
+        var zprava = Guid.NewGuid();
+        var tree = CaseNode(
+            day,
+            [CaseNode(day, [], [ActNode(day, "Podání", [])]), CaseNode(day, [], [ActNode(day, "Podání", [smlouva])])],
+            [ActNode(day, "Podání", []), ActNode(day, "Podání", [navrh]), ActNode(day, "podání", [zprava])]);
+
+        var entries = FileArchiveLayout.CaseEntries(tree, [Version(smlouva, "Smlouva.pdf", 1), Version(navrh, "Návrh.docx", 1), Version(zprava, "Zpráva.pdf", 1)], includeVersions: false);
+
+        Assert.That(
+            entries.Select(static entry => entry.EntryName),
+            Is.EqualTo(["2026-09-02 Spis/2026-09-02 Podání/Smlouva.pdf", "2026-09-02 Podání/Návrh.docx", "2026-09-02 podání (2)/Zpráva.pdf"]),
+            "a folder without a file is not in the archive, so its name stays free; a taken name, ignoring case, gets the next free number");
+    }
+
+    private static CaseFileTree CaseNode(DateOnly date, IReadOnlyList<CaseFileTree> subCases, IReadOnlyList<ActFileTree> acts)
+    {
+        return new CaseFileTree
+        {
+            Case = new CaseListItem
+            {
+                CaseId = Guid.NewGuid(),
+                CaseNumber = "1",
+                Title = "Spis",
+                Date = date,
+                Status = CaseStatus.Active,
+                Changed = Moment,
+            },
+            SubCases = subCases,
+            Acts = acts,
+        };
+    }
+
+    private static ActFileTree ActNode(DateOnly date, string title, IReadOnlyList<Guid> fileIds)
+    {
+        return new ActFileTree
+        {
+            Act = new ActListItem
+            {
+                ActId = Guid.NewGuid(),
+                CaseId = Guid.NewGuid(),
+                CaseNumber = "1",
+                CaseTitle = "Spis",
+                ActNumber = "1",
+                Title = title,
+                Date = date,
+                Changed = Moment,
+            },
+            Files =
+            [
+                .. fileIds.Select(static fileId => new FileListItem
+                {
+                    FileId = fileId,
+                    FileName = "",
+                    SizeBytes = 1,
+                    Created = Moment,
+                    Version = 1,
+                    VersionCount = 1,
+                }),
+            ],
+        };
     }
 
     private static ArchivedVersion Version(Guid fileId, string fileName, int number)

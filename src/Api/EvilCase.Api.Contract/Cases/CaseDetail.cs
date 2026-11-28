@@ -30,4 +30,14 @@ public sealed record CaseDetail
     public IReadOnlyList<CaseCrumb> Ancestors { get; init; } = [];
 
     public IReadOnlyList<LabelItem> Labels { get; init; } = [];
+
+    /// <summary>
+    /// The files of the acts of this case and of every case below it.
+    /// </summary>
+    public int FileCount { get; init; }
+
+    /// <summary>
+    /// The acts holding the <see cref="FileCount"/> files.
+    /// </summary>
+    public int FileActCount { get; init; }
 }

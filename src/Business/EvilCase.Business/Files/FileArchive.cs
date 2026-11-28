@@ -1,11 +1,14 @@
 namespace EvilBrains.EvilCase.Business.Files;
 
 /// <summary>
-/// The files of one act as one zip archive, its entries in the order they are written.
+/// The files of one act or one case tree as one zip archive, its entries in the order they are written.
 /// </summary>
 public sealed record FileArchive
 {
-    public required Guid ActId { get; init; }
+    /// <summary>
+    /// The act or the case whose files the archive holds.
+    /// </summary>
+    public required Guid OwnerId { get; init; }
 
     public required string FileName { get; init; }
 
